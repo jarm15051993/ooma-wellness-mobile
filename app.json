@@ -1,30 +1,74 @@
 {
   "expo": {
-    "name": "ooma-wellness-mobile",
+    "name": "Ooma Wellness",
     "slug": "ooma-wellness-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "ooma",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FAF9F6"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ooma.wellness",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Used to scan QR codes and update your profile photo.",
+        "NSPhotoLibraryUsageDescription": "Used to select a profile photo.",
+        "NSCalendarsUsageDescription": "Used to add classes to your calendar."
+      }
     },
     "android": {
+      "package": "com.ooma.wellness",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FAF9F6",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundImage": "./assets/android-icon-background.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "CAMERA",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-dev-client",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Used to scan QR codes and take profile photos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Used to select a profile photo."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#8B2635"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Used to add classes to your calendar."
+        }
+      ],
+      "expo-font"
+    ]
   }
 }
