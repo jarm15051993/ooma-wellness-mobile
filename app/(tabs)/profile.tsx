@@ -25,9 +25,20 @@ import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
-  const expiryLabel = pkg.expiresAt
-    ? `Expires ${format(new Date(pkg.expiresAt), 'MMM d, yyyy')}`
-    : 'No expiry'
+  let expiryLabel: string
+  if (muted) {
+    if (pkg.expiredReason === 'classes_used') {
+      expiryLabel = 'All classes were used'
+    } else if (pkg.expiresAt) {
+      expiryLabel = `Expired on ${format(new Date(pkg.expiresAt), 'MMM d, yyyy')}`
+    } else {
+      expiryLabel = 'Expired'
+    }
+  } else {
+    expiryLabel = pkg.expiresAt
+      ? `Expires ${format(new Date(pkg.expiresAt), 'MMM d, yyyy')}`
+      : 'No expiry'
+  }
   const progress = pkg.classesTotal > 0 ? pkg.classesRemaining / pkg.classesTotal : 0
 
   return (
@@ -62,6 +73,7 @@ type UserPackage = {
   classesRemaining: number
   purchasedAt: string
   expiresAt: string | null
+  expiredReason?: 'classes_used' | 'date_expired'
 }
 
 export default function ProfileScreen() {
@@ -263,6 +275,16 @@ export default function ProfileScreen() {
         <View style={styles.packagesSection}>
           <Text style={styles.sectionLabel}>MY PACKAGES</Text>
           <View style={styles.creditsDivider} />
+
+          {/* Total classes remaining — always visible */}
+          {!loadingPackages && (
+            <View style={styles.totalClassesRow}>
+              <Text style={styles.totalClassesNumber}>
+                {activePackages.reduce((sum, p) => sum + p.classesRemaining, 0)}
+              </Text>
+              <Text style={styles.totalClassesLabel}>classes remaining</Text>
+            </View>
+          )}
 
           {loadingPackages ? (
             <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
@@ -476,6 +498,24 @@ const styles = StyleSheet.create({
     backgroundColor: C.rule,
     alignSelf: 'stretch',
     marginBottom: 12,
+  },
+  totalClassesRow: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  totalClassesNumber: {
+    fontFamily: F.serifBold,
+    fontSize: 56,
+    color: C.burg,
+    lineHeight: 60,
+  },
+  totalClassesLabel: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.midGray,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
   emptyPackagesText: {
     fontFamily: F.sansReg,
