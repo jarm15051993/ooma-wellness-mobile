@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import CancelBookingModal from '@/components/CancelBookingModal'
+import BuyClassesModal from '@/components/BuyClassesModal'
 import Toast from '@/components/Toast'
 
 type ClassItem = {
@@ -74,11 +75,17 @@ export default function ClassesScreen() {
   const [cancelTarget, setCancelTarget] = useState<ClassItem | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
+  const [userCredits, setUserCredits] = useState(0)
+  const [buyTarget, setBuyTarget] = useState<string | null>(null) // classId that triggered "Buy More Classes"
 
   async function fetchClasses() {
     try {
-      const { data } = await api.get('/api/mobile/classes')
-      setClasses(data.classes)
+      const [classesRes, creditsRes] = await Promise.all([
+        api.get('/api/mobile/classes'),
+        api.get('/api/mobile/credits'),
+      ])
+      setClasses(classesRes.data.classes)
+      setUserCredits(creditsRes.data.totalCredits ?? 0)
     } catch (err: any) {
       if (err.response?.status !== 401) {
         Alert.alert('Error', err.response?.data?.error ?? 'Failed to load classes')
@@ -279,28 +286,38 @@ export default function ClassesScreen() {
 
                   <View style={styles.cardActions}>
                     {item.isBooked ? (
+                      // Case 2: already booked → Cancel Class
                       <TouchableOpacity
                         style={[styles.cancelBtn, isActing && styles.btnDisabled]}
                         onPress={() => setCancelTarget(item)}
                         disabled={isActing}
                       >
-                        <Text style={styles.cancelBtnText}>Booked ✓</Text>
+                        <Text style={styles.cancelBtnText}>CANCEL CLASS</Text>
                       </TouchableOpacity>
-                    ) : (
+                    ) : item.isFull ? (
+                      // Class is full — disabled
+                      <TouchableOpacity style={[styles.bookBtn, styles.btnDisabled]} disabled>
+                        <Text style={styles.bookBtnText}>CLASS FULL</Text>
+                      </TouchableOpacity>
+                    ) : userCredits > 0 ? (
+                      // Case 1: has balance → Book
                       <TouchableOpacity
-                        style={[
-                          styles.bookBtn,
-                          (item.isFull || isActing) && styles.btnDisabled,
-                        ]}
+                        style={[styles.bookBtn, isActing && styles.btnDisabled]}
                         onPress={() => handleBook(item.id)}
-                        disabled={item.isFull || isActing}
+                        disabled={isActing}
                       >
                         {isActing
                           ? <ActivityIndicator size="small" color={C.cream} />
-                          : <Text style={styles.bookBtnText}>
-                              {item.isFull ? 'CLASS FULL' : 'BOOK'}
-                            </Text>
+                          : <Text style={styles.bookBtnText}>BOOK</Text>
                         }
+                      </TouchableOpacity>
+                    ) : (
+                      // Case 3: no balance → Buy More Classes
+                      <TouchableOpacity
+                        style={styles.buyMoreBtn}
+                        onPress={() => setBuyTarget(item.id)}
+                      >
+                        <Text style={styles.buyMoreBtnText}>BUY MORE CLASSES</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -320,6 +337,21 @@ export default function ClassesScreen() {
           onConfirm={handleCancelConfirm}
         />
       )}
+
+      <BuyClassesModal
+        visible={buyTarget !== null}
+        pendingClassId={buyTarget}
+        onClose={() => setBuyTarget(null)}
+        onPurchaseAndBooked={() => {
+          setBuyTarget(null)
+          fetchClasses()
+          setToast({ visible: true, message: 'Payment successful — class booked!' })
+        }}
+        onPurchaseOnly={() => {
+          setBuyTarget(null)
+          fetchClasses()
+        }}
+      />
 
       <Toast
         message={toast.message}
@@ -535,6 +567,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.burg,
     letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  buyMoreBtn: {
+    height: 42,
+    backgroundColor: C.burg,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buyMoreBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
     textTransform: 'uppercase',
   },
   btnDisabled: {
