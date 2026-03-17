@@ -108,6 +108,7 @@ export default function ClassesScreen() {
     try {
       await api.post('/api/bookings', { classId })
       await fetchClasses()
+      setToast({ visible: true, message: 'Class booked!' })
     } catch (err: any) {
       Alert.alert('Booking failed', err.response?.data?.error ?? 'Something went wrong')
     } finally {
@@ -350,6 +351,7 @@ export default function ClassesScreen() {
         onPurchaseOnly={() => {
           setBuyTarget(null)
           fetchClasses()
+          setToast({ visible: true, message: 'Payment successful — credits added!' })
         }}
       />
 

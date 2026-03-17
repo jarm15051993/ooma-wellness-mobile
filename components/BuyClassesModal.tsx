@@ -72,17 +72,12 @@ export default function BuyClassesModal({
           await api.post('/api/bookings', { classId: pendingClassId })
           onClose()
           onPurchaseAndBooked?.()
-        } catch (bookErr: any) {
-          // Purchase succeeded but auto-book failed — inform user
-          Alert.alert(
-            'Credits added',
-            'Your payment was successful but we couldn\'t book the class automatically. Please book it manually.',
-          )
+        } catch {
+          // Purchase succeeded but auto-book failed — let parent handle messaging
           onClose()
           onPurchaseOnly?.()
         }
       } else {
-        Alert.alert('Payment successful', 'Your credits have been added to your account.')
         onClose()
         onPurchaseOnly?.()
       }
