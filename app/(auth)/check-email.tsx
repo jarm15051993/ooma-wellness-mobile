@@ -30,21 +30,24 @@ export default function CheckEmailScreen() {
         const supported = await Linking.canOpenURL('message://')
         if (supported) {
           await Linking.openURL('message://')
-          return
         }
-      } else {
-        // Android: launch Gmail via intent (opens inbox, not compose)
-        const gmailIntent = 'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.gm;end'
-        const supported = await Linking.canOpenURL(gmailIntent)
-        if (supported) {
-          await Linking.openURL(gmailIntent)
-          return
-        }
-        // Fallback: any mail app via intent
-        await Linking.openURL('intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end')
         return
+      } else {
+        // Android: canOpenURL always returns false for intent URIs — skip check, call directly
+        try {
+          await Linking.openURL('intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.gm;end')
+          return
+        } catch {
+          // Gmail not installed — fall through to generic mail intent
+        }
+        try {
+          await Linking.openURL('intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end')
+          return
+        } catch {
+          // No mail app at all
+          throw new Error('no mail app')
+        }
       }
-      await Linking.openURL('mailto:')
     } catch {
       Alert.alert('No mail app found', 'Please open your email app manually and check your inbox.')
     }
