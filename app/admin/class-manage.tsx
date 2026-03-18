@@ -152,7 +152,7 @@ export default function ClassManageScreen() {
         const now = new Date()
         const start = new Date(cls.startTime)
         const end   = new Date(cls.endTime)
-        const windowOpen = new Date(start.getTime() - 60 * 60 * 1000)
+        const windowOpen = new Date(start.getTime() - 2 * 60 * 60 * 1000)
         const isActive  = now >= windowOpen && now <= end
         const isEnded   = now > end
 
