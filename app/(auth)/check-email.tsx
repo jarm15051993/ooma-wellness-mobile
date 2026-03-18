@@ -33,14 +33,17 @@ export default function CheckEmailScreen() {
           return
         }
       } else {
-        // Opens Gmail inbox on Android
-        const supported = await Linking.canOpenURL('googlegmail://')
+        // Android: launch Gmail via intent (opens inbox, not compose)
+        const gmailIntent = 'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.gm;end'
+        const supported = await Linking.canOpenURL(gmailIntent)
         if (supported) {
-          await Linking.openURL('googlegmail://')
+          await Linking.openURL(gmailIntent)
           return
         }
+        // Fallback: any mail app via intent
+        await Linking.openURL('intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end')
+        return
       }
-      // Fallback: mailto opens compose view but at least lands in a mail app
       await Linking.openURL('mailto:')
     } catch {
       Alert.alert('No mail app found', 'Please open your email app manually and check your inbox.')
