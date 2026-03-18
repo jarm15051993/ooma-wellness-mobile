@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet,
   ActivityIndicator, Linking, Alert, Platform,
 } from 'react-native'
+import * as IntentLauncher from 'expo-intent-launcher'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { api } from '@/lib/api'
@@ -33,18 +34,21 @@ export default function CheckEmailScreen() {
         }
         return
       } else {
-        // Android: canOpenURL always returns false for intent URIs — skip check, call directly
+        // Android: use IntentLauncher to open Gmail inbox (not compose)
         try {
-          await Linking.openURL('intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.gm;end')
+          await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
+            packageName: 'com.google.android.gm',
+          })
           return
         } catch {
-          // Gmail not installed — fall through to generic mail intent
+          // Gmail not installed — fall back to system mail chooser
         }
         try {
-          await Linking.openURL('intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end')
+          await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
+            category: 'android.intent.category.APP_EMAIL',
+          })
           return
         } catch {
-          // No mail app at all
           throw new Error('no mail app')
         }
       }
