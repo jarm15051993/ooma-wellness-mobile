@@ -76,18 +76,6 @@ type UserPackage = {
   expiredReason?: 'classes_used' | 'date_expired'
 }
 
-type PastClass = {
-  bookingId: string
-  class: {
-    title: string
-    startsAt: string
-    instructor: string | null
-    durationMins: number
-  }
-  stretcherNumber: number
-  attendedAt: string | null
-}
-
 export default function ProfileScreen() {
   const router = useRouter()
   const { user, signOut, refreshUser } = useAuth()
@@ -95,8 +83,6 @@ export default function ProfileScreen() {
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
   const [showExpired, setShowExpired] = useState(false)
-  const [pastClasses, setPastClasses] = useState<PastClass[]>([])
-  const [loadingHistory, setLoadingHistory] = useState(true)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [photoVersion, setPhotoVersion] = useState(Date.now())
   const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
@@ -120,20 +106,7 @@ export default function ProfileScreen() {
         }
       }
 
-      async function fetchHistory() {
-        setLoadingHistory(true)
-        try {
-          const { data } = await api.get('/api/mobile/bookings/history')
-          setPastClasses(data.history)
-        } catch {
-          // silently ignore
-        } finally {
-          setLoadingHistory(false)
-        }
-      }
-
       fetchPackages()
-      fetchHistory()
     }, [])
   )
 
@@ -397,34 +370,6 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Past Classes */}
-        <View style={styles.packagesSection}>
-          <Text style={styles.sectionLabel}>PAST CLASSES</Text>
-          <View style={styles.creditsDivider} />
-          {loadingHistory ? (
-            <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
-          ) : pastClasses.length === 0 ? (
-            <Text style={styles.emptyPackagesText}>No attended classes yet.</Text>
-          ) : (
-            pastClasses.map((item) => (
-              <View key={item.bookingId} style={styles.pastClassRow}>
-                <View style={styles.pastClassLeft}>
-                  <Text style={styles.pastClassName}>{item.class.title}</Text>
-                  <Text style={styles.pastClassMeta}>
-                    {format(new Date(item.class.startsAt), 'EEE, MMM d · h:mm a')}
-                  </Text>
-                  {item.class.instructor ? (
-                    <Text style={styles.pastClassMeta}>{item.class.instructor}</Text>
-                  ) : null}
-                </View>
-                <Text style={styles.pastClassReformer}>
-                  Reformer {item.stretcherNumber}
-                </Text>
-              </View>
-            ))
-          )}
-        </View>
-
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
           <Text style={styles.signOutText}>SIGN OUT</Text>
@@ -656,18 +601,6 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
-  pastClassRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: C.rule,
-  },
-  pastClassLeft: { flex: 1, marginRight: 12 },
-  pastClassName: { fontFamily: F.sansMed, fontSize: 14, color: C.ink, marginBottom: 2 },
-  pastClassMeta: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
-  pastClassReformer: { fontFamily: F.sansMed, fontSize: 12, color: C.burg },
   signOutBtn: {
     height: 48,
     borderWidth: 1,

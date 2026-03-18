@@ -44,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'My Bookings',
+          title: 'My Classes',
           tabBarIcon: ({ color }) => <TabIcon label="Bookings" color={color} />,
         }}
       />

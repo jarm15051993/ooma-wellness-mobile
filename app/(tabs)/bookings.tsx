@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { format } from 'date-fns'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import CancelBookingModal from '@/components/CancelBookingModal'
@@ -32,30 +33,41 @@ type Booking = {
   class: ClassInfo
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+type PastClass = {
+  bookingId: string
+  class: {
+    title: string
+    startsAt: string
+    instructor: string | null
+    durationMins: number
+  }
+  stretcherNumber: number
+  attendedAt: string | null
 }
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-}
+type Tab = 'upcoming' | 'past'
 
 export default function BookingsScreen() {
+  const [activeTab, setActiveTab] = useState<Tab>('upcoming')
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [pastClasses, setPastClasses] = useState<PastClass[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
 
-  async function fetchBookings() {
+  async function fetchAll() {
     try {
-      const { data } = await api.get('/api/mobile/bookings')
-      setBookings(data.bookings)
+      const [bookingsRes, historyRes] = await Promise.all([
+        api.get('/api/mobile/bookings'),
+        api.get('/api/mobile/bookings/history'),
+      ])
+      setBookings(bookingsRes.data.bookings)
+      setPastClasses(historyRes.data.history)
     } catch (err: any) {
       if (err.response?.status !== 401) {
-        Alert.alert('Error', err.response?.data?.error ?? 'Failed to load bookings')
+        Alert.alert('Error', err.response?.data?.error ?? 'Failed to load classes')
       }
     } finally {
       setLoading(false)
@@ -66,7 +78,7 @@ export default function BookingsScreen() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true)
-      fetchBookings()
+      fetchAll()
     }, [])
   )
 
@@ -75,7 +87,7 @@ export default function BookingsScreen() {
     setCancelling(true)
     try {
       const { data } = await api.patch(`/api/bookings/${cancelTarget.id}/cancel`)
-      await fetchBookings()
+      await fetchAll()
       setCancelTarget(null)
       setToast({
         visible: true,
@@ -90,35 +102,82 @@ export default function BookingsScreen() {
     }
   }
 
-  function renderBooking({ item }: { item: Booking }) {
+  function renderUpcoming({ item }: { item: Booking }) {
     return (
       <View style={styles.card}>
         <View style={styles.cardTop}>
           <Text style={styles.classTitle}>{item.class.title}</Text>
           <View style={styles.reformerBadge}>
-            <Text style={styles.reformerBadgeText}>Reformer #{item.stretcherNumber}</Text>
+            <Text style={styles.reformerBadgeText}>Reformer {item.stretcherNumber}</Text>
           </View>
         </View>
-
-        <Text style={styles.dateText}>{formatDate(item.class.startTime)}</Text>
+        <Text style={styles.dateText}>
+          {format(new Date(item.class.startTime), 'EEEE, MMMM d')}
+        </Text>
         <Text style={styles.timeText}>
-          {formatTime(item.class.startTime)} – {formatTime(item.class.endTime)}
+          {format(new Date(item.class.startTime), 'h:mm a')} –{' '}
+          {format(new Date(item.class.endTime), 'h:mm a')}
         </Text>
         {item.class.instructor ? (
           <Text style={styles.instructorText}>{item.class.instructor}</Text>
         ) : null}
-
         <View style={styles.divider} />
-
-        <TouchableOpacity
-          style={styles.cancelBtn}
-          onPress={() => setCancelTarget(item)}
-        >
-          <Text style={styles.cancelBtnText}>CANCEL BOOKING</Text>
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => setCancelTarget(item)}>
+          <Text style={styles.cancelBtnText}>CANCEL CLASS</Text>
         </TouchableOpacity>
       </View>
     )
   }
+
+  function renderPast({ item }: { item: PastClass }) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardTop}>
+          <Text style={styles.classTitle}>{item.class.title}</Text>
+          <View style={styles.attendedBadge}>
+            <Text style={styles.attendedBadgeText}>ATTENDED</Text>
+          </View>
+        </View>
+        <Text style={styles.dateText}>
+          {format(new Date(item.class.startsAt), 'EEEE, MMMM d')}
+        </Text>
+        <Text style={styles.timeText}>
+          {format(new Date(item.class.startsAt), 'h:mm a')} · {item.class.durationMins} min
+        </Text>
+        {item.class.instructor ? (
+          <Text style={styles.instructorText}>{item.class.instructor}</Text>
+        ) : null}
+        <Text style={styles.reformerText}>Reformer {item.stretcherNumber}</Text>
+      </View>
+    )
+  }
+
+  const header = (
+    <>
+      <View style={styles.headingRow}>
+        <Text style={styles.headingRegular}>My </Text>
+        <Text style={styles.headingItalic}>Classes</Text>
+      </View>
+      <View style={styles.toggle}>
+        <TouchableOpacity
+          style={[styles.toggleBtn, activeTab === 'upcoming' && styles.toggleBtnActive]}
+          onPress={() => setActiveTab('upcoming')}
+        >
+          <Text style={[styles.toggleBtnText, activeTab === 'upcoming' && styles.toggleBtnTextActive]}>
+            UPCOMING
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleBtn, activeTab === 'past' && styles.toggleBtnActive]}
+          onPress={() => setActiveTab('past')}
+        >
+          <Text style={[styles.toggleBtnText, activeTab === 'past' && styles.toggleBtnTextActive]}>
+            PAST
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </>
+  )
 
   if (loading) {
     return (
@@ -130,35 +189,57 @@ export default function BookingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <FlatList
-        data={bookings}
-        keyExtractor={item => item.id}
-        renderItem={renderBooking}
-        contentContainerStyle={[
-          styles.listContent,
-          bookings.length === 0 && styles.emptyContainer,
-        ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchBookings() }}
-            tintColor={C.burg}
-          />
-        }
-        ListHeaderComponent={
-          <View style={styles.headingRow}>
-            <Text style={styles.headingRegular}>My </Text>
-            <Text style={styles.headingItalic}>Bookings</Text>
-          </View>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No upcoming bookings.</Text>
-            <Text style={styles.emptySubtext}>Browse classes to book your next session.</Text>
-          </View>
-        }
-      />
+      {activeTab === 'upcoming' ? (
+        <FlatList
+          data={bookings}
+          keyExtractor={item => item.id}
+          renderItem={renderUpcoming}
+          contentContainerStyle={[
+            styles.listContent,
+            bookings.length === 0 && styles.emptyContainer,
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => { setRefreshing(true); fetchAll() }}
+              tintColor={C.burg}
+            />
+          }
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No upcoming classes.</Text>
+              <Text style={styles.emptySubtext}>Browse classes to book your next session.</Text>
+            </View>
+          }
+        />
+      ) : (
+        <FlatList
+          data={pastClasses}
+          keyExtractor={item => item.bookingId}
+          renderItem={renderPast}
+          contentContainerStyle={[
+            styles.listContent,
+            pastClasses.length === 0 && styles.emptyContainer,
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => { setRefreshing(true); fetchAll() }}
+              tintColor={C.burg}
+            />
+          }
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No past classes yet.</Text>
+              <Text style={styles.emptySubtext}>Attended classes will appear here.</Text>
+            </View>
+          }
+        />
+      )}
 
       {cancelTarget && (
         <CancelBookingModal
@@ -180,40 +261,41 @@ export default function BookingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: C.cream,
-  },
-  centered: {
-    flex: 1,
-    backgroundColor: C.cream,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    paddingTop: 8,
-  },
-  emptyContainer: {
-    flexGrow: 1,
-  },
+  safe: { flex: 1, backgroundColor: C.cream },
+  centered: { flex: 1, backgroundColor: C.cream, alignItems: 'center', justifyContent: 'center' },
+  listContent: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 },
+  emptyContainer: { flexGrow: 1 },
   headingRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     marginBottom: 20,
     marginTop: 8,
   },
-  headingRegular: {
-    fontFamily: F.serifReg,
-    fontSize: 32,
-    color: C.ink,
+  headingRegular: { fontFamily: F.serifReg, fontSize: 32, color: C.ink },
+  headingItalic: { fontFamily: F.serif, fontSize: 32, color: C.burg },
+  toggle: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 2,
+    marginBottom: 20,
+    overflow: 'hidden',
   },
-  headingItalic: {
-    fontFamily: F.serif,
-    fontSize: 32,
-    color: C.burg,
+  toggleBtn: {
+    flex: 1,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.warmWhite,
   },
+  toggleBtnActive: { backgroundColor: C.ink },
+  toggleBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.midGray,
+    letterSpacing: 1.5,
+  },
+  toggleBtnTextActive: { color: C.cream },
   card: {
     backgroundColor: C.warmWhite,
     borderWidth: 1,
@@ -229,12 +311,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  classTitle: {
-    fontFamily: F.serifBold,
-    fontSize: 18,
-    color: C.ink,
-    flex: 1,
-  },
+  classTitle: { fontFamily: F.serifBold, fontSize: 18, color: C.ink, flex: 1 },
   reformerBadge: {
     backgroundColor: C.burgPale,
     borderRadius: 2,
@@ -242,34 +319,20 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     flexShrink: 0,
   },
-  reformerBadgeText: {
-    fontFamily: F.sansMed,
-    fontSize: 10,
-    color: C.burg,
-    letterSpacing: 0.5,
+  reformerBadgeText: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.5 },
+  attendedBadge: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    flexShrink: 0,
   },
-  dateText: {
-    fontFamily: F.sansReg,
-    fontSize: 13,
-    color: C.midGray,
-    marginBottom: 2,
-  },
-  timeText: {
-    fontFamily: F.sansReg,
-    fontSize: 13,
-    color: C.midGray,
-    marginBottom: 2,
-  },
-  instructorText: {
-    fontFamily: F.sansReg,
-    fontSize: 12,
-    color: C.lightGray,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: C.rule,
-    marginVertical: 14,
-  },
+  attendedBadgeText: { fontFamily: F.sansMed, fontSize: 10, color: '#15803D', letterSpacing: 0.5 },
+  dateText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
+  timeText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
+  instructorText: { fontFamily: F.sansReg, fontSize: 12, color: C.lightGray },
+  reformerText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, marginTop: 6 },
+  divider: { height: 1, backgroundColor: C.rule, marginVertical: 14 },
   cancelBtn: {
     height: 40,
     borderWidth: 1,
@@ -278,33 +341,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelBtnText: {
-    fontFamily: F.sansMed,
-    fontSize: 11,
-    color: C.burg,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  btnDisabled: {
-    opacity: 0.5,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontFamily: F.serifReg,
-    fontSize: 20,
-    color: C.ink,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontFamily: F.sansReg,
-    fontSize: 13,
-    color: C.midGray,
-    textAlign: 'center',
-  },
+  cancelBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.burg, letterSpacing: 2 },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  emptyText: { fontFamily: F.serifReg, fontSize: 20, color: C.ink, marginBottom: 8, textAlign: 'center' },
+  emptySubtext: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, textAlign: 'center' },
 })
