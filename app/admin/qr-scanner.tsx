@@ -47,13 +47,17 @@ export default function QrScannerScreen() {
     }
   }, [])
 
-  function showOverlay(message: string, color: string) {
+  function showOverlay(message: string, color: string, closeAfter = false) {
     setOverlay({ visible: true, message, color })
     Animated.timing(overlayOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start()
     dismissTimer.current = setTimeout(() => {
       Animated.timing(overlayOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => {
         setOverlay((o) => ({ ...o, visible: false }))
-        setPaused(false)
+        if (closeAfter) {
+          router.back()
+        } else {
+          setPaused(false)
+        }
       })
     }, 3000)
   }
@@ -85,7 +89,8 @@ export default function QrScannerScreen() {
       } else {
         showOverlay(
           `Attendance confirmed ✓\n${fullName}, Reformer ${attendee.stretcherNumber}`,
-          '#15803D'
+          '#15803D',
+          true
         )
       }
     } catch (err: any) {
