@@ -148,22 +148,55 @@ export default function ClassManageScreen() {
       </ScrollView>
 
       {/* Scan QR button */}
-      <View style={styles.fixedBottom}>
-        <TouchableOpacity
-          style={styles.scanBtn}
-          onPress={() =>
-            router.push({
-              pathname: '/admin/qr-scanner',
-              params: {
-                classId,
-                attendees: JSON.stringify(attendees),
-              },
-            })
-          }
-        >
-          <Text style={styles.scanBtnText}>SCAN QR TO VALIDATE</Text>
-        </TouchableOpacity>
-      </View>
+      {cls && (() => {
+        const now = new Date()
+        const start = new Date(cls.startTime)
+        const end   = new Date(cls.endTime)
+        const windowOpen = new Date(start.getTime() - 60 * 60 * 1000)
+        const isActive  = now >= windowOpen && now <= end
+        const isEnded   = now > end
+
+        if (isEnded) {
+          return (
+            <View style={styles.fixedBottom}>
+              <View style={[styles.scanBtn, styles.scanBtnDisabled]}>
+                <Text style={styles.scanBtnTextDisabled}>CLASS HAS ENDED</Text>
+              </View>
+            </View>
+          )
+        }
+
+        if (!isActive) {
+          return (
+            <View style={styles.fixedBottom}>
+              <View style={[styles.scanBtn, styles.scanBtnDisabled]}>
+                <Text style={styles.scanBtnTextDisabled}>
+                  VALIDATION OPENS AT {format(windowOpen, 'h:mm a')}
+                </Text>
+              </View>
+            </View>
+          )
+        }
+
+        return (
+          <View style={styles.fixedBottom}>
+            <TouchableOpacity
+              style={styles.scanBtn}
+              onPress={() =>
+                router.push({
+                  pathname: '/admin/qr-scanner',
+                  params: {
+                    classId,
+                    attendees: JSON.stringify(attendees),
+                  },
+                })
+              }
+            >
+              <Text style={styles.scanBtnText}>SCAN QR TO VALIDATE</Text>
+            </TouchableOpacity>
+          </View>
+        )
+      })()}
 
       {/* Attendee detail bottom sheet */}
       <Modal
@@ -280,7 +313,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  scanBtnDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
   scanBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.cream, letterSpacing: 2 },
+  scanBtnTextDisabled: { fontFamily: F.sansMed, fontSize: 11, color: C.midGray, letterSpacing: 1.5 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
