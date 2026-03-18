@@ -38,6 +38,7 @@ export default function CheckEmailScreen() {
         try {
           await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
             packageName: 'com.google.android.gm',
+            flags: 0x10000000, // FLAG_ACTIVITY_NEW_TASK — opens Gmail in its own task
           })
           return
         } catch {
@@ -46,6 +47,7 @@ export default function CheckEmailScreen() {
         try {
           await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
             category: 'android.intent.category.APP_EMAIL',
+            flags: 0x10000000,
           })
           return
         } catch {
