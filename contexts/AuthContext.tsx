@@ -17,10 +17,20 @@ type User = {
 type AuthContextType = {
   user: User | null
   token: string | null
+  isAdmin: boolean
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
+}
+
+function decodeJwtIsAdmin(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.isAdmin === true
+  } catch {
+    return false
+  }
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -28,15 +38,16 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Restore session on app launch
     async function restore() {
       try {
         const stored = await SecureStore.getItemAsync('access_token')
         if (stored) {
           setToken(stored)
+          setIsAdmin(decodeJwtIsAdmin(stored))
           const { data } = await api.get('/api/mobile/me')
           setUser(data.user)
         }
@@ -53,12 +64,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = await api.post('/api/mobile/auth/signin', { email, password })
     await SecureStore.setItemAsync('access_token', data.token)
     setToken(data.token)
+    setIsAdmin(decodeJwtIsAdmin(data.token))
     setUser(data.user)
   }
 
   async function signOut() {
     await SecureStore.deleteItemAsync('access_token')
     setToken(null)
+    setIsAdmin(false)
     setUser(null)
   }
 
@@ -68,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signIn, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, isAdmin, isLoading, signIn, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

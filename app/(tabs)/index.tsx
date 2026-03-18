@@ -9,13 +9,14 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import CancelBookingModal from '@/components/CancelBookingModal'
 import BuyClassesModal from '@/components/BuyClassesModal'
 import Toast from '@/components/Toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 type ClassItem = {
   id: string
@@ -64,6 +65,8 @@ function availabilityBadge(item: ClassItem): { label: string; bg: string; text: 
 }
 
 export default function ClassesScreen() {
+  const { isAdmin } = useAuth()
+  const router = useRouter()
   const today = new Date()
   const [classes, setClasses] = useState<ClassItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -286,7 +289,15 @@ export default function ClassesScreen() {
                   ) : null}
 
                   <View style={styles.cardActions}>
-                    {item.isBooked ? (
+                    {isAdmin ? (
+                      // Admin view — Manage Class
+                      <TouchableOpacity
+                        style={styles.bookBtn}
+                        onPress={() => router.push({ pathname: '/admin/class-manage', params: { classId: item.id } })}
+                      >
+                        <Text style={styles.bookBtnText}>MANAGE CLASS</Text>
+                      </TouchableOpacity>
+                    ) : item.isBooked ? (
                       // Case 2: already booked → Cancel Class
                       <TouchableOpacity
                         style={[styles.cancelBtn, isActing && styles.btnDisabled]}
