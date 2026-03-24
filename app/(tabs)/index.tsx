@@ -65,7 +65,7 @@ function availabilityBadge(item: ClassItem): { label: string; bg: string; text: 
 }
 
 export default function ClassesScreen() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, tenantUser } = useAuth()
   const router = useRouter()
   const today = new Date()
   const [classes, setClasses] = useState<ClassItem[]>([])
@@ -289,8 +289,8 @@ export default function ClassesScreen() {
                   ) : null}
 
                   <View style={styles.cardActions}>
-                    {isAdmin ? (
-                      // Admin view — Manage Class
+                    {isAdmin && !tenantUser ? (
+                      // Admin view (not tenanting) — Manage Class
                       <TouchableOpacity
                         style={styles.bookBtn}
                         onPress={() => router.push({ pathname: '/admin/class-manage', params: { classId: item.id } })}

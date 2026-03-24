@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import * as SecureStore from 'expo-secure-store'
-import { api } from '@/lib/api'
+import { AppState } from 'react-native'
+import { useRouter } from 'expo-router'
+import { api, setTenantUserId } from '@/lib/api'
 
-type User = {
+export type User = {
   id: string
   name: string
   lastName: string
@@ -19,6 +21,10 @@ type AuthContextType = {
   token: string | null
   isAdmin: boolean
   isLoading: boolean
+  tenantUser: User | null
+  lastActivityAt: React.MutableRefObject<number>
+  startTenantSession: (user: User) => void
+  exitTenantSession: (fromInactivity?: boolean) => void
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -33,6 +39,9 @@ function decodeJwtIsAdmin(token: string): boolean {
   }
 }
 
+const INACTIVITY_LIMIT_MS = 5 * 60 * 1000
+const INACTIVITY_CHECK_INTERVAL_MS = 30 * 1000
+
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -40,6 +49,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [tenantUser, setTenantUser] = useState<User | null>(null)
+  const lastActivityAt = useRef<number>(Date.now())
+  const router = useRouter()
 
   useEffect(() => {
     async function restore() {
@@ -60,6 +72,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     restore()
   }, [])
 
+  // Reset inactivity timer when app comes to foreground
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') lastActivityAt.current = Date.now()
+    })
+    return () => sub.remove()
+  }, [])
+
+  // Inactivity check — only active when in tenant session
+  useEffect(() => {
+    if (!tenantUser) return
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivityAt.current > INACTIVITY_LIMIT_MS) {
+        exitTenantSession(true)
+      }
+    }, INACTIVITY_CHECK_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [tenantUser])
+
+  function startTenantSession(targetUser: User) {
+    setTenantUser(targetUser)
+    setTenantUserId(targetUser.id)
+    lastActivityAt.current = Date.now()
+  }
+
+  function exitTenantSession(_fromInactivity = false) {
+    setTenantUser(null)
+    setTenantUserId(null)
+    router.replace('/admin/search' as any)
+  }
+
   async function signIn(email: string, password: string) {
     const { data } = await api.post('/api/mobile/auth/signin', { email, password })
     await SecureStore.setItemAsync('access_token', data.token)
@@ -73,6 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null)
     setIsAdmin(false)
     setUser(null)
+    setTenantUser(null)
+    setTenantUserId(null)
   }
 
   async function refreshUser() {
@@ -81,7 +126,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, isAdmin, isLoading, signIn, signOut, refreshUser }}>
+    <AuthContext.Provider value={{
+      user, token, isAdmin, isLoading,
+      tenantUser, lastActivityAt,
+      startTenantSession, exitTenantSession,
+      signIn, signOut, refreshUser,
+    }}>
       {children}
     </AuthContext.Provider>
   )
