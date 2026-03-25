@@ -1,12 +1,14 @@
 import { Tabs } from 'expo-router'
 import { Text } from 'react-native'
 import { C, F } from '@/constants/theme'
+import { useAuth } from '@/contexts/AuthContext'
 
 function TabIcon({ label, color }: { label: string; color: string }) {
   const icons: Record<string, string> = {
     Classes: '◈',
     Bookings: '◉',
     Profile: '◎',
+    Admin: '⊕',
   }
   return (
     <Text style={{ fontSize: 18, color, lineHeight: 22 }}>
@@ -16,6 +18,8 @@ function TabIcon({ label, color }: { label: string; color: string }) {
 }
 
 export default function TabLayout() {
+  const { isAdmin } = useAuth()
+
   return (
     <Tabs
       screenOptions={{
@@ -53,6 +57,15 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <TabIcon label="Profile" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="admin/index"
+        options={{
+          title: 'Admin',
+          tabBarIcon: ({ color }) => <TabIcon label="Admin" color={color} />,
+          tabBarItemStyle: isAdmin ? undefined : { display: 'none' },
+          tabBarButton: isAdmin ? undefined : () => null,
         }}
       />
     </Tabs>

@@ -78,7 +78,7 @@ type UserPackage = {
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut, refreshUser } = useAuth()
+  const { user, signOut, refreshUser, tenantUser } = useAuth()
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
@@ -320,8 +320,8 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Class Pass / Wallet card */}
-        <View style={styles.passCard}>
+        {/* Class Pass / Wallet card — hidden in tenant mode */}
+        {!tenantUser && <View style={styles.passCard}>
           <Text style={styles.creditsCardLabel}>MY CLASS PASS</Text>
           <View style={styles.creditsDivider} />
 
@@ -368,7 +368,7 @@ export default function ProfileScreen() {
               }
             </TouchableOpacity>
           )}
-        </View>
+        </View>}
 
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
