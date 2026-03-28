@@ -10,6 +10,7 @@ import {
   ScrollView,
   Platform,
   Linking,
+  Modal,
 } from 'react-native'
 import { format } from 'date-fns'
 import { useFocusEffect, useRouter } from 'expo-router'
@@ -24,7 +25,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
-import Toast from '@/components/Toast'
 import { consumePendingWalletToast } from '@/lib/pendingToast'
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
   const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
   const [walletLoading, setWalletLoading] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
-  const [showWalletToast, setShowWalletToast] = useState(false)
+  const [showWalletSuccessModal, setShowWalletSuccessModal] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
   // Show wallet toast if returning from Apple Wallet flow
   useFocusEffect(
     useCallback(() => {
-      if (consumePendingWalletToast()) setShowWalletToast(true)
+      if (consumePendingWalletToast()) setShowWalletSuccessModal(true)
     }, [])
   )
 
@@ -380,11 +380,22 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>SIGN OUT</Text>
         </TouchableOpacity>
       </ScrollView>
-      <Toast
-        message="Your Ooma Pass has been added to your wallet. Show this when entering to class."
-        visible={showWalletToast}
-        onHide={() => setShowWalletToast(false)}
-      />
+      <Modal visible={showWalletSuccessModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconCircle}>
+              <Text style={styles.modalIconText}>✓</Text>
+            </View>
+            <Text style={styles.modalTitle}>Pass Added</Text>
+            <Text style={styles.modalBody}>
+              Your Ooma Pass has been added to your wallet. Show this when entering to class.
+            </Text>
+            <TouchableOpacity style={styles.modalBtn} onPress={() => setShowWalletSuccessModal(false)}>
+              <Text style={styles.modalBtnText}>GOT IT</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -679,5 +690,63 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     opacity: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: C.cream,
+    borderRadius: 16,
+    padding: 28,
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.burg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  modalIconText: {
+    color: C.cream,
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  modalTitle: {
+    fontFamily: F.serifReg,
+    fontSize: 22,
+    color: C.ink,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontFamily: F.sansReg,
+    fontSize: 14,
+    color: C.ink,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  modalBtn: {
+    height: 50,
+    backgroundColor: C.burg,
+    borderRadius: 2,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  modalBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 })

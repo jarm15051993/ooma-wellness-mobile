@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
-  Linking,
 } from 'react-native'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import * as SecureStore from 'expo-secure-store'
+import * as Sharing from 'expo-sharing'
 import { api } from '@/lib/api'
 import { API_BASE_URL } from '@/constants/api'
 import { C, F } from '@/constants/theme'
@@ -53,12 +53,15 @@ export default function WalletModal({ visible, userId, initialQrCode, onDismiss 
     try {
       const token = await SecureStore.getItemAsync('access_token')
       const fileUri = FileSystem.cacheDirectory + 'ooma-class-pass.pkpass'
-      const result = await FileSystem.downloadAsync(
+      await FileSystem.downloadAsync(
         `${API_BASE_URL}/api/wallet/apple`,
         fileUri,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      await Linking.openURL(result.uri)
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/vnd.apple.pkpass',
+        UTI: 'com.apple.pkpass',
+      })
     } catch {
       setError('Could not generate your pass. You can add it later from your profile.')
     } finally {

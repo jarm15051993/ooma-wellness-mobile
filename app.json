@@ -18,7 +18,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan QR codes and update your profile photo.",
         "NSPhotoLibraryUsageDescription": "Used to select a profile photo.",
-        "NSCalendarsUsageDescription": "Used to add classes to your calendar."
+        "NSCalendarsUsageDescription": "Used to add classes to your calendar.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -29,11 +30,12 @@
         "backgroundImage": "./assets/android-icon-background.png"
       },
       "permissions": [
-        "CAMERA",
-        "READ_CALENDAR",
-        "WRITE_CALENDAR",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE"
+        "android.permission.CAMERA",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -68,7 +70,15 @@
           "calendarPermission": "Used to add classes to your calendar."
         }
       ],
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-sharing"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2963bda3-08ad-4a06-a9f7-d547b22a52f8"
+      }
+    },
+    "owner": "jarm150593"
   }
 }
