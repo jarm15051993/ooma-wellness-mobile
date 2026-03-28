@@ -15,14 +15,17 @@ import { format } from 'date-fns'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import * as SecureStore from 'expo-secure-store'
+import * as Sharing from 'expo-sharing'
 import QRCode from 'react-native-qrcode-svg'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
+import Toast from '@/components/Toast'
+import { consumePendingWalletToast } from '@/lib/pendingToast'
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
   let expiryLabel: string
@@ -88,6 +91,7 @@ export default function ProfileScreen() {
   const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
   const [walletLoading, setWalletLoading] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
+  const [showWalletToast, setShowWalletToast] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -110,6 +114,13 @@ export default function ProfileScreen() {
     }, [])
   )
 
+  // Show wallet toast if returning from Apple Wallet flow
+  useFocusEffect(
+    useCallback(() => {
+      if (consumePendingWalletToast()) setShowWalletToast(true)
+    }, [])
+  )
+
   // Silently ensure QR code exists; update local state if it was just generated
   useFocusEffect(
     useCallback(() => {
@@ -126,16 +137,10 @@ export default function ProfileScreen() {
   async function handleAddToAppleWallet() {
     setWalletLoading(true)
     try {
-      const token = await SecureStore.getItemAsync('access_token')
-      const fileUri = FileSystem.cacheDirectory + 'ooma-class-pass.pkpass'
-      const result = await FileSystem.downloadAsync(
-        `${API_BASE_URL}/api/wallet/apple`,
-        fileUri,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      await Linking.openURL(result.uri)
-    } catch {
-      Alert.alert('Error', 'Could not generate your pass. Please try again.')
+      const { data } = await api.post('/api/wallet/apple')
+      await Linking.openURL(data.url)
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not generate your pass. Please try again.')
     } finally {
       setWalletLoading(false)
     }
@@ -375,6 +380,11 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>SIGN OUT</Text>
         </TouchableOpacity>
       </ScrollView>
+      <Toast
+        message="Your Ooma Pass has been added to your wallet. Show this when entering to class."
+        visible={showWalletToast}
+        onHide={() => setShowWalletToast(false)}
+      />
     </SafeAreaView>
   )
 }

@@ -11,10 +11,7 @@ type Props = {
 export default function Toast({ message, visible, onHide }: Props) {
   const opacity = useRef(new Animated.Value(0)).current
 
-  console.log('[Toast] render, visible:', visible)
-
   useEffect(() => {
-    console.log('[Toast] effect, visible:', visible)
     if (!visible) return
 
     Animated.sequence([
