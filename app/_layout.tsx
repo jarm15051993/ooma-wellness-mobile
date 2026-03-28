@@ -107,7 +107,7 @@ function RootLayoutNav() {
       console.log('[deeplink] received:', url)
       if (url?.includes('wallet-added')) {
         router.replace('/(tabs)/profile')
-        setWalletToast(true)
+        setTimeout(() => setWalletToast(true), 600)
       }
     }
     const sub = Linking.addEventListener('url', handleUrl)
