@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { View, ActivityIndicator, TouchableWithoutFeedback, TouchableOpacity, Text, Modal, StyleSheet } from 'react-native'
+import { useEffect, useState, useRef } from 'react'
+import { View, ActivityIndicator, TouchableWithoutFeedback, TouchableOpacity, Text, Modal, StyleSheet, Linking } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
+import Toast from '@/components/Toast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { StripeProvider } from '@stripe/stripe-react-native'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
@@ -98,6 +99,20 @@ function RootLayoutNav() {
   const { user, isLoading, lastActivityAt } = useAuth()
   const segments = useSegments()
   const router = useRouter()
+  const [walletToast, setWalletToast] = useState(false)
+
+  // Handle deep links — ooma://wallet-added
+  useEffect(() => {
+    function handleUrl({ url }: { url: string }) {
+      if (url === 'ooma://wallet-added') {
+        router.replace('/(tabs)/profile')
+        setWalletToast(true)
+      }
+    }
+    const sub = Linking.addEventListener('url', handleUrl)
+    Linking.getInitialURL().then(url => { if (url) handleUrl({ url }) })
+    return () => sub.remove()
+  }, [])
 
   useEffect(() => {
     if (isLoading) return
@@ -126,6 +141,11 @@ function RootLayoutNav() {
       <View style={{ flex: 1 }}>
         <TenantBanner />
         <InactivityModal />
+        <Toast
+          message={"Your Ooma Pass has been added to your wallet. Show this when entering to class."}
+          visible={walletToast}
+          onHide={() => setWalletToast(false)}
+        />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
