@@ -145,17 +145,17 @@ function RootLayoutNav() {
       <View style={{ flex: 1 }}>
         <TenantBanner />
         <InactivityModal />
-        <Toast
-          message={"Your Ooma Pass has been added to your wallet. Show this when entering to class."}
-          visible={walletToast}
-          onHide={() => setWalletToast(false)}
-        />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="packages" options={{ presentation: 'modal' }} />
           <Stack.Screen name="admin/search" />
         </Stack>
+        <Toast
+          message="Your Ooma Pass has been added to your wallet. Show this when entering to class."
+          visible={walletToast}
+          onHide={() => setWalletToast(false)}
+        />
       </View>
     </TouchableWithoutFeedback>
   )
