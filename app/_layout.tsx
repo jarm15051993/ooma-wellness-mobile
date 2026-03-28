@@ -104,15 +104,19 @@ function RootLayoutNav() {
   // Handle deep links — ooma://wallet-added
   useEffect(() => {
     function handleUrl({ url }: { url: string }) {
-      if (url === 'ooma://wallet-added') {
+      console.log('[deeplink] received:', url)
+      if (url?.includes('wallet-added')) {
         router.replace('/(tabs)/profile')
         setWalletToast(true)
       }
     }
     const sub = Linking.addEventListener('url', handleUrl)
-    Linking.getInitialURL().then(url => { if (url) handleUrl({ url }) })
+    Linking.getInitialURL().then(url => {
+      console.log('[deeplink] initialURL:', url)
+      if (url) handleUrl({ url })
+    })
     return () => sub.remove()
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (isLoading) return
