@@ -1,5 +1,9 @@
 import React, { useState, useCallback } from 'react'
 import * as Calendar from 'expo-calendar'
+import * as DocumentPicker from 'expo-document-picker'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
+import Papa from 'papaparse'
 import {
   View,
   Text,
@@ -99,8 +103,73 @@ function buildDateTimeUTC(date: Date, time: Date): Date {
   return d
 }
 
+// ─── CSV Template ────────────────────────────────────────────────────────────
+const CSV_TEMPLATE = `class_name,instructor,date,start_time,duration_mins,capacity
+Reformer Pilates,Sofia M.,2025-06-15,09:00,60,6
+[DELETE THIS ROW BEFORE UPLOADING],Format: Text,Format: YYYY-MM-DD,Format: HH:MM (24h),60 or 90 only,Max 6
+`
+
+// ─── CSV types ────────────────────────────────────────────────────────────────
+type ValidCsvRow = {
+  title: string
+  instructor: string
+  date: string
+  startTime: string
+  durationMins: number
+  capacity: number
+}
+
+type SkippedCsvRow = {
+  rowNum: number
+  values: string
+  reason: string
+}
+
+type CsvPreview = {
+  valid: ValidCsvRow[]
+  skipped: SkippedCsvRow[]
+}
+
+// ─── CSV validation ───────────────────────────────────────────────────────────
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const TIME_RE = /^\d{2}:\d{2}$/
+
+function validateCsvRow(row: Record<string, string>, rowNum: number): { valid: ValidCsvRow } | { skipped: SkippedCsvRow } {
+  const title = (row['class_name'] ?? '').trim()
+  const instructor = (row['instructor'] ?? '').trim()
+  const date = (row['date'] ?? '').trim()
+  const startTime = (row['start_time'] ?? '').trim()
+  const durationRaw = (row['duration_mins'] ?? '').trim()
+  const capacityRaw = (row['capacity'] ?? '').trim()
+  const values = [title, instructor, date, startTime, durationRaw, capacityRaw].join(', ')
+
+  if (!title) return { skipped: { rowNum, values, reason: 'Missing class name' } }
+  if (!instructor) return { skipped: { rowNum, values, reason: 'Missing instructor' } }
+  if (!DATE_RE.test(date)) return { skipped: { rowNum, values, reason: 'Invalid date format (use YYYY-MM-DD)' } }
+
+  const parsedDate = new Date(date + 'T00:00:00')
+  const todayMidnight = new Date(); todayMidnight.setHours(0, 0, 0, 0)
+  if (isNaN(parsedDate.getTime()) || parsedDate < todayMidnight) {
+    return { skipped: { rowNum, values, reason: 'Date is in the past' } }
+  }
+
+  if (!TIME_RE.test(startTime)) return { skipped: { rowNum, values, reason: 'Invalid time format (use HH:MM in 24h)' } }
+
+  const dur = parseInt(durationRaw, 10)
+  if (isNaN(dur) || (dur !== 60 && dur !== 90)) {
+    return { skipped: { rowNum, values, reason: 'Duration must be 60 or 90 minutes' } }
+  }
+
+  const cap = parseInt(capacityRaw, 10)
+  if (isNaN(cap) || cap < 1 || cap > 6) {
+    return { skipped: { rowNum, values, reason: 'Capacity must be between 1 and 6' } }
+  }
+
+  return { valid: { title, instructor, date, startTime, durationMins: dur, capacity: cap } }
+}
+
 export default function ClassesScreen() {
-  const { isAdmin, isOwner, canCreateClass, tenantUser } = useAuth()
+  const { isAdmin, isOwner, canCreateClass, canBulkUpload, tenantUser } = useAuth()
   const router = useRouter()
   const today = new Date()
   const [classes, setClasses] = useState<ClassItem[]>([])
@@ -145,6 +214,13 @@ export default function ClassesScreen() {
   const [creating, setCreating] = useState(false)
 
   const showCreateButton = (canCreateClass || isOwner) && !tenantUser
+  const showBulkButtons = (canBulkUpload || isOwner) && !tenantUser
+
+  // CSV upload state
+  const [csvPreview, setCsvPreview] = useState<CsvPreview | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [showSkipped, setShowSkipped] = useState(false)
 
   async function fetchClasses() {
     try {
@@ -322,6 +398,105 @@ export default function ClassesScreen() {
     }
   }
 
+  async function handleDownloadTemplate() {
+    try {
+      const path = FileSystem.cacheDirectory + 'ooma-class-template.csv'
+      await FileSystem.writeAsStringAsync(path, CSV_TEMPLATE, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(path, { mimeType: 'text/csv', dialogTitle: 'Save Class Template' })
+    } catch {
+      Alert.alert('Error', 'Could not share the template. Please try again.')
+    }
+  }
+
+  async function handleUploadCSV() {
+    let result
+    try {
+      result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true })
+    } catch {
+      Alert.alert('Error', 'This file could not be read. Please check it and try again.')
+      return
+    }
+
+    if (result.canceled || !result.assets?.[0]) return
+
+    const asset = result.assets[0]
+    if (!asset.name.toLowerCase().endsWith('.csv')) {
+      Alert.alert('Wrong file type', 'Only CSV files are supported. Please use the provided template.')
+      return
+    }
+
+    let content: string
+    try {
+      content = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 })
+    } catch {
+      Alert.alert('Error', 'This file could not be read. Please check it and try again.')
+      return
+    }
+
+    if (!content.trim()) {
+      Alert.alert('Empty file', 'This file could not be read. Please check it and try again.')
+      return
+    }
+
+    const parsed = Papa.parse<Record<string, string>>(content, { header: true, skipEmptyLines: true })
+    const rows = parsed.data
+
+    if (rows.length > 200) {
+      Alert.alert('Too many rows', 'This file contains too many rows. Please upload a maximum of 200 classes at a time.')
+      return
+    }
+
+    const valid: ValidCsvRow[] = []
+    const skipped: SkippedCsvRow[] = []
+
+    rows.forEach((row, i) => {
+      const className = (row['class_name'] ?? '').trim()
+      // Skip instruction rows silently
+      if (className.startsWith('[DELETE') || className.toLowerCase().includes('delete this row')) return
+
+      const rowNum = i + 2 // +2 because row 1 is header
+      const result = validateCsvRow(row, rowNum)
+      if ('valid' in result) valid.push(result.valid)
+      else skipped.push(result.skipped)
+    })
+
+    if (valid.length === 0) {
+      Alert.alert(
+        'No valid classes found',
+        'No valid classes were found in this file. Please check your data and try again.',
+        [{ text: 'Try Again' }]
+      )
+      return
+    }
+
+    setCsvPreview({ valid, skipped })
+    setShowSkipped(false)
+    setShowPreview(true)
+  }
+
+  async function handleImport() {
+    if (!csvPreview) return
+    setImporting(true)
+    try {
+      const { data } = await api.post('/api/admin/classes/bulk', { classes: csvPreview.valid })
+      setShowPreview(false)
+      setCsvPreview(null)
+      await fetchClasses()
+      if (data.failed > 0) {
+        Alert.alert(
+          'Import complete',
+          `${data.created} classes imported. ${data.failed} could not be saved — please try adding them manually.`
+        )
+      } else {
+        setToast({ visible: true, message: `${data.created} classes imported successfully` })
+      }
+    } catch {
+      Alert.alert('Import failed', 'Import failed. Please try again.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   function prevMonth() {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) }
     else setViewMonth(m => m - 1)
@@ -375,6 +550,16 @@ export default function ClassesScreen() {
             <Text style={styles.headingRegular}>My </Text>
             <Text style={styles.headingItalic}>Calendar</Text>
           </View>
+          {showBulkButtons && (
+            <View style={styles.headingBtns}>
+              <TouchableOpacity style={styles.newClassBtn} onPress={handleDownloadTemplate}>
+                <Text style={styles.newClassBtnText}>↓ TEMPLATE</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.newClassBtn} onPress={handleUploadCSV}>
+                <Text style={styles.newClassBtnText}>↑ CSV</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           {showCreateButton && (
             <TouchableOpacity style={styles.newClassBtn} onPress={() => {
               setCreateForm({ title: '', instructor: '', date: today, startTime: nextHour(), durationMins: '60', capacity: '6' })
@@ -644,6 +829,75 @@ export default function ClassesScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* CSV Preview Modal */}
+      <Modal visible={showPreview} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={styles.modalSafe}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => { setShowPreview(false); setCsvPreview(null) }} disabled={importing}>
+              <Text style={styles.modalCancel}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Review Import</Text>
+            <View style={{ width: 60 }} />
+          </View>
+
+          <ScrollView contentContainerStyle={styles.modalBody} showsVerticalScrollIndicator={false}>
+            {csvPreview && (
+              <>
+                {/* Summary */}
+                <View style={styles.csvSummary}>
+                  <Text style={styles.csvSummaryCount}>{csvPreview.valid.length}</Text>
+                  <Text style={styles.csvSummaryLabel}>classes ready to import</Text>
+                </View>
+                {csvPreview.skipped.length > 0 && (
+                  <Text style={styles.csvSkippedBanner}>
+                    {csvPreview.skipped.length} row{csvPreview.skipped.length !== 1 ? 's' : ''} skipped due to errors
+                  </Text>
+                )}
+
+                {/* Valid classes list */}
+                <Text style={styles.csvSectionLabel}>CLASSES TO IMPORT</Text>
+                {csvPreview.valid.map((row, i) => (
+                  <View key={i} style={styles.csvValidRow}>
+                    <Text style={styles.csvRowTitle}>{row.title}</Text>
+                    <Text style={styles.csvRowMeta}>{row.instructor} · {row.date} · {row.startTime} · {row.durationMins} min · {row.capacity} spots</Text>
+                  </View>
+                ))}
+
+                {/* Skipped rows — collapsed by default */}
+                {csvPreview.skipped.length > 0 && (
+                  <View style={{ marginTop: 20 }}>
+                    <TouchableOpacity style={styles.csvSkippedToggle} onPress={() => setShowSkipped(v => !v)}>
+                      <Text style={styles.csvSkippedToggleText}>
+                        {showSkipped ? '▾ Hide skipped rows' : `▸ Show skipped rows (${csvPreview.skipped.length})`}
+                      </Text>
+                    </TouchableOpacity>
+                    {showSkipped && csvPreview.skipped.map((row, i) => (
+                      <View key={i} style={styles.csvSkippedRow}>
+                        <Text style={styles.csvSkippedRowNum}>Row {row.rowNum}</Text>
+                        <Text style={styles.csvSkippedValues} numberOfLines={1}>{row.values}</Text>
+                        <Text style={styles.csvSkippedReason}>{row.reason}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* Import button */}
+                <TouchableOpacity
+                  style={[styles.createSubmitBtn, importing && styles.btnDisabled, { marginTop: 32 }]}
+                  onPress={handleImport}
+                  disabled={importing}
+                >
+                  {importing
+                    ? <ActivityIndicator size="small" color={C.cream} />
+                    : <Text style={styles.createSubmitBtnText}>IMPORT {csvPreview.valid.length} CLASSES</Text>
+                  }
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
 
       {/* Create Class Modal */}
@@ -1150,6 +1404,103 @@ const styles = StyleSheet.create({
     color: C.cream,
     letterSpacing: 2,
     textTransform: 'uppercase',
+  },
+  // CSV upload
+  headingBtns: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  csvSummary: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  csvSummaryCount: {
+    fontFamily: F.serifBold,
+    fontSize: 48,
+    color: C.burg,
+    lineHeight: 52,
+  },
+  csvSummaryLabel: {
+    fontFamily: F.sansReg,
+    fontSize: 13,
+    color: C.midGray,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  csvSkippedBanner: {
+    fontFamily: F.sansMed,
+    fontSize: 12,
+    color: '#92400E',
+    backgroundColor: '#FEF9C3',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  csvSectionLabel: {
+    fontFamily: F.sansMed,
+    fontSize: 9,
+    color: C.midGray,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    marginTop: 8,
+  },
+  csvValidRow: {
+    backgroundColor: C.warmWhite,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 8,
+  },
+  csvRowTitle: {
+    fontFamily: F.serifBold,
+    fontSize: 15,
+    color: C.ink,
+    marginBottom: 4,
+  },
+  csvRowMeta: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.midGray,
+  },
+  csvSkippedToggle: {
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  csvSkippedToggleText: {
+    fontFamily: F.sansMed,
+    fontSize: 12,
+    color: C.burg,
+    textDecorationLine: 'underline',
+  },
+  csvSkippedRow: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 8,
+  },
+  csvSkippedRowNum: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.red,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  csvSkippedValues: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.ink,
+    marginBottom: 4,
+  },
+  csvSkippedReason: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.red,
   },
   // Booking success modal
   successOverlay: {
