@@ -115,6 +115,13 @@ export default function ClassesScreen() {
   } | null>(null)
   const [addingToCalendar, setAddingToCalendar] = useState(false)
 
+  const [cancellationData, setCancellationData] = useState<{
+    title: string
+    startTime: string
+    endTime: string
+  } | null>(null)
+  const [removingFromCalendar, setRemovingFromCalendar] = useState(false)
+
   // Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
@@ -252,18 +259,57 @@ export default function ClassesScreen() {
     setCancelling(true)
     try {
       const { data } = await api.patch(`/api/bookings/${cancelTarget.bookingId}/cancel`)
+      const classTitle = cancelTarget.title
+      const startTime = cancelTarget.startTime
+      const endTime = cancelTarget.endTime
       await fetchClasses()
       setCancelTarget(null)
-      setToast({
-        visible: true,
-        message: data.creditLost
-          ? 'Booking cancelled — credit not returned'
-          : 'Booking cancelled — remember to remove it from your calendar',
-      })
+      if (data.creditLost) {
+        setToast({ visible: true, message: 'Booking cancelled — credit not returned' })
+      } else {
+        setCancellationData({ title: classTitle, startTime, endTime })
+      }
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.error ?? 'Something went wrong')
     } finally {
       setCancelling(false)
+    }
+  }
+
+  async function handleRemoveFromCalendar() {
+    if (!cancellationData) return
+    setRemovingFromCalendar(true)
+    try {
+      const { status } = await Calendar.requestCalendarPermissionsAsync()
+      if (status !== 'granted') {
+        setCancellationData(null)
+        setToast({ visible: true, message: 'Calendar access denied. Enable it in Settings.' })
+        return
+      }
+      const start = new Date(cancellationData.startTime)
+      const end = new Date(cancellationData.endTime)
+      // Search ±1 min window to handle minor time drift
+      const searchStart = new Date(start.getTime() - 60_000)
+      const searchEnd = new Date(end.getTime() + 60_000)
+      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+      const events = await Calendar.getEventsAsync(
+        calendars.map(c => c.id),
+        searchStart,
+        searchEnd,
+      )
+      const match = events.find(e => e.title === cancellationData.title)
+      if (match) {
+        await Calendar.deleteEventAsync(match.id)
+        setCancellationData(null)
+        setToast({ visible: true, message: 'Removed from your calendar' })
+      } else {
+        setCancellationData(null)
+        setToast({ visible: true, message: 'No matching event found in your calendar' })
+      }
+    } catch {
+      Alert.alert('Error', 'Could not remove from calendar. Please try again.')
+    } finally {
+      setRemovingFromCalendar(false)
     }
   }
 
@@ -544,6 +590,43 @@ export default function ClassesScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.noThanksBtn} onPress={() => setBookingSuccessData(null)} disabled={addingToCalendar}>
+              <Text style={styles.noThanksBtnText}>No thanks</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Cancellation Calendar Modal */}
+      <Modal visible={!!cancellationData} transparent animationType="fade" onRequestClose={() => setCancellationData(null)}>
+        <View style={styles.successOverlay}>
+          <View style={styles.successSheet}>
+            <Text style={styles.successTitle}>Booking Cancelled</Text>
+            <View style={styles.successDivider} />
+
+            {cancellationData && (
+              <>
+                <Text style={styles.successClassName}>{cancellationData.title}</Text>
+                <Text style={styles.successMeta}>
+                  {new Date(cancellationData.startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </Text>
+                <Text style={[styles.successMeta, { marginBottom: 28 }]}>
+                  {new Date(cancellationData.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </>
+            )}
+
+            <TouchableOpacity
+              style={[styles.calendarBtn, removingFromCalendar && styles.btnDisabled]}
+              onPress={handleRemoveFromCalendar}
+              disabled={removingFromCalendar}
+            >
+              {removingFromCalendar
+                ? <ActivityIndicator size="small" color={C.cream} />
+                : <Text style={styles.calendarBtnText}>REMOVE FROM CALENDAR</Text>
+              }
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.noThanksBtn} onPress={() => setCancellationData(null)} disabled={removingFromCalendar}>
               <Text style={styles.noThanksBtnText}>No thanks</Text>
             </TouchableOpacity>
           </View>
