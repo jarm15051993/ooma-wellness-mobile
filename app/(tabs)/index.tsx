@@ -70,6 +70,17 @@ function availabilityBadge(item: ClassItem): { label: string; bg: string; text: 
   return { label: `${item.availableSpots} spots`, bg: '#DCFCE7', text: '#15803D' }
 }
 
+const DURATION_OPTIONS = [
+  { label: '60 minutes', value: '60' },
+  { label: '90 minutes', value: '90' },
+]
+
+function nextHour(): Date {
+  const d = new Date()
+  d.setHours(d.getHours() + 1, 0, 0, 0)
+  return d
+}
+
 type CreateClassForm = {
   title: string
   instructor: string
@@ -107,8 +118,8 @@ export default function ClassesScreen() {
   // Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
-    title: '', instructor: '', date: today, startTime: today,
-    durationMins: '50', capacity: '6',
+    title: '', instructor: '', date: today, startTime: nextHour(),
+    durationMins: '60', capacity: '6',
   })
   const [createErrors, setCreateErrors] = useState<CreateClassErrors>({})
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -145,8 +156,6 @@ export default function ClassesScreen() {
   function validateCreateForm(): boolean {
     const errs: CreateClassErrors = {}
     if (!createForm.title.trim()) errs.title = 'Class name is required'
-    const dur = parseInt(createForm.durationMins)
-    if (isNaN(dur) || dur < 15 || dur > 180) errs.durationMins = 'Duration must be 15–180 minutes'
     const cap = parseInt(createForm.capacity)
     if (isNaN(cap) || cap < 1 || cap > 6) errs.capacity = 'Spots must be between 1 and 6'
     const now = new Date(); now.setHours(0, 0, 0, 0)
@@ -269,7 +278,11 @@ export default function ClassesScreen() {
             <Text style={styles.headingItalic}>Calendar</Text>
           </View>
           {showCreateButton && (
-            <TouchableOpacity style={styles.newClassBtn} onPress={() => setShowCreateModal(true)}>
+            <TouchableOpacity style={styles.newClassBtn} onPress={() => {
+              setCreateForm({ title: '', instructor: '', date: today, startTime: nextHour(), durationMins: '60', capacity: '6' })
+              setCreateErrors({})
+              setShowCreateModal(true)
+            }}>
               <Text style={styles.newClassBtnText}>+ NEW CLASS</Text>
             </TouchableOpacity>
           )}
@@ -532,16 +545,20 @@ export default function ClassesScreen() {
                 />
               )}
 
-              <Text style={styles.fieldLabel}>DURATION (MINUTES) *</Text>
-              <TextInput
-                style={[styles.fieldInput, createErrors.durationMins && styles.fieldInputError]}
-                value={createForm.durationMins}
-                onChangeText={v => setCreateForm(f => ({ ...f, durationMins: v }))}
-                keyboardType="number-pad"
-                placeholder="50"
-                placeholderTextColor={C.lightGray}
-              />
-              {createErrors.durationMins && <Text style={styles.fieldError}>{createErrors.durationMins}</Text>}
+              <Text style={styles.fieldLabel}>DURATION *</Text>
+              <View style={styles.durationRow}>
+                {DURATION_OPTIONS.map(opt => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[styles.durationPill, createForm.durationMins === opt.value && styles.durationPillActive]}
+                    onPress={() => setCreateForm(f => ({ ...f, durationMins: opt.value }))}
+                  >
+                    <Text style={[styles.durationPillText, createForm.durationMins === opt.value && styles.durationPillTextActive]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
               <Text style={styles.fieldLabel}>AVAILABLE SPOTS (1–6) *</Text>
               <View style={styles.stepperRow}>
@@ -887,6 +904,31 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.red,
     marginTop: 4,
+  },
+  durationRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  durationPill: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: C.warmWhite,
+  },
+  durationPillActive: {
+    borderColor: C.burg,
+    backgroundColor: C.burgPale,
+  },
+  durationPillText: {
+    fontFamily: F.sansMed,
+    fontSize: 13,
+    color: C.midGray,
+  },
+  durationPillTextActive: {
+    color: C.burg,
   },
   stepperRow: {
     flexDirection: 'row',
