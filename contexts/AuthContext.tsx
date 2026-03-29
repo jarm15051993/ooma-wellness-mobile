@@ -20,6 +20,10 @@ type AuthContextType = {
   user: User | null
   token: string | null
   isAdmin: boolean
+  isOwner: boolean
+  canCreateClass: boolean
+  canViewStudents: boolean
+  canValidateAttendance: boolean
   isLoading: boolean
   tenantUser: User | null
   lastActivityAt: React.MutableRefObject<number>
@@ -30,12 +34,27 @@ type AuthContextType = {
   refreshUser: () => Promise<void>
 }
 
-function decodeJwtIsAdmin(token: string): boolean {
+type DecodedPermissions = {
+  isAdmin: boolean
+  isOwner: boolean
+  canCreateClass: boolean
+  canViewStudents: boolean
+  canValidateAttendance: boolean
+}
+
+function decodeJwtPermissions(token: string): DecodedPermissions {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.isAdmin === true
+    const isOwner = payload.role === 'OWNER'
+    return {
+      isAdmin: payload.isAdmin === true,
+      isOwner,
+      canCreateClass: isOwner || payload.canCreateClass === true,
+      canViewStudents: isOwner || payload.canViewStudents === true,
+      canValidateAttendance: isOwner || payload.canValidateAttendance === true,
+    }
   } catch {
-    return false
+    return { isAdmin: false, isOwner: false, canCreateClass: false, canViewStudents: false, canValidateAttendance: false }
   }
 }
 
@@ -48,10 +67,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
+  const [canCreateClass, setCanCreateClass] = useState(false)
+  const [canViewStudents, setCanViewStudents] = useState(false)
+  const [canValidateAttendance, setCanValidateAttendance] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const lastActivityAt = useRef<number>(Date.now())
   const router = useRouter()
+
+  function applyPermissions(t: string) {
+    const p = decodeJwtPermissions(t)
+    setIsAdmin(p.isAdmin)
+    setIsOwner(p.isOwner)
+    setCanCreateClass(p.canCreateClass)
+    setCanViewStudents(p.canViewStudents)
+    setCanValidateAttendance(p.canValidateAttendance)
+  }
 
   useEffect(() => {
     async function restore() {
@@ -59,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const stored = await SecureStore.getItemAsync('access_token')
         if (stored) {
           setToken(stored)
-          setIsAdmin(decodeJwtIsAdmin(stored))
+          applyPermissions(stored)
           const { data } = await api.get('/api/mobile/me')
           setUser(data.user)
         }
@@ -107,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = await api.post('/api/mobile/auth/signin', { email, password })
     await SecureStore.setItemAsync('access_token', data.token)
     setToken(data.token)
-    setIsAdmin(decodeJwtIsAdmin(data.token))
+    applyPermissions(data.token)
     setUser(data.user)
   }
 
@@ -115,6 +147,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await SecureStore.deleteItemAsync('access_token')
     setToken(null)
     setIsAdmin(false)
+    setIsOwner(false)
+    setCanCreateClass(false)
+    setCanViewStudents(false)
+    setCanValidateAttendance(false)
     setUser(null)
     setTenantUser(null)
     setTenantUserId(null)
@@ -127,8 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      user, token, isAdmin, isLoading,
-      tenantUser, lastActivityAt,
+      user, token, isAdmin, isOwner,
+      canCreateClass, canViewStudents, canValidateAttendance,
+      isLoading, tenantUser, lastActivityAt,
       startTenantSession, exitTenantSession,
       signIn, signOut, refreshUser,
     }}>

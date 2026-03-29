@@ -81,7 +81,8 @@ type UserPackage = {
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, isAdmin, isOwner } = useAuth()
+  const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
@@ -277,8 +278,8 @@ export default function ProfileScreen() {
           <InfoRow label="PHONE" value={user?.phone} />
         </View>
 
-        {/* My Packages */}
-        <View style={styles.packagesSection}>
+        {/* My Packages — hidden for staff */}
+        {!isStaff && <View style={styles.packagesSection}>
           <Text style={styles.sectionLabel}>MY PACKAGES</Text>
           <View style={styles.creditsDivider} />
 
@@ -323,7 +324,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.buyBtn} onPress={() => router.push('/packages')}>
             <Text style={styles.buyBtnText}>BUY MORE CLASSES</Text>
           </TouchableOpacity>
-        </View>
+        </View>}
 
         {/* Class Pass / Wallet card — hidden in tenant mode */}
         {!tenantUser && <View style={styles.passCard}>

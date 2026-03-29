@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ooma.wellness",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan QR codes and update your profile photo.",
         "NSPhotoLibraryUsageDescription": "Used to select a profile photo.",
@@ -72,7 +72,8 @@
         }
       ],
       "expo-font",
-      "expo-sharing"
+      "expo-sharing",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "router": {},
