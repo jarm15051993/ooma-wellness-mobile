@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import * as Calendar from 'expo-calendar'
 import {
   View,
   Text,
@@ -116,6 +117,23 @@ export default function ClassesScreen() {
   const [buyTarget, setBuyTarget] = useState<string | null>(null)
 
   // Create Class modal state
+  const [bookingSuccessData, setBookingSuccessData] = useState<{
+    title: string
+    startTime: string
+    endTime: string
+    instructor: string | null
+    stretcherNumber: number | null
+  } | null>(null)
+  const [addingToCalendar, setAddingToCalendar] = useState(false)
+
+  const [cancellationData, setCancellationData] = useState<{
+    title: string
+    startTime: string
+    endTime: string
+  } | null>(null)
+  const [removingFromCalendar, setRemovingFromCalendar] = useState(false)
+
+  // Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
     title: '', instructor: '', date: today, startTime: nextHour(),
@@ -194,13 +212,54 @@ export default function ClassesScreen() {
   async function handleBook(classId: string) {
     setActingClassId(classId)
     try {
-      await api.post('/api/bookings', { classId })
+      const { data } = await api.post('/api/bookings', { classId })
       await fetchClasses()
-      setToast({ visible: true, message: 'Class booked!' })
+      setBookingSuccessData({
+        title: data.booking.class.title,
+        startTime: data.booking.class.startTime,
+        endTime: data.booking.class.endTime,
+        instructor: data.booking.class.instructor ?? null,
+        stretcherNumber: data.booking.stretcherNumber ?? null,
+      })
     } catch (err: any) {
       Alert.alert('Booking failed', err.response?.data?.error ?? 'Something went wrong')
     } finally {
       setActingClassId(null)
+    }
+  }
+
+  async function handleAddToCalendar() {
+    if (!bookingSuccessData) return
+    setAddingToCalendar(true)
+    try {
+      const { status } = await Calendar.requestCalendarPermissionsAsync()
+      if (status !== 'granted') {
+        setBookingSuccessData(null)
+        setToast({ visible: true, message: 'Calendar access denied. Enable it in Settings.' })
+        return
+      }
+      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+      const writableCal = calendars.find(c => c.allowsModifications) ?? calendars[0]
+      if (!writableCal) throw new Error('No calendar found')
+
+      const noteParts = [
+        bookingSuccessData.instructor ? `Instructor: ${bookingSuccessData.instructor}` : null,
+        bookingSuccessData.stretcherNumber != null ? `Reformer #${bookingSuccessData.stretcherNumber}` : null,
+      ].filter(Boolean)
+
+      await Calendar.createEventAsync(writableCal.id, {
+        title: bookingSuccessData.title,
+        startDate: new Date(bookingSuccessData.startTime),
+        endDate: new Date(bookingSuccessData.endTime),
+        notes: noteParts.length ? noteParts.join(' · ') : undefined,
+        location: 'OOMA Wellness Club',
+      })
+      setBookingSuccessData(null)
+      setToast({ visible: true, message: 'Added to your calendar!' })
+    } catch {
+      Alert.alert('Error', 'Could not add to calendar. Please try again.')
+    } finally {
+      setAddingToCalendar(false)
     }
   }
 
@@ -209,18 +268,57 @@ export default function ClassesScreen() {
     setCancelling(true)
     try {
       const { data } = await api.patch(`/api/bookings/${cancelTarget.bookingId}/cancel`)
+      const classTitle = cancelTarget.title
+      const startTime = cancelTarget.startTime
+      const endTime = cancelTarget.endTime
       await fetchClasses()
       setCancelTarget(null)
-      setToast({
-        visible: true,
-        message: data.creditLost
-          ? 'Booking cancelled — credit not returned'
-          : 'Booking cancelled',
-      })
+      if (data.creditLost) {
+        setToast({ visible: true, message: 'Booking cancelled — credit not returned' })
+      } else {
+        setCancellationData({ title: classTitle, startTime, endTime })
+      }
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.error ?? 'Something went wrong')
     } finally {
       setCancelling(false)
+    }
+  }
+
+  async function handleRemoveFromCalendar() {
+    if (!cancellationData) return
+    setRemovingFromCalendar(true)
+    try {
+      const { status } = await Calendar.requestCalendarPermissionsAsync()
+      if (status !== 'granted') {
+        setCancellationData(null)
+        setToast({ visible: true, message: 'Calendar access denied. Enable it in Settings.' })
+        return
+      }
+      const start = new Date(cancellationData.startTime)
+      const end = new Date(cancellationData.endTime)
+      // Search ±1 min window to handle minor time drift
+      const searchStart = new Date(start.getTime() - 60_000)
+      const searchEnd = new Date(end.getTime() + 60_000)
+      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+      const events = await Calendar.getEventsAsync(
+        calendars.map(c => c.id),
+        searchStart,
+        searchEnd,
+      )
+      const match = events.find(e => e.title === cancellationData.title)
+      if (match) {
+        await Calendar.deleteEventAsync(match.id)
+        setCancellationData(null)
+        setToast({ visible: true, message: 'Removed from your calendar' })
+      } else {
+        setCancellationData(null)
+        setToast({ visible: true, message: 'No matching event found in your calendar' })
+      }
+    } catch {
+      Alert.alert('Error', 'Could not remove from calendar. Please try again.')
+    } finally {
+      setRemovingFromCalendar(false)
     }
   }
 
@@ -467,6 +565,86 @@ export default function ClassesScreen() {
         visible={toast.visible}
         onHide={() => setToast(t => ({ ...t, visible: false }))}
       />
+
+      {/* Booking Success Modal */}
+      <Modal visible={!!bookingSuccessData} transparent animationType="fade" onRequestClose={() => setBookingSuccessData(null)}>
+        <View style={styles.successOverlay}>
+          <View style={styles.successSheet}>
+            <Text style={styles.successTitle}>Class Booked!</Text>
+            <View style={styles.successDivider} />
+
+            {bookingSuccessData && (
+              <>
+                <Text style={styles.successClassName}>{bookingSuccessData.title}</Text>
+                <Text style={styles.successMeta}>
+                  {new Date(bookingSuccessData.startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </Text>
+                <Text style={styles.successMeta}>
+                  {new Date(bookingSuccessData.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  {bookingSuccessData.instructor ? ` · ${bookingSuccessData.instructor}` : ''}
+                </Text>
+                <View style={{ marginBottom: 28 }}>
+                  {bookingSuccessData.stretcherNumber != null && (
+                    <Text style={[styles.successReformer, { marginBottom: 0 }]}>Reformer #{bookingSuccessData.stretcherNumber}</Text>
+                  )}
+                </View>
+              </>
+            )}
+
+            <TouchableOpacity
+              style={[styles.calendarBtn, addingToCalendar && styles.btnDisabled]}
+              onPress={handleAddToCalendar}
+              disabled={addingToCalendar}
+            >
+              {addingToCalendar
+                ? <ActivityIndicator size="small" color={C.cream} />
+                : <Text style={styles.calendarBtnText}>ADD TO CALENDAR</Text>
+              }
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.noThanksBtn} onPress={() => setBookingSuccessData(null)} disabled={addingToCalendar}>
+              <Text style={styles.noThanksBtnText}>No thanks</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Cancellation Calendar Modal */}
+      <Modal visible={!!cancellationData} transparent animationType="fade" onRequestClose={() => setCancellationData(null)}>
+        <View style={styles.successOverlay}>
+          <View style={styles.successSheet}>
+            <Text style={styles.successTitle}>Booking Cancelled</Text>
+            <View style={styles.successDivider} />
+
+            {cancellationData && (
+              <>
+                <Text style={styles.successClassName}>{cancellationData.title}</Text>
+                <Text style={styles.successMeta}>
+                  {new Date(cancellationData.startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </Text>
+                <Text style={[styles.successMeta, { marginBottom: 28 }]}>
+                  {new Date(cancellationData.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </>
+            )}
+
+            <TouchableOpacity
+              style={[styles.calendarBtn, removingFromCalendar && styles.btnDisabled]}
+              onPress={handleRemoveFromCalendar}
+              disabled={removingFromCalendar}
+            >
+              {removingFromCalendar
+                ? <ActivityIndicator size="small" color={C.cream} />
+                : <Text style={styles.calendarBtnText}>REMOVE FROM CALENDAR</Text>
+              }
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.noThanksBtn} onPress={() => setCancellationData(null)} disabled={removingFromCalendar}>
+              <Text style={styles.noThanksBtnText}>No thanks</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Create Class Modal */}
       <Modal visible={showCreateModal} animationType="slide" presentationStyle="pageSheet">
@@ -972,5 +1150,73 @@ const styles = StyleSheet.create({
     color: C.cream,
     letterSpacing: 2,
     textTransform: 'uppercase',
+  },
+  // Booking success modal
+  successOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  successSheet: {
+    backgroundColor: C.cream,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 48,
+  },
+  successTitle: {
+    fontFamily: F.serifBold,
+    fontSize: 22,
+    color: C.ink,
+    marginBottom: 16,
+  },
+  successDivider: {
+    height: 1,
+    backgroundColor: C.rule,
+    marginBottom: 20,
+  },
+  successClassName: {
+    fontFamily: F.serifBold,
+    fontSize: 18,
+    color: C.burg,
+    marginBottom: 6,
+  },
+  successMeta: {
+    fontFamily: F.sansReg,
+    fontSize: 13,
+    color: C.midGray,
+    marginBottom: 2,
+  },
+  successReformer: {
+    fontFamily: F.sansMed,
+    fontSize: 13,
+    color: C.ink,
+    marginTop: 8,
+  },
+  calendarBtn: {
+    height: 50,
+    backgroundColor: C.ink,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  calendarBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  noThanksBtn: {
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noThanksBtnText: {
+    fontFamily: F.sansReg,
+    fontSize: 14,
+    color: C.midGray,
   },
 })

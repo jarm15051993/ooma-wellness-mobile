@@ -11,6 +11,7 @@ import {
   Platform,
   Linking,
   Modal,
+  Switch,
 } from 'react-native'
 import { format } from 'date-fns'
 import { useFocusEffect, useRouter } from 'expo-router'
@@ -25,7 +26,17 @@ import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
+import Toast from '@/components/Toast'
 import { consumePendingWalletToast } from '@/lib/pendingToast'
+
+type NotifType = 'booking_confirmation' | 'booking_cancellation' | 'package_purchase'
+type NotifPrefs = Record<NotifType, boolean>
+
+const NOTIF_LABELS: Record<NotifType, string> = {
+  booking_confirmation: 'Class Booked',
+  booking_cancellation: 'Booking Cancelled',
+  package_purchase: 'Package Purchase',
+}
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
   let expiryLabel: string
@@ -93,6 +104,14 @@ export default function ProfileScreen() {
   const [walletLoading, setWalletLoading] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
   const [showWalletSuccessModal, setShowWalletSuccessModal] = useState(false)
+  const [showActive, setShowActive] = useState(false)
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
+    booking_confirmation: true,
+    booking_cancellation: true,
+    package_purchase: true,
+  })
+  const [savingNotif, setSavingNotif] = useState<NotifType | null>(null)
+  const [notifToast, setNotifToast] = useState({ visible: false, message: '', isError: false })
 
   useFocusEffect(
     useCallback(() => {
@@ -115,11 +134,25 @@ export default function ProfileScreen() {
     }, [])
   )
 
-  // Show wallet toast if returning from Apple Wallet flow
+  // Show wallet success modal if returning from Apple Wallet flow
   useFocusEffect(
     useCallback(() => {
       if (consumePendingWalletToast()) setShowWalletSuccessModal(true)
     }, [])
+  )
+
+  // Fetch notification preferences (students only)
+  useFocusEffect(
+    useCallback(() => {
+      if (isStaff) return
+      api.get('/api/mobile/notification-preferences')
+        .then(({ data }) => {
+          const prefs = { ...notifPrefs }
+          for (const p of data.preferences) prefs[p.type as NotifType] = p.enabled
+          setNotifPrefs(prefs)
+        })
+        .catch(() => {/* silently ignore — defaults stay on */})
+    }, [isStaff])
   )
 
   // Silently ensure QR code exists; update local state if it was just generated
@@ -134,6 +167,21 @@ export default function ProfileScreen() {
       }
     }, [user?.qrCode])
   )
+
+  async function handleToggleNotif(type: NotifType, value: boolean) {
+    const previous = notifPrefs[type]
+    setNotifPrefs(p => ({ ...p, [type]: value }))
+    setSavingNotif(type)
+    try {
+      await api.patch('/api/mobile/notification-preferences', { type, enabled: value })
+      setNotifToast({ visible: true, message: 'Preferences Saved', isError: false })
+    } catch {
+      setNotifPrefs(p => ({ ...p, [type]: previous }))
+      setNotifToast({ visible: true, message: 'Could not save preference. Please try again.', isError: true })
+    } finally {
+      setSavingNotif(null)
+    }
+  }
 
   async function handleAddToAppleWallet() {
     setWalletLoading(true)
@@ -299,9 +347,21 @@ export default function ProfileScreen() {
             <Text style={styles.emptyPackagesText}>No packages yet.</Text>
           ) : (
             <>
-              {activePackages.map(pkg => (
-                <PackageCard key={pkg.id} pkg={pkg} muted={false} />
-              ))}
+              {activePackages.length > 0 && (
+                <>
+                  <TouchableOpacity
+                    style={styles.showExpiredRow}
+                    onPress={() => setShowActive(v => !v)}
+                  >
+                    <Text style={styles.showExpiredText}>
+                      {showActive ? 'Hide active packages' : `Show active packages (${activePackages.length})`}
+                    </Text>
+                  </TouchableOpacity>
+                  {showActive && activePackages.map(pkg => (
+                    <PackageCard key={pkg.id} pkg={pkg} muted={false} />
+                  ))}
+                </>
+              )}
 
               {expiredPackages.length > 0 && (
                 <>
@@ -376,11 +436,51 @@ export default function ProfileScreen() {
           )}
         </View>}
 
+        {/* Notifications — students only */}
+        {!isStaff && (
+          <View style={styles.notifSection}>
+            <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
+            <View style={styles.creditsDivider} />
+
+            <Text style={styles.notifGroupLabel}>EMAIL</Text>
+            {(Object.keys(NOTIF_LABELS) as NotifType[]).map(type => (
+              <View key={type} style={styles.notifRow}>
+                <Text style={styles.notifLabel}>{NOTIF_LABELS[type]}</Text>
+                <Switch
+                  value={notifPrefs[type]}
+                  onValueChange={v => handleToggleNotif(type, v)}
+                  disabled={savingNotif === type}
+                  trackColor={{ false: C.rule, true: C.burg }}
+                  thumbColor={C.cream}
+                />
+              </View>
+            ))}
+
+            <View style={[styles.creditsDivider, { marginTop: 16 }]} />
+            <Text style={styles.notifGroupLabel}>PUSH NOTIFICATIONS</Text>
+            {[0, 1, 2].map(i => (
+              <View key={i} style={styles.notifRow}>
+                <View>
+                  <Text style={[styles.notifLabel, styles.notifDisabled]}>Coming soon</Text>
+                </View>
+                <Switch value={false} disabled trackColor={{ false: C.rule, true: C.rule }} thumbColor={C.lightGray} />
+              </View>
+            ))}
+            <Text style={styles.notifComingSoon}>Push notifications coming in a future update.</Text>
+          </View>
+        )}
+
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
           <Text style={styles.signOutText}>SIGN OUT</Text>
         </TouchableOpacity>
       </ScrollView>
+      <Toast
+        message={notifToast.message}
+        visible={notifToast.visible}
+        onHide={() => setNotifToast(t => ({ ...t, visible: false }))}
+      />
+
       <Modal visible={showWalletSuccessModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -691,6 +791,48 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     opacity: 0.5,
+  },
+  notifSection: {
+    backgroundColor: C.warmWhite,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 18,
+    marginBottom: 16,
+  },
+  notifGroupLabel: {
+    fontFamily: F.sansMed,
+    fontSize: 9,
+    color: C.midGray,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: C.rule,
+  },
+  notifLabel: {
+    fontFamily: F.sansReg,
+    fontSize: 14,
+    color: C.ink,
+  },
+  notifDisabled: {
+    color: C.lightGray,
+  },
+  notifComingSoon: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.lightGray,
+    marginTop: 10,
+    fontStyle: 'italic',
   },
   modalOverlay: {
     flex: 1,
