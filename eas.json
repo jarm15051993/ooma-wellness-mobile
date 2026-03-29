@@ -19,6 +19,7 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://oomawellness.shop",
         "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Szh3uKfNoZ8iddxmaTnca6MgeRz9KTcHAR8opkn2rG1r8A9AnNoOtfXkddiumIuGlxfXeIRce5ULWbSxzGUkG8t00zLu9whnK"

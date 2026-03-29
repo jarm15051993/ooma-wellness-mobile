@@ -8,7 +8,7 @@ function TabIcon({ label, color }: { label: string; color: string }) {
     Classes: '◈',
     Bookings: '◉',
     Profile: '◎',
-    Admin: '⊕',
+    Students: '⊕',
   }
   return (
     <Text style={{ fontSize: 18, color, lineHeight: 22 }}>
@@ -18,7 +18,10 @@ function TabIcon({ label, color }: { label: string; color: string }) {
 }
 
 export default function TabLayout() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isOwner, canViewStudents } = useAuth()
+
+  const isStaff = isAdmin || isOwner
+  const showStudents = canViewStudents || isOwner
 
   return (
     <Tabs
@@ -48,8 +51,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'My Classes',
+          title: 'My Bookings',
           tabBarIcon: ({ color }) => <TabIcon label="Bookings" color={color} />,
+          tabBarItemStyle: isStaff ? { display: 'none' } : undefined,
+          tabBarButton: isStaff ? () => null : undefined,
         }}
       />
       <Tabs.Screen
@@ -60,12 +65,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="students/index"
+        options={{
+          title: 'Students',
+          tabBarIcon: ({ color }) => <TabIcon label="Students" color={color} />,
+          tabBarItemStyle: showStudents ? undefined : { display: 'none' },
+          tabBarButton: showStudents ? undefined : () => null,
+        }}
+      />
+      {/* Legacy admin tab — hidden for all, kept to avoid routing errors */}
+      <Tabs.Screen
         name="admin/index"
         options={{
-          title: 'Admin',
-          tabBarIcon: ({ color }) => <TabIcon label="Admin" color={color} />,
-          tabBarItemStyle: isAdmin ? undefined : { display: 'none' },
-          tabBarButton: isAdmin ? undefined : () => null,
+          tabBarItemStyle: { display: 'none' },
+          tabBarButton: () => null,
         }}
       />
     </Tabs>

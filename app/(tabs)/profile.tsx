@@ -10,19 +10,22 @@ import {
   ScrollView,
   Platform,
   Linking,
+  Modal,
 } from 'react-native'
 import { format } from 'date-fns'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import * as SecureStore from 'expo-secure-store'
+import * as Sharing from 'expo-sharing'
 import QRCode from 'react-native-qrcode-svg'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
+import { consumePendingWalletToast } from '@/lib/pendingToast'
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
   let expiryLabel: string
@@ -78,7 +81,8 @@ type UserPackage = {
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, isAdmin, isOwner } = useAuth()
+  const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
@@ -88,6 +92,7 @@ export default function ProfileScreen() {
   const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
   const [walletLoading, setWalletLoading] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
+  const [showWalletSuccessModal, setShowWalletSuccessModal] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -110,6 +115,13 @@ export default function ProfileScreen() {
     }, [])
   )
 
+  // Show wallet toast if returning from Apple Wallet flow
+  useFocusEffect(
+    useCallback(() => {
+      if (consumePendingWalletToast()) setShowWalletSuccessModal(true)
+    }, [])
+  )
+
   // Silently ensure QR code exists; update local state if it was just generated
   useFocusEffect(
     useCallback(() => {
@@ -126,16 +138,10 @@ export default function ProfileScreen() {
   async function handleAddToAppleWallet() {
     setWalletLoading(true)
     try {
-      const token = await SecureStore.getItemAsync('access_token')
-      const fileUri = FileSystem.cacheDirectory + 'ooma-class-pass.pkpass'
-      const result = await FileSystem.downloadAsync(
-        `${API_BASE_URL}/api/wallet/apple`,
-        fileUri,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      await Linking.openURL(result.uri)
-    } catch {
-      Alert.alert('Error', 'Could not generate your pass. Please try again.')
+      const { data } = await api.post('/api/wallet/apple')
+      await Linking.openURL(data.url)
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not generate your pass. Please try again.')
     } finally {
       setWalletLoading(false)
     }
@@ -272,8 +278,8 @@ export default function ProfileScreen() {
           <InfoRow label="PHONE" value={user?.phone} />
         </View>
 
-        {/* My Packages */}
-        <View style={styles.packagesSection}>
+        {/* My Packages — hidden for staff */}
+        {!isStaff && <View style={styles.packagesSection}>
           <Text style={styles.sectionLabel}>MY PACKAGES</Text>
           <View style={styles.creditsDivider} />
 
@@ -318,7 +324,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.buyBtn} onPress={() => router.push('/packages')}>
             <Text style={styles.buyBtnText}>BUY MORE CLASSES</Text>
           </TouchableOpacity>
-        </View>
+        </View>}
 
         {/* Class Pass / Wallet card — hidden in tenant mode */}
         {!tenantUser && <View style={styles.passCard}>
@@ -375,6 +381,22 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>SIGN OUT</Text>
         </TouchableOpacity>
       </ScrollView>
+      <Modal visible={showWalletSuccessModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconCircle}>
+              <Text style={styles.modalIconText}>✓</Text>
+            </View>
+            <Text style={styles.modalTitle}>Pass Added</Text>
+            <Text style={styles.modalBody}>
+              Your Ooma Pass has been added to your wallet. Show this when entering to class.
+            </Text>
+            <TouchableOpacity style={styles.modalBtn} onPress={() => setShowWalletSuccessModal(false)}>
+              <Text style={styles.modalBtnText}>GOT IT</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -669,5 +691,63 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     opacity: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: C.cream,
+    borderRadius: 16,
+    padding: 28,
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: C.burg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  modalIconText: {
+    color: C.cream,
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  modalTitle: {
+    fontFamily: F.serifReg,
+    fontSize: 22,
+    color: C.ink,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontFamily: F.sansReg,
+    fontSize: 14,
+    color: C.ink,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  modalBtn: {
+    height: 50,
+    backgroundColor: C.burg,
+    borderRadius: 2,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  modalBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 })

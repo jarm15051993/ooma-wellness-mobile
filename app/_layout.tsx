@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { View, ActivityIndicator, TouchableWithoutFeedback, TouchableOpacity, Text, Modal, StyleSheet } from 'react-native'
+import { useEffect, useState, useRef } from 'react'
+import { View, ActivityIndicator, TouchableOpacity, Text, Modal, StyleSheet, Linking } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
+import { setPendingWalletToast } from '@/lib/pendingToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { StripeProvider } from '@stripe/stripe-react-native'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
@@ -95,9 +96,24 @@ function InactivityModal() {
 }
 
 function RootLayoutNav() {
-  const { user, isLoading, lastActivityAt } = useAuth()
+  const { user, isLoading } = useAuth()
   const segments = useSegments()
   const router = useRouter()
+  // Handle deep links — ooma://wallet-added
+  useEffect(() => {
+    function handleUrl({ url }: { url: string }) {
+      if (url?.includes('wallet-added')) {
+        setPendingWalletToast()
+        router.replace('/(tabs)/profile')
+      }
+    }
+    const sub = Linking.addEventListener('url', handleUrl)
+    Linking.getInitialURL().then(url => {
+      console.log('[deeplink] initialURL:', url)
+      if (url) handleUrl({ url })
+    })
+    return () => sub.remove()
+  }, [router])
 
   useEffect(() => {
     if (isLoading) return
@@ -122,18 +138,16 @@ function RootLayoutNav() {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={() => { lastActivityAt.current = Date.now() }}>
-      <View style={{ flex: 1 }}>
-        <TenantBanner />
-        <InactivityModal />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="packages" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="admin/search" />
-        </Stack>
-      </View>
-    </TouchableWithoutFeedback>
+    <View style={{ flex: 1 }}>
+      <TenantBanner />
+      <InactivityModal />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="packages" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="admin/search" />
+      </Stack>
+    </View>
   )
 }
 
