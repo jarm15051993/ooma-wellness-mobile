@@ -22,6 +22,7 @@ import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as SecureStore from 'expo-secure-store'
 import * as Sharing from 'expo-sharing'
+import * as IntentLauncher from 'expo-intent-launcher'
 import QRCode from 'react-native-qrcode-svg'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
@@ -364,6 +365,21 @@ export default function ProfileScreen() {
       setEmailPasswordError(e?.response?.data?.error ?? 'Incorrect password. Please try again.')
     } finally {
       setEmailLoading(false)
+    }
+  }
+
+  async function openMailApp() {
+    try {
+      if (Platform.OS === 'ios') {
+        const supported = await Linking.canOpenURL('message://')
+        if (supported) { await Linking.openURL('message://'); return }
+      }
+      await IntentLauncher.startActivityAsync(IntentLauncher.ActivityAction.MAIN, {
+        category: 'android.intent.category.APP_EMAIL',
+        flags: 0x10000000,
+      })
+    } catch {
+      Alert.alert('No mail app found', 'Please open your email app manually and check your inbox.')
     }
   }
 
@@ -1007,8 +1023,11 @@ export default function ProfileScreen() {
                   <Text style={{ color: C.burg, fontFamily: F.sansMed }}>{newEmail}</Text>.
                   {'\n\n'}Your email will be updated once you click the link.
                 </Text>
-                <TouchableOpacity style={[styles.modalBtn, { marginTop: 8 }]} onPress={() => setShowEmailModal(false)}>
-                  <Text style={styles.modalBtnText}>DONE</Text>
+                <TouchableOpacity style={[styles.modalBtn, { marginTop: 8 }]} onPress={openMailApp}>
+                  <Text style={styles.modalBtnText}>OPEN EMAIL</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.noThanksBtn} onPress={() => setShowEmailModal(false)}>
+                  <Text style={styles.noThanksBtnText}>Done</Text>
                 </TouchableOpacity>
               </View>
             )}
