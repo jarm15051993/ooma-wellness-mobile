@@ -29,6 +29,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
+import WelcomeGiftModal from '@/components/WelcomeGiftModal'
+import { consumePendingGift } from '@/lib/pendingGift'
 import Toast from '@/components/Toast'
 import { consumePendingWalletToast } from '@/lib/pendingToast'
 import { CONDITIONS } from '@/constants/onboarding'
@@ -182,6 +184,10 @@ export default function ProfileScreen() {
   const [newEmailError, setNewEmailError] = useState('')
   const [emailLoading, setEmailLoading] = useState(false)
 
+  // Welcome gift modal
+  const [showGiftModal, setShowGiftModal] = useState(false)
+  const [claimingGift, setClaimingGift] = useState(false)
+
   useFocusEffect(
     useCallback(() => {
       async function fetchPackages() {
@@ -247,6 +253,40 @@ export default function ProfileScreen() {
       }
     }, [user?.qrCode])
   )
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isStaff || !user?.id) return
+      if (consumePendingGift()) {
+        setShowGiftModal(true)
+        return
+      }
+    }, [isStaff, user?.id])
+  )
+
+  async function claimGift() {
+    if (!user?.id) return
+    setClaimingGift(true)
+    try {
+      await api.post('/api/mobile/claim-welcome-gift')
+      await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
+      setShowGiftModal(false)
+      // Refresh packages to show the new credit
+      const { data } = await api.get('/api/user/packages')
+      setActivePackages(data.active)
+      setExpiredPackages(data.expired)
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        // Already claimed server-side — mark locally and close
+        await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
+        setShowGiftModal(false)
+      } else {
+        Alert.alert('Error', 'Could not claim the gift. Please try again later.')
+      }
+    } finally {
+      setClaimingGift(false)
+    }
+  }
 
   // ─── Global edit modal helpers ──────────────────────────────────────────────
 
@@ -738,6 +778,13 @@ export default function ProfileScreen() {
         message={notifToast.message}
         visible={notifToast.visible}
         onHide={() => setNotifToast(t => ({ ...t, visible: false }))}
+      />
+
+      <WelcomeGiftModal
+        visible={showGiftModal}
+        onClaim={claimGift}
+        onDismiss={() => setShowGiftModal(false)}
+        claiming={claimingGift}
       />
 
       {/* Wallet success modal */}
