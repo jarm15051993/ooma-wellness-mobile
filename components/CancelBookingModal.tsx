@@ -32,7 +32,7 @@ export default function CancelBookingModal({ visible, classStartsAt, loading, on
           )}
 
           <TouchableOpacity style={styles.keepBtn} onPress={onKeep} disabled={loading}>
-            <Text style={styles.keepBtnText}>KEEP BOOKING</Text>
+            <Text style={styles.keepBtnText}>{isLate ? "DON'T CANCEL" : "DON'T CANCEL - KEEP BOOKING"}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
