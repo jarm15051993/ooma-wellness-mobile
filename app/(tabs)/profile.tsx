@@ -41,8 +41,6 @@ const NOTIF_LABELS: Record<NotifType, string> = {
   package_purchase: 'Package Purchase',
 }
 
-type EditableField = 'name' | 'lastName' | 'phone' | 'dob' | 'goals'
-
 type ExtendedProfile = {
   birthday: string | null
   goals: string | null
@@ -69,12 +67,6 @@ function serializeConditions(selected: string[], other: string): string | null {
   const parts = selected.filter(c => c !== 'Other')
   if (selected.includes('Other') && other.trim()) parts.push(`Other: ${other.trim()}`)
   return parts.join(', ') || null
-}
-
-function validatePhone(phone: string): string | null {
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length < 7) return 'Please enter a valid phone number.'
-  return null
 }
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
@@ -120,6 +112,19 @@ type UserPackage = {
   expiredReason?: 'classes_used' | 'date_expired'
 }
 
+// Simple read-only info row
+function InfoRow({ label, value, trailing }: { label: string; value: string | null | undefined; trailing?: React.ReactNode }) {
+  return (
+    <View style={styles.infoRow}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value ?? '—'}</Text>
+      </View>
+      {trailing}
+    </View>
+  )
+}
+
 export default function ProfileScreen() {
   const router = useRouter()
   const { user, signOut, refreshUser, tenantUser, isAdmin, isOwner } = useAuth()
@@ -143,16 +148,20 @@ export default function ProfileScreen() {
   const [savingNotif, setSavingNotif] = useState<NotifType | null>(null)
   const [notifToast, setNotifToast] = useState({ visible: false, message: '', isError: false })
 
-  // Extended profile state (birthday, goals, additionalInfo)
+  // Extended profile state
   const [extProfile, setExtProfile] = useState<ExtendedProfile>({ birthday: null, goals: null, additionalInfo: null })
 
-  // Inline edit state
-  const [editingField, setEditingField] = useState<EditableField | null>(null)
-  const [editValue, setEditValue] = useState('')
-  const [editError, setEditError] = useState('')
-  const [saving, setSaving] = useState(false)
+  // ─── Global edit modal ──────────────────────────────────────────────────────
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editLastName, setEditLastName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editDob, setEditDob] = useState('')
+  const [editDobDate, setEditDobDate] = useState(new Date())
+  const [editGoals, setEditGoals] = useState('')
   const [showDobPicker, setShowDobPicker] = useState(false)
-  const [dobPickerDate, setDobPickerDate] = useState(new Date())
+  const [editError, setEditError] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
 
   // Medical conditions modal
   const [showConditionsModal, setShowConditionsModal] = useState(false)
@@ -191,7 +200,6 @@ export default function ProfileScreen() {
     }, [])
   )
 
-  // Fetch extended profile (birthday, goals, conditions) — students only
   useFocusEffect(
     useCallback(() => {
       if (isStaff) return
@@ -203,7 +211,7 @@ export default function ProfileScreen() {
             additionalInfo: data.user.additionalInfo ?? null,
           })
         })
-        .catch(() => {/* silently ignore */})
+        .catch(() => {})
     }, [isStaff])
   )
 
@@ -238,92 +246,64 @@ export default function ProfileScreen() {
     }, [user?.qrCode])
   )
 
-  // ─── Edit helpers ───────────────────────────────────────────────────────────
+  // ─── Global edit modal helpers ──────────────────────────────────────────────
 
-  function startEdit(field: EditableField) {
-    if (editingField && editingField !== field) {
-      Alert.alert('Unsaved Changes', 'Discard your unsaved changes?', [
-        { text: 'Keep Editing', style: 'cancel' },
-        { text: 'Discard', style: 'destructive', onPress: () => openEditField(field) },
-      ])
-      return
-    }
-    openEditField(field)
-  }
-
-  function openEditField(field: EditableField) {
-    setEditError('')
-    setEditingField(field)
-    if (field === 'name') setEditValue(user?.name ?? '')
-    else if (field === 'lastName') setEditValue(user?.lastName ?? '')
-    else if (field === 'phone') setEditValue(user?.phone ?? '')
-    else if (field === 'goals') setEditValue(extProfile.goals ?? '')
-    else if (field === 'dob') {
-      const d = extProfile.birthday ? new Date(extProfile.birthday) : new Date(2000, 0, 1)
-      setDobPickerDate(d)
-      setEditValue(extProfile.birthday ?? '')
-      setShowDobPicker(true)
-    }
-  }
-
-  function cancelEdit() {
-    setEditingField(null)
-    setEditValue('')
+  function openEditModal() {
+    setEditName(user?.name ?? '')
+    setEditLastName(user?.lastName ?? '')
+    setEditPhone(user?.phone ?? '')
+    setEditGoals(extProfile.goals ?? '')
+    const dob = extProfile.birthday ? new Date(extProfile.birthday) : new Date(2000, 0, 1)
+    setEditDob(extProfile.birthday ?? '')
+    setEditDobDate(dob)
     setEditError('')
     setShowDobPicker(false)
+    setShowEditModal(true)
   }
 
-  function validateEdit(field: EditableField, value: string): string | null {
-    if (field === 'name' || field === 'lastName') {
-      if (!value.trim()) return `Please enter your ${field === 'name' ? 'first' : 'last'} name.`
-    }
-    if (field === 'phone') {
-      return validatePhone(value)
-    }
-    if (field === 'goals') {
-      if (!value.trim()) return 'Please tell us your goal.'
-    }
+  function validateEditForm(): string | null {
+    if (!editName.trim()) return 'Please enter your first name.'
+    if (!editLastName.trim()) return 'Please enter your last name.'
+    const digits = editPhone.replace(/\D/g, '')
+    if (digits.length < 7) return 'Please enter a valid phone number.'
+    if (!editGoals.trim()) return 'Please tell us your goal.'
     return null
   }
 
-  async function saveField(field: EditableField) {
-    const err = validateEdit(field, editValue)
+  async function saveEditProfile() {
+    const err = validateEditForm()
     if (err) { setEditError(err); return }
 
-    setSaving(true)
+    setSavingEdit(true)
+    setEditError('')
     try {
-      const body: Record<string, string> = { userId: user!.id }
-      if (field === 'name') body.name = editValue.trim()
-      else if (field === 'lastName') body.lastName = editValue.trim()
-      else if (field === 'phone') body.phone = editValue.trim()
-      else if (field === 'goals') body.goals = editValue.trim()
-      else if (field === 'dob') body.birthday = editValue
+      await api.patch('/api/user/update', {
+        userId: user!.id,
+        name: editName.trim(),
+        lastName: editLastName.trim(),
+        phone: editPhone.trim(),
+        goals: editGoals.trim(),
+        ...(editDob ? { birthday: editDob } : {}),
+      })
 
-      await api.patch('/api/user/update', body)
-
-      if (field === 'goals' || field === 'dob') {
+      if (editDob || editGoals !== (extProfile.goals ?? '')) {
         setExtProfile(p => ({
           ...p,
-          goals: field === 'goals' ? editValue.trim() : p.goals,
-          birthday: field === 'dob' ? editValue : p.birthday,
+          goals: editGoals.trim(),
+          birthday: editDob || p.birthday,
         }))
-      } else {
-        await refreshUser()
       }
-
-      setEditingField(null)
-      setEditValue('')
-      setEditError('')
-      setShowDobPicker(false)
-      setNotifToast({ visible: true, message: 'Information Updated', isError: false })
+      await refreshUser()
+      setShowEditModal(false)
+      setNotifToast({ visible: true, message: 'Profile Updated', isError: false })
     } catch (e: any) {
       setEditError(e?.response?.data?.error ?? 'Could not save. Please try again.')
     } finally {
-      setSaving(false)
+      setSavingEdit(false)
     }
   }
 
-  // ─── Medical conditions modal ───────────────────────────────────────────────
+  // ─── Medical conditions ──────────────────────────────────────────────────────
 
   function openConditionsModal() {
     const { selected, other } = parseConditions(extProfile.additionalInfo)
@@ -349,7 +329,7 @@ export default function ProfileScreen() {
       await api.patch('/api/user/update', { userId: user!.id, additionalInfo: additionalInfo ?? '' })
       setExtProfile(p => ({ ...p, additionalInfo }))
       setShowConditionsModal(false)
-      setNotifToast({ visible: true, message: 'Information Updated', isError: false })
+      setNotifToast({ visible: true, message: 'Profile Updated', isError: false })
     } catch (e: any) {
       setCondError(e?.response?.data?.error ?? 'Could not save. Please try again.')
     } finally {
@@ -357,7 +337,7 @@ export default function ProfileScreen() {
     }
   }
 
-  // ─── Email change modal ─────────────────────────────────────────────────────
+  // ─── Email change ────────────────────────────────────────────────────────────
 
   function openEmailModal() {
     setEmailStep(1)
@@ -396,7 +376,7 @@ export default function ProfileScreen() {
     }
   }
 
-  // ─── Notifications ──────────────────────────────────────────────────────────
+  // ─── Notifications ────────────────────────────────────────────────────────────
 
   async function handleToggleNotif(type: NotifType, value: boolean) {
     const previous = notifPrefs[type]
@@ -413,7 +393,7 @@ export default function ProfileScreen() {
     }
   }
 
-  // ─── Wallet / photo ─────────────────────────────────────────────────────────
+  // ─── Wallet / photo ──────────────────────────────────────────────────────────
 
   async function handleAddToAppleWallet() {
     setWalletLoading(true)
@@ -516,130 +496,6 @@ export default function ProfileScreen() {
   const maxDob = new Date()
   maxDob.setFullYear(maxDob.getFullYear() - 14)
 
-  // ─── EditableRow component ──────────────────────────────────────────────────
-
-  function EditableRow({
-    label, displayValue, field, multiline,
-  }: {
-    label: string
-    displayValue: string | null | undefined
-    field: EditableField
-    multiline?: boolean
-  }) {
-    const isEditing = editingField === field
-
-    if (isEditing) {
-      const isDob = field === 'dob'
-      return (
-        <View style={styles.editableRowEdit}>
-          <Text style={styles.infoLabel}>{label}</Text>
-          {isDob ? (
-            <View>
-              <TouchableOpacity
-                style={styles.dobDisplayBtn}
-                onPress={() => setShowDobPicker(v => !v)}
-              >
-                <Text style={styles.dobDisplayText}>
-                  {editValue ? format(new Date(editValue), 'MMMM d, yyyy') : 'Select date'}
-                </Text>
-              </TouchableOpacity>
-              {showDobPicker && (
-                <DateTimePicker
-                  value={dobPickerDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  maximumDate={maxDob}
-                  onChange={(_, d) => {
-                    if (Platform.OS === 'android') setShowDobPicker(false)
-                    if (d) {
-                      setDobPickerDate(d)
-                      setEditValue(d.toISOString())
-                    }
-                  }}
-                />
-              )}
-            </View>
-          ) : (
-            <TextInput
-              style={[styles.editInput, multiline && styles.editInputMultiline, editError ? styles.editInputError : null]}
-              value={editValue}
-              onChangeText={v => { setEditValue(v); setEditError('') }}
-              autoFocus
-              multiline={multiline}
-              numberOfLines={multiline ? 3 : 1}
-              autoCapitalize={field === 'phone' ? 'none' : 'words'}
-              keyboardType={field === 'phone' ? 'phone-pad' : 'default'}
-            />
-          )}
-          {editError ? <Text style={styles.editError}>{editError}</Text> : null}
-          <View style={styles.editActions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={cancelEdit} disabled={saving}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.saveBtn, saving && styles.btnDisabled]} onPress={() => saveField(field)} disabled={saving}>
-              {saving
-                ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.saveBtnText}>Save</Text>
-              }
-            </TouchableOpacity>
-          </View>
-        </View>
-      )
-    }
-
-    return (
-      <View style={styles.infoRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.infoLabel}>{label}</Text>
-          <Text style={styles.infoValue}>{displayValue ?? '—'}</Text>
-        </View>
-        {!isStaff && (
-          <TouchableOpacity style={styles.pencilBtn} onPress={() => startEdit(field)}>
-            <Text style={styles.pencilIcon}>✎</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    )
-  }
-
-  function ConditionsRow() {
-    const displayValue = extProfile.additionalInfo
-      ? extProfile.additionalInfo
-      : extProfile.additionalInfo === null
-        ? '—'
-        : 'None'
-
-    return (
-      <View style={styles.infoRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.infoLabel}>MEDICAL CONDITIONS</Text>
-          <Text style={styles.infoValue}>{extProfile.additionalInfo ?? '—'}</Text>
-        </View>
-        {!isStaff && (
-          <TouchableOpacity style={styles.pencilBtn} onPress={openConditionsModal}>
-            <Text style={styles.pencilIcon}>✎</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    )
-  }
-
-  function EmailRow() {
-    return (
-      <View style={styles.infoRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.infoLabel}>EMAIL</Text>
-          <Text style={styles.infoValue}>{user?.email ?? '—'}</Text>
-        </View>
-        {!isStaff && (
-          <TouchableOpacity style={styles.pencilBtn} onPress={openEmailModal}>
-            <Text style={styles.pencilIcon}>✎</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    )
-  }
-
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -674,30 +530,46 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Info card */}
+        {/* Info card — read-only */}
         <View style={styles.infoCard}>
-          <EditableRow label="FIRST NAME" displayValue={user?.name} field="name" />
+          <InfoRow label="FIRST NAME" value={user?.name} />
           <View style={styles.rowDivider} />
-          <EditableRow label="LAST NAME" displayValue={user?.lastName} field="lastName" />
+          <InfoRow label="LAST NAME" value={user?.lastName} />
           <View style={styles.rowDivider} />
-          <EmailRow />
+          <InfoRow
+            label="EMAIL"
+            value={user?.email}
+            trailing={
+              !isStaff ? (
+                <TouchableOpacity onPress={openEmailModal} style={styles.changeEmailBtn}>
+                  <Text style={styles.changeEmailText}>Change</Text>
+                </TouchableOpacity>
+              ) : undefined
+            }
+          />
           <View style={styles.rowDivider} />
-          <EditableRow label="PHONE" displayValue={user?.phone} field="phone" />
+          <InfoRow label="PHONE" value={user?.phone} />
           {!isStaff && (
             <>
               <View style={styles.rowDivider} />
-              <EditableRow
+              <InfoRow
                 label="DATE OF BIRTH"
-                displayValue={extProfile.birthday ? format(new Date(extProfile.birthday), 'MMMM d, yyyy') : null}
-                field="dob"
+                value={extProfile.birthday ? format(new Date(extProfile.birthday), 'MMMM d, yyyy') : null}
               />
               <View style={styles.rowDivider} />
-              <EditableRow label="GOALS" displayValue={extProfile.goals} field="goals" multiline />
+              <InfoRow label="GOALS" value={extProfile.goals} />
               <View style={styles.rowDivider} />
-              <ConditionsRow />
+              <InfoRow label="MEDICAL CONDITIONS" value={extProfile.additionalInfo ?? '—'} />
             </>
           )}
         </View>
+
+        {/* Edit Profile button — students only */}
+        {!isStaff && (
+          <TouchableOpacity style={styles.editProfileBtn} onPress={openEditModal}>
+            <Text style={styles.editProfileBtnText}>EDIT PROFILE</Text>
+          </TouchableOpacity>
+        )}
 
         {/* My Packages — hidden for staff */}
         {!isStaff && <View style={styles.packagesSection}>
@@ -758,7 +630,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>}
 
-        {/* Class Pass / Wallet card — hidden in tenant mode */}
+        {/* Class Pass / Wallet card */}
         {!tenantUser && <View style={styles.passCard}>
           <Text style={styles.creditsCardLabel}>MY CLASS PASS</Text>
           <View style={styles.creditsDivider} />
@@ -863,6 +735,110 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* ─── Edit Profile modal ─── */}
+      <Modal visible={showEditModal} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={styles.modalSheetSafe}>
+          <View style={styles.modalSheetHeader}>
+            <TouchableOpacity onPress={() => setShowEditModal(false)} disabled={savingEdit}>
+              <Text style={styles.modalSheetCancel}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalSheetTitle}>Edit Profile</Text>
+            <TouchableOpacity onPress={saveEditProfile} disabled={savingEdit}>
+              {savingEdit
+                ? <ActivityIndicator size="small" color={C.burg} />
+                : <Text style={styles.modalSheetSave}>Save</Text>
+              }
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.modalSheetBody} keyboardShouldPersistTaps="handled">
+            <Text style={styles.editFieldLabel}>FIRST NAME</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editName}
+              onChangeText={v => { setEditName(v); setEditError('') }}
+              autoCapitalize="words"
+              placeholderTextColor={C.lightGray}
+            />
+
+            <Text style={styles.editFieldLabel}>LAST NAME</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editLastName}
+              onChangeText={v => { setEditLastName(v); setEditError('') }}
+              autoCapitalize="words"
+              placeholderTextColor={C.lightGray}
+            />
+
+            <Text style={styles.editFieldLabel}>PHONE</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editPhone}
+              onChangeText={v => { setEditPhone(v); setEditError('') }}
+              keyboardType="phone-pad"
+              placeholderTextColor={C.lightGray}
+            />
+
+            <Text style={styles.editFieldLabel}>DATE OF BIRTH</Text>
+            <TouchableOpacity
+              style={styles.dobDisplayBtn}
+              onPress={() => setShowDobPicker(v => !v)}
+            >
+              <Text style={styles.dobDisplayText}>
+                {editDob ? format(new Date(editDob), 'MMMM d, yyyy') : 'Select date'}
+              </Text>
+            </TouchableOpacity>
+            {showDobPicker && (
+              <DateTimePicker
+                value={editDobDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={maxDob}
+                onChange={(_, d) => {
+                  if (Platform.OS === 'android') setShowDobPicker(false)
+                  if (d) {
+                    setEditDobDate(d)
+                    setEditDob(d.toISOString())
+                  }
+                }}
+              />
+            )}
+
+            <Text style={styles.editFieldLabel}>GOALS</Text>
+            <TextInput
+              style={[styles.editInput, styles.editInputMultiline]}
+              value={editGoals}
+              onChangeText={v => { setEditGoals(v); setEditError('') }}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              placeholderTextColor={C.lightGray}
+            />
+
+            <Text style={styles.editFieldLabel}>MEDICAL CONDITIONS</Text>
+            <TouchableOpacity style={styles.conditionsEditRow} onPress={openConditionsModal}>
+              <Text style={styles.conditionsEditValue} numberOfLines={2}>
+                {extProfile.additionalInfo ?? 'None'}
+              </Text>
+              <Text style={styles.conditionsEditChevron}>›</Text>
+            </TouchableOpacity>
+
+            {editError ? <Text style={styles.editError}>{editError}</Text> : null}
+
+            <TouchableOpacity
+              style={[styles.sheetSaveBtn, savingEdit && styles.btnDisabled]}
+              onPress={saveEditProfile}
+              disabled={savingEdit}
+            >
+              {savingEdit
+                ? <ActivityIndicator size="small" color={C.cream} />
+                : <Text style={styles.sheetSaveBtnText}>SAVE CHANGES</Text>
+              }
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
 
       {/* Medical Conditions modal */}
@@ -1057,7 +1033,7 @@ const styles = StyleSheet.create({
   avatarEditIcon: { fontSize: 13, color: C.cream, lineHeight: 16 },
   infoCard: {
     backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
-    borderRadius: 4, marginBottom: 16, overflow: 'hidden',
+    borderRadius: 4, marginBottom: 12, overflow: 'hidden',
   },
   infoRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -1068,36 +1044,14 @@ const styles = StyleSheet.create({
     letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4,
   },
   infoValue: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
-  pencilBtn: { padding: 8 },
-  pencilIcon: { fontSize: 16, color: C.midGray },
   rowDivider: { height: 1, backgroundColor: C.rule },
-  editableRowEdit: { paddingHorizontal: 18, paddingVertical: 14 },
-  editInput: {
-    borderWidth: 1, borderColor: C.rule, borderRadius: 4,
-    paddingHorizontal: 14, paddingVertical: 10,
-    fontFamily: F.sansReg, fontSize: 14, color: C.ink,
-    backgroundColor: C.cream, marginTop: 6,
+  changeEmailBtn: { paddingLeft: 12, paddingVertical: 4 },
+  changeEmailText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
+  editProfileBtn: {
+    height: 48, borderWidth: 1, borderColor: C.ink, borderRadius: 2,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  editInputMultiline: { minHeight: 80, textAlignVertical: 'top', paddingTop: 10 },
-  editInputError: { borderColor: C.red },
-  editError: { fontFamily: F.sansReg, fontSize: 11, color: C.red, marginTop: 4 },
-  editActions: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  cancelBtn: {
-    flex: 1, height: 36, borderWidth: 1, borderColor: C.rule,
-    borderRadius: 2, alignItems: 'center', justifyContent: 'center',
-  },
-  cancelBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.midGray, letterSpacing: 1 },
-  saveBtn: {
-    flex: 1, height: 36, backgroundColor: C.burg,
-    borderRadius: 2, alignItems: 'center', justifyContent: 'center',
-  },
-  saveBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 1 },
-  dobDisplayBtn: {
-    borderWidth: 1, borderColor: C.rule, borderRadius: 4,
-    paddingHorizontal: 14, paddingVertical: 10, marginTop: 6,
-    backgroundColor: C.cream,
-  },
-  dobDisplayText: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  editProfileBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.ink, letterSpacing: 2 },
   packagesSection: {
     backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
     borderRadius: 4, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 18, marginBottom: 16,
@@ -1197,7 +1151,6 @@ const styles = StyleSheet.create({
   modalBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
   noThanksBtn: { height: 44, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
   noThanksBtnText: { fontFamily: F.sansReg, fontSize: 14, color: C.midGray },
-  // Conditions modal
   modalSheetSafe: { flex: 1, backgroundColor: C.cream },
   modalSheetHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -1207,6 +1160,32 @@ const styles = StyleSheet.create({
   modalSheetCancel: { fontFamily: F.sansReg, fontSize: 14, color: C.midGray },
   modalSheetSave: { fontFamily: F.sansMed, fontSize: 14, color: C.burg },
   modalSheetBody: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 48 },
+  editFieldLabel: {
+    fontFamily: F.sansMed, fontSize: 9, color: C.midGray,
+    letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8, marginTop: 20,
+  },
+  editInput: {
+    borderWidth: 1, borderColor: C.rule, borderRadius: 4,
+    paddingHorizontal: 14, paddingVertical: 12,
+    fontFamily: F.sansReg, fontSize: 14, color: C.ink,
+    backgroundColor: C.warmWhite,
+  },
+  editInputMultiline: { minHeight: 80, textAlignVertical: 'top', paddingTop: 12 },
+  editError: { fontFamily: F.sansReg, fontSize: 12, color: C.red, marginTop: 12 },
+  dobDisplayBtn: {
+    borderWidth: 1, borderColor: C.rule, borderRadius: 4,
+    paddingHorizontal: 14, paddingVertical: 12,
+    backgroundColor: C.warmWhite,
+  },
+  dobDisplayText: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  conditionsEditRow: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1, borderColor: C.rule, borderRadius: 4,
+    paddingHorizontal: 14, paddingVertical: 12,
+    backgroundColor: C.warmWhite,
+  },
+  conditionsEditValue: { flex: 1, fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  conditionsEditChevron: { fontSize: 20, color: C.midGray, marginLeft: 8 },
   condQuestion: {
     fontFamily: F.sansMed, fontSize: 10, color: C.midGray,
     letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12,
