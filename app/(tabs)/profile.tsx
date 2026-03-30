@@ -30,6 +30,7 @@ import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
 import WelcomeGiftModal from '@/components/WelcomeGiftModal'
+import { consumePendingGift } from '@/lib/pendingGift'
 import Toast from '@/components/Toast'
 import { consumePendingWalletToast } from '@/lib/pendingToast'
 import { CONDITIONS } from '@/constants/onboarding'
@@ -256,18 +257,10 @@ export default function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       if (isStaff || !user?.id) return
-      async function checkGift() {
-        try {
-          const flagKey = `gift_claimed_${user!.id}`
-          const alreadyClaimed = await SecureStore.getItemAsync(flagKey)
-          if (alreadyClaimed) return
-          const { data } = await api.get('/api/mobile/config')
-          if (data.earlyMemberGiftEnabled) setShowGiftModal(true)
-        } catch {
-          // silently ignore
-        }
+      if (consumePendingGift()) {
+        setShowGiftModal(true)
+        return
       }
-      checkGift()
     }, [isStaff, user?.id])
   )
 

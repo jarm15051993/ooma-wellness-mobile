@@ -11,6 +11,7 @@ import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import { COUNTRY_CODES, PHONE_LENGTHS, CONDITIONS, MONTHS } from '@/constants/onboarding'
 import WalletModal from '@/components/WalletModal'
+import { setPendingGift } from '@/lib/pendingGift'
 
 const STEPS = [
   'Create your password',
@@ -546,7 +547,12 @@ export default function CompleteProfileScreen() {
       } else {
         await signIn(confirmedEmail, password)
       }
-      setShowWalletModal(true)
+      // Check gift flag before navigating so profile shows modal immediately
+      try {
+        const { data } = await api.get('/api/mobile/config')
+        if (data.earlyMemberGiftEnabled) setPendingGift()
+      } catch {}
+      router.replace('/(tabs)/profile')
     } catch {
       Alert.alert(
         'Account created',
