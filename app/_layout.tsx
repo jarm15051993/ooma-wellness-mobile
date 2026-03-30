@@ -96,14 +96,18 @@ function InactivityModal() {
 }
 
 function RootLayoutNav() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, refreshUser } = useAuth()
   const segments = useSegments()
   const router = useRouter()
-  // Handle deep links — ooma://wallet-added
+  // Handle deep links — ooma://wallet-added, ooma://email-updated
   useEffect(() => {
     function handleUrl({ url }: { url: string }) {
       if (url?.includes('wallet-added')) {
         setPendingWalletToast()
+        router.replace('/(tabs)/profile')
+      }
+      if (url?.includes('email-updated')) {
+        refreshUser().catch(() => {})
         router.replace('/(tabs)/profile')
       }
     }
