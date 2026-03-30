@@ -130,7 +130,7 @@ function InfoRow({ label, value, trailing }: { label: string; value: string | nu
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser, isAdmin, isOwner } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, isAdmin, isOwner, canMarkAsStudent } = useAuth()
   const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
@@ -150,6 +150,10 @@ export default function ProfileScreen() {
   })
   const [savingNotif, setSavingNotif] = useState<NotifType | null>(null)
   const [notifToast, setNotifToast] = useState({ visible: false, message: '', isError: false })
+
+  // Student toggle (tenant mode only)
+  const [studentStatus, setStudentStatus] = useState(false)
+  const [savingStudent, setSavingStudent] = useState(false)
 
   // Extended profile state
   const [extProfile, setExtProfile] = useState<ExtendedProfile>({ birthday: null, goals: null, additionalInfo: null })
@@ -263,6 +267,30 @@ export default function ProfileScreen() {
       }
     }, [isStaff, user?.id])
   )
+
+  // Sync student status when entering a tenant session
+  React.useEffect(() => {
+    if (!tenantUser) return
+    api.get(`/api/admin/users/${tenantUser.id}/mark-as-student`)
+      .then(({ data }) => setStudentStatus(data.isStudent))
+      .catch(() => {})
+  }, [tenantUser?.id])
+
+  async function toggleStudentStatus(value: boolean) {
+    if (!tenantUser) return
+    const previous = studentStatus
+    setStudentStatus(value) // optimistic
+    setSavingStudent(true)
+    try {
+      await api.patch(`/api/admin/users/${tenantUser.id}/mark-as-student`, { isStudent: value })
+      setNotifToast({ visible: true, message: value ? 'Marked as Student' : 'No longer a Student', isError: false })
+    } catch {
+      setStudentStatus(previous) // revert
+      setNotifToast({ visible: true, message: 'Could not update student status. Please try again.', isError: true })
+    } finally {
+      setSavingStudent(false)
+    }
+  }
 
   async function claimGift() {
     if (!user?.id) return
@@ -630,6 +658,25 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.editProfileBtn} onPress={openEditModal}>
             <Text style={styles.editProfileBtnText}>EDIT PROFILE</Text>
           </TouchableOpacity>
+        )}
+
+        {/* Student Status toggle — only visible in active tenant session with correct permission */}
+        {tenantUser && (isOwner || canMarkAsStudent) && (
+          <View style={styles.studentToggleRow}>
+            <View>
+              <Text style={styles.studentToggleLabel}>Student Status</Text>
+              <Text style={styles.studentToggleSub}>
+                {studentStatus ? 'Has access to student packages' : 'No student discount'}
+              </Text>
+            </View>
+            <Switch
+              value={studentStatus}
+              onValueChange={toggleStudentStatus}
+              disabled={savingStudent}
+              trackColor={{ false: C.boneDark, true: C.burgSoft }}
+              thumbColor={studentStatus ? C.burg : C.midGray}
+            />
+          </View>
         )}
 
         {/* My Packages — hidden for staff */}
@@ -1297,4 +1344,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginTop: 24,
   },
   sheetSaveBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
+  studentToggleRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
+    borderRadius: 4, paddingHorizontal: 16, paddingVertical: 14, marginTop: 12,
+  },
+  studentToggleLabel: { fontFamily: F.sansMed, fontSize: 13, color: C.ink, letterSpacing: 0.3 },
+  studentToggleSub: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 2 },
 })

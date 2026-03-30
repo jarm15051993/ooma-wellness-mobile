@@ -24,6 +24,8 @@ type AuthContextType = {
   canCreateClass: boolean
   canViewStudents: boolean
   canValidateAttendance: boolean
+  canMarkAsStudent: boolean
+  isStudent: boolean
   isLoading: boolean
   tenantUser: User | null
   lastActivityAt: React.MutableRefObject<number>
@@ -40,6 +42,8 @@ type DecodedPermissions = {
   canCreateClass: boolean
   canViewStudents: boolean
   canValidateAttendance: boolean
+  canMarkAsStudent: boolean
+  isStudent: boolean
 }
 
 function decodeJwtPermissions(token: string): DecodedPermissions {
@@ -52,9 +56,11 @@ function decodeJwtPermissions(token: string): DecodedPermissions {
       canCreateClass: isOwner || payload.canCreateClass === true,
       canViewStudents: isOwner || payload.canViewStudents === true,
       canValidateAttendance: isOwner || payload.canValidateAttendance === true,
+      canMarkAsStudent: isOwner || payload.canMarkAsStudent === true,
+      isStudent: payload.isStudent === true,
     }
   } catch {
-    return { isAdmin: false, isOwner: false, canCreateClass: false, canViewStudents: false, canValidateAttendance: false }
+    return { isAdmin: false, isOwner: false, canCreateClass: false, canViewStudents: false, canValidateAttendance: false, canMarkAsStudent: false, isStudent: false }
   }
 }
 
@@ -71,6 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [canCreateClass, setCanCreateClass] = useState(false)
   const [canViewStudents, setCanViewStudents] = useState(false)
   const [canValidateAttendance, setCanValidateAttendance] = useState(false)
+  const [canMarkAsStudent, setCanMarkAsStudent] = useState(false)
+  const [isStudent, setIsStudent] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const lastActivityAt = useRef<number>(Date.now())
@@ -83,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCanCreateClass(p.canCreateClass)
     setCanViewStudents(p.canViewStudents)
     setCanValidateAttendance(p.canValidateAttendance)
+    setCanMarkAsStudent(p.canMarkAsStudent)
+    setIsStudent(p.isStudent)
   }
 
   useEffect(() => {
@@ -151,6 +161,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCanCreateClass(false)
     setCanViewStudents(false)
     setCanValidateAttendance(false)
+    setCanMarkAsStudent(false)
+    setIsStudent(false)
     setUser(null)
     setTenantUser(null)
     setTenantUserId(null)
@@ -164,7 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
-      canCreateClass, canViewStudents, canValidateAttendance,
+      canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent,
       isLoading, tenantUser, lastActivityAt,
       startTenantSession, exitTenantSession,
       signIn, signOut, refreshUser,
