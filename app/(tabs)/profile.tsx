@@ -165,6 +165,7 @@ export default function ProfileScreen() {
 
   // Medical conditions modal
   const [showConditionsModal, setShowConditionsModal] = useState(false)
+  const [condFromEdit, setCondFromEdit] = useState(false) // whether opened from edit modal
   const [condHasConditions, setCondHasConditions] = useState<boolean | null>(null)
   const [condSelected, setCondSelected] = useState<string[]>([])
   const [condOther, setCondOther] = useState('')
@@ -286,16 +287,14 @@ export default function ProfileScreen() {
         ...(editDob ? { birthday: editDob } : {}),
       })
 
-      if (editDob || editGoals !== (extProfile.goals ?? '')) {
-        setExtProfile(p => ({
-          ...p,
-          goals: editGoals.trim(),
-          birthday: editDob || p.birthday,
-        }))
-      }
-      await refreshUser()
+      setExtProfile(p => ({
+        ...p,
+        goals: editGoals.trim(),
+        birthday: editDob || p.birthday,
+      }))
       setShowEditModal(false)
       setNotifToast({ visible: true, message: 'Profile Updated', isError: false })
+      refreshUser().catch(() => {})
     } catch (e: any) {
       setEditError(e?.response?.data?.error ?? 'Could not save. Please try again.')
     } finally {
@@ -305,12 +304,14 @@ export default function ProfileScreen() {
 
   // ─── Medical conditions ──────────────────────────────────────────────────────
 
-  function openConditionsModal() {
+  function openConditionsModal(fromEdit = false) {
     const { selected, other } = parseConditions(extProfile.additionalInfo)
     setCondHasConditions(selected.length > 0 ? true : extProfile.additionalInfo === null ? null : false)
     setCondSelected(selected)
     setCondOther(other)
     setCondError('')
+    setCondFromEdit(fromEdit)
+    if (fromEdit) setShowEditModal(false)
     setShowConditionsModal(true)
   }
 
@@ -329,7 +330,11 @@ export default function ProfileScreen() {
       await api.patch('/api/user/update', { userId: user!.id, additionalInfo: additionalInfo ?? '' })
       setExtProfile(p => ({ ...p, additionalInfo }))
       setShowConditionsModal(false)
-      setNotifToast({ visible: true, message: 'Profile Updated', isError: false })
+      if (condFromEdit) {
+        setTimeout(() => setShowEditModal(true), 350)
+      } else {
+        setNotifToast({ visible: true, message: 'Profile Updated', isError: false })
+      }
     } catch (e: any) {
       setCondError(e?.response?.data?.error ?? 'Could not save. Please try again.')
     } finally {
@@ -818,7 +823,7 @@ export default function ProfileScreen() {
             />
 
             <Text style={styles.editFieldLabel}>MEDICAL CONDITIONS</Text>
-            <TouchableOpacity style={styles.conditionsEditRow} onPress={openConditionsModal}>
+            <TouchableOpacity style={styles.conditionsEditRow} onPress={() => openConditionsModal(true)}>
               <Text style={styles.conditionsEditValue} numberOfLines={2}>
                 {extProfile.additionalInfo ?? 'None'}
               </Text>
