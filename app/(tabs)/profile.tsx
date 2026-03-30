@@ -1023,7 +1023,7 @@ export default function ProfileScreen() {
                   <Text style={{ color: C.burg, fontFamily: F.sansMed }}>{newEmail}</Text>.
                   {'\n\n'}Your email will be updated once you click the link.
                 </Text>
-                <TouchableOpacity style={[styles.modalBtn, { marginTop: 8 }]} onPress={openMailApp}>
+                <TouchableOpacity style={[styles.modalBtn, { marginTop: 8 }]} onPress={() => { setShowEmailModal(false); openMailApp() }}>
                   <Text style={styles.modalBtnText}>OPEN EMAIL</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.noThanksBtn} onPress={() => setShowEmailModal(false)}>
