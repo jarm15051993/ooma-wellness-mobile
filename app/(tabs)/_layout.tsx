@@ -21,7 +21,7 @@ export default function TabLayout() {
   const { isAdmin, isOwner, canViewStudents, tenantUser } = useAuth()
 
   const isStaff = isAdmin || isOwner
-  const showStudents = canViewStudents || isOwner
+  const showStudents = (canViewStudents || isOwner) && !tenantUser
   const showBookings = !isStaff || !!tenantUser
 
   return (

@@ -815,12 +815,8 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Sign out / Terminate session */}
-        {tenantUser ? (
-          <TouchableOpacity style={styles.signOutBtn} onPress={() => exitTenantSession()}>
-            <Text style={styles.signOutText}>TERMINATE SESSION</Text>
-          </TouchableOpacity>
-        ) : (
+        {/* Sign out — hidden in tenant mode */}
+        {!tenantUser && (
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
             <Text style={styles.signOutText}>SIGN OUT</Text>
           </TouchableOpacity>
