@@ -130,7 +130,7 @@ function InfoRow({ label, value, trailing }: { label: string; value: string | nu
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser, isAdmin, isOwner, canMarkAsStudent } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent } = useAuth()
   const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
@@ -815,10 +815,16 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>SIGN OUT</Text>
-        </TouchableOpacity>
+        {/* Sign out / Terminate session */}
+        {tenantUser ? (
+          <TouchableOpacity style={styles.signOutBtn} onPress={() => exitTenantSession()}>
+            <Text style={styles.signOutText}>TERMINATE SESSION</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+            <Text style={styles.signOutText}>SIGN OUT</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       <Toast

@@ -18,10 +18,11 @@ function TabIcon({ label, color }: { label: string; color: string }) {
 }
 
 export default function TabLayout() {
-  const { isAdmin, isOwner, canViewStudents } = useAuth()
+  const { isAdmin, isOwner, canViewStudents, tenantUser } = useAuth()
 
   const isStaff = isAdmin || isOwner
   const showStudents = canViewStudents || isOwner
+  const showBookings = !isStaff || !!tenantUser
 
   return (
     <Tabs
@@ -53,8 +54,8 @@ export default function TabLayout() {
         options={{
           title: 'My Bookings',
           tabBarIcon: ({ color }) => <TabIcon label="Bookings" color={color} />,
-          tabBarItemStyle: isStaff ? { display: 'none' } : undefined,
-          tabBarButton: isStaff ? () => null : undefined,
+          tabBarItemStyle: showBookings ? undefined : { display: 'none' },
+          tabBarButton: showBookings ? undefined : () => null,
         }}
       />
       <Tabs.Screen
