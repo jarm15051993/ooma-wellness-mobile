@@ -131,6 +131,7 @@ function InfoRow({ label, value, trailing }: { label: string; value: string | nu
 export default function ProfileScreen() {
   const router = useRouter()
   const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent } = useAuth()
+  const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
@@ -577,7 +578,7 @@ export default function ProfileScreen() {
     ])
   }
 
-  const initials = [user?.name, user?.lastName]
+  const initials = [displayUser?.name, displayUser?.lastName]
     .filter(Boolean)
     .map(s => s!.charAt(0).toUpperCase())
     .join('')
@@ -600,9 +601,9 @@ export default function ProfileScreen() {
         {/* Avatar */}
         <View style={styles.avatarSection}>
           <TouchableOpacity onPress={handleChangePhoto} disabled={uploadingPhoto} activeOpacity={0.8}>
-            {user?.profilePicture && user?.id ? (
+            {displayUser?.profilePicture && displayUser?.id ? (
               <Image
-                source={{ uri: `${API_BASE_URL}/api/user/profile-picture?userId=${user.id}&v=${photoVersion}` }}
+                source={{ uri: `${API_BASE_URL}/api/user/profile-picture?userId=${displayUser.id}&v=${photoVersion}` }}
                 style={styles.avatarImage}
               />
             ) : (
@@ -621,13 +622,13 @@ export default function ProfileScreen() {
 
         {/* Info card — read-only */}
         <View style={styles.infoCard}>
-          <InfoRow label="FIRST NAME" value={user?.name} />
+          <InfoRow label="FIRST NAME" value={displayUser?.name} />
           <View style={styles.rowDivider} />
-          <InfoRow label="LAST NAME" value={user?.lastName} />
+          <InfoRow label="LAST NAME" value={displayUser?.lastName} />
           <View style={styles.rowDivider} />
           <InfoRow
             label="EMAIL"
-            value={user?.email}
+            value={displayUser?.email}
             trailing={
               !isStaff ? (
                 <TouchableOpacity onPress={openEmailModal} style={styles.changeEmailBtn}>
@@ -637,7 +638,7 @@ export default function ProfileScreen() {
             }
           />
           <View style={styles.rowDivider} />
-          <InfoRow label="PHONE" value={user?.phone} />
+          <InfoRow label="PHONE" value={displayUser?.phone} />
           {!isStaff && (
             <>
               <View style={styles.rowDivider} />
@@ -752,7 +753,7 @@ export default function ProfileScreen() {
           )}
 
           <Text style={styles.passName}>
-            {[user?.name, user?.lastName].filter(Boolean).join(' ') || ''}
+            {[displayUser?.name, displayUser?.lastName].filter(Boolean).join(' ') || ''}
           </Text>
           <Text style={styles.passType}>Class Pass</Text>
 

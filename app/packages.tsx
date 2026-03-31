@@ -77,8 +77,8 @@ export default function PackagesScreen() {
     }
   }
 
-  const regularPackages = packages.filter(p => !p.isStudentPackage)
-  const studentPackages = packages.filter(p => p.isStudentPackage)
+  const purchasablePackages = packages.filter(p => p.isPurchasable)
+  const lockedPackages = packages.filter(p => !p.isPurchasable)
 
   if (loadingPackages) {
     return (
@@ -104,7 +104,7 @@ export default function PackagesScreen() {
           </TouchableOpacity>
         </View>
 
-        {regularPackages.map(pkg => (
+        {purchasablePackages.map(pkg => (
           <PackageCard
             key={pkg.id}
             pkg={pkg}
@@ -113,21 +113,23 @@ export default function PackagesScreen() {
           />
         ))}
 
-        {studentPackages.length > 0 && (
+        {lockedPackages.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Student Packages 🎓</Text>
-              {!isStudent && (
-                <Text style={styles.sectionSubtitle}>Available for verified students only</Text>
-              )}
+              <Text style={styles.sectionTitle}>
+                {isStudent ? 'Regular Packages' : 'Student Packages 🎓'}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {isStudent ? 'Not available for students' : 'Available for verified students only'}
+              </Text>
             </View>
-            {studentPackages.map(pkg => (
+            {lockedPackages.map(pkg => (
               <PackageCard
                 key={pkg.id}
                 pkg={pkg}
                 loadingId={loadingId}
                 onPress={() => handlePurchase(pkg)}
-                locked={!pkg.isPurchasable}
+                locked
               />
             ))}
           </>

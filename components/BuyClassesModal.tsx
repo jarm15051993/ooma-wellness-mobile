@@ -104,8 +104,8 @@ export default function BuyClassesModal({
     }
   }
 
-  const regularPackages = packages.filter(p => !p.isStudentPackage)
-  const studentPackages = packages.filter(p => p.isStudentPackage)
+  const purchasablePackages = packages.filter(p => p.isPurchasable)
+  const lockedPackages = packages.filter(p => !p.isPurchasable)
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -130,7 +130,7 @@ export default function BuyClassesModal({
             <ActivityIndicator style={{ marginTop: 40 }} color={C.burg} />
           ) : (
             <>
-              {regularPackages.map(pkg => (
+              {purchasablePackages.map(pkg => (
                 <PackageCard
                   key={pkg.id}
                   pkg={pkg}
@@ -140,22 +140,24 @@ export default function BuyClassesModal({
                 />
               ))}
 
-              {studentPackages.length > 0 && (
+              {lockedPackages.length > 0 && (
                 <>
                   <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Student Packages 🎓</Text>
-                    {!isStudent && (
-                      <Text style={styles.sectionSubtitle}>Available for verified students only</Text>
-                    )}
+                    <Text style={styles.sectionTitle}>
+                      {isStudent ? 'Regular Packages' : 'Student Packages 🎓'}
+                    </Text>
+                    <Text style={styles.sectionSubtitle}>
+                      {isStudent ? 'Not available for students' : 'Available for verified students only'}
+                    </Text>
                   </View>
-                  {studentPackages.map(pkg => (
+                  {lockedPackages.map(pkg => (
                     <PackageCard
                       key={pkg.id}
                       pkg={pkg}
                       loadingId={loadingId}
                       pendingClassId={pendingClassId}
                       onPress={() => handlePurchase(pkg)}
-                      locked={!pkg.isPurchasable}
+                      locked
                     />
                   ))}
                 </>
