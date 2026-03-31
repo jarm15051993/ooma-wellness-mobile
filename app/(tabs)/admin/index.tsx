@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
-  ActivityIndicator, Modal, StyleSheet, SafeAreaView,
+  ActivityIndicator, Modal, StyleSheet,
 } from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { api } from '@/lib/api'
 import { useAuth, User } from '@/contexts/AuthContext'
@@ -19,6 +20,7 @@ type SearchResult = {
 export default function AdminSearchScreen() {
   const { startTenantSession } = useAuth()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -69,20 +71,21 @@ export default function AdminSearchScreen() {
   }
 
   return (
-    <SafeAreaView style={s.container}>
-      <Text style={s.title}>Admin</Text>
-      <Text style={s.subtitle}>Search by email or phone number</Text>
-
-      <TextInput
-        style={s.input}
-        placeholder="Search by email or phone"
-        placeholderTextColor={C.lightGray}
-        value={query}
-        onChangeText={handleChange}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="email-address"
-      />
+    <SafeAreaView style={s.container} edges={['left', 'right', 'bottom']}>
+      <View style={[s.header, { paddingTop: insets.top + 16 }]}>
+        <Text style={s.title}>Admin</Text>
+        <Text style={s.subtitle}>Search by email or phone number</Text>
+        <TextInput
+          style={s.input}
+          placeholder="Search by email or phone"
+          placeholderTextColor={C.lightGray}
+          value={query}
+          onChangeText={handleChange}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+        />
+      </View>
 
       {loading && <ActivityIndicator color={C.burg} style={{ marginTop: 24 }} />}
 
@@ -97,7 +100,7 @@ export default function AdminSearchScreen() {
       <FlatList
         data={results}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         renderItem={({ item }) => (
           <TouchableOpacity style={s.resultRow} onPress={() => setSelectedUser(item)}>
             <Text style={s.resultName}>{item.fullName}</Text>
@@ -135,8 +138,10 @@ const s = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: C.cream,
+  },
+  header: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingBottom: 8,
   },
   title: {
     fontFamily: F.serif,
@@ -168,6 +173,7 @@ const s = StyleSheet.create({
     color: C.midGray,
     textAlign: 'center',
     marginTop: 32,
+    paddingHorizontal: 20,
   },
   errorText: {
     fontFamily: F.sans,
@@ -175,6 +181,7 @@ const s = StyleSheet.create({
     color: C.red,
     textAlign: 'center',
     marginTop: 32,
+    paddingHorizontal: 20,
   },
   resultRow: {
     paddingVertical: 14,
