@@ -16,6 +16,8 @@ import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import CancelBookingModal from '@/components/CancelBookingModal'
 import Toast from '@/components/Toast'
+import BetaOverlay from '@/components/BetaOverlay'
+import { useAuth } from '@/contexts/AuthContext'
 
 type ClassInfo = {
   id: string
@@ -48,6 +50,7 @@ type PastClass = {
 type Tab = 'upcoming' | 'past'
 
 export default function BookingsScreen() {
+  const { isBeta } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('upcoming')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [pastClasses, setPastClasses] = useState<PastClass[]>([])
@@ -256,6 +259,8 @@ export default function BookingsScreen() {
         visible={toast.visible}
         onHide={() => setToast(t => ({ ...t, visible: false }))}
       />
+
+      {isBeta && <BetaOverlay />}
     </SafeAreaView>
   )
 }

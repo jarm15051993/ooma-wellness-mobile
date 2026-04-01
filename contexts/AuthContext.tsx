@@ -14,6 +14,7 @@ export type User = {
   credits: number
   onboardingCompleted: boolean
   qrCode: string | null
+  isBeta: boolean
 }
 
 type AuthContextType = {
@@ -26,6 +27,7 @@ type AuthContextType = {
   canValidateAttendance: boolean
   canMarkAsStudent: boolean
   isStudent: boolean
+  isBeta: boolean
   isLoading: boolean
   tenantUser: User | null
   lastActivityAt: React.MutableRefObject<number>
@@ -79,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [canValidateAttendance, setCanValidateAttendance] = useState(false)
   const [canMarkAsStudent, setCanMarkAsStudent] = useState(false)
   const [isStudent, setIsStudent] = useState(false)
+  const [isBeta, setIsBeta] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const lastActivityAt = useRef<number>(Date.now())
@@ -104,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           applyPermissions(stored)
           const { data } = await api.get('/api/mobile/me')
           setUser(data.user)
+          setIsBeta(data.user.isBeta ?? false)
         }
       } catch {
         await SecureStore.deleteItemAsync('access_token')
@@ -163,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCanValidateAttendance(false)
     setCanMarkAsStudent(false)
     setIsStudent(false)
+    setIsBeta(false)
     setUser(null)
     setTenantUser(null)
     setTenantUserId(null)
@@ -171,12 +176,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function refreshUser() {
     const { data } = await api.get('/api/mobile/me')
     setUser(data.user)
+    setIsBeta(data.user.isBeta ?? false)
   }
 
   return (
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
-      canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent,
+      canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent, isBeta,
       isLoading, tenantUser, lastActivityAt,
       startTenantSession, exitTenantSession,
       signIn, signOut, refreshUser,

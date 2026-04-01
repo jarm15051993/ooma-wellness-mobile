@@ -130,7 +130,7 @@ function InfoRow({ label, value, trailing }: { label: string; value: string | nu
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, isBeta } = useAuth()
   const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
@@ -734,7 +734,11 @@ export default function ProfileScreen() {
             </>
           )}
 
-          <TouchableOpacity style={styles.buyBtn} onPress={() => router.push('/packages')}>
+          <TouchableOpacity
+            style={[styles.buyBtn, isBeta && styles.buyBtnDisabled]}
+            onPress={isBeta ? undefined : () => router.push('/packages')}
+            disabled={isBeta}
+          >
             <Text style={styles.buyBtnText}>BUY MORE CLASSES</Text>
           </TouchableOpacity>
         </View>}
@@ -1207,6 +1211,9 @@ const styles = StyleSheet.create({
   buyBtn: {
     height: 44, backgroundColor: C.ink, borderRadius: 2,
     alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', marginTop: 4,
+  },
+  buyBtnDisabled: {
+    backgroundColor: C.lightGray,
   },
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
   signOutBtn: { height: 48, borderWidth: 1, borderColor: C.burg, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
