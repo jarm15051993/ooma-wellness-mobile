@@ -23,6 +23,7 @@ import { C, F } from '@/constants/theme'
 import CancelBookingModal from '@/components/CancelBookingModal'
 import BuyClassesModal from '@/components/BuyClassesModal'
 import Toast from '@/components/Toast'
+import BetaOverlay from '@/components/BetaOverlay'
 import { useAuth } from '@/contexts/AuthContext'
 
 type ClassItem = {
@@ -100,7 +101,7 @@ function buildDateTimeUTC(date: Date, time: Date): Date {
 }
 
 export default function ClassesScreen() {
-  const { isAdmin, isOwner, canCreateClass, tenantUser } = useAuth()
+  const { isAdmin, isOwner, canCreateClass, tenantUser, isBeta } = useAuth()
   const router = useRouter()
   const today = new Date()
   const [classes, setClasses] = useState<ClassItem[]>([])
@@ -770,6 +771,8 @@ export default function ClassesScreen() {
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
+
+      {isBeta && <BetaOverlay />}
     </SafeAreaView>
   )
 }
