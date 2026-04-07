@@ -29,6 +29,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
+import GoalSelector from '@/components/GoalSelector'
 import WelcomeGiftModal from '@/components/WelcomeGiftModal'
 import { consumePendingGift } from '@/lib/pendingGift'
 import Toast from '@/components/Toast'
@@ -47,6 +48,7 @@ const NOTIF_LABELS: Record<NotifType, string> = {
 type ExtendedProfile = {
   birthday: string | null
   goals: string | null
+  userGoalIds: string[]
   additionalInfo: string | null
 }
 
@@ -157,7 +159,7 @@ export default function ProfileScreen() {
   const [savingStudent, setSavingStudent] = useState(false)
 
   // Extended profile state
-  const [extProfile, setExtProfile] = useState<ExtendedProfile>({ birthday: null, goals: null, additionalInfo: null })
+  const [extProfile, setExtProfile] = useState<ExtendedProfile>({ birthday: null, goals: null, userGoalIds: [], additionalInfo: null })
 
   // ─── Global edit modal ──────────────────────────────────────────────────────
   const [showEditModal, setShowEditModal] = useState(false)
@@ -166,7 +168,7 @@ export default function ProfileScreen() {
   const [editPhone, setEditPhone] = useState('')
   const [editDob, setEditDob] = useState('')
   const [editDobDate, setEditDobDate] = useState(new Date())
-  const [editGoals, setEditGoals] = useState('')
+  const [editGoalIds, setEditGoalIds] = useState<string[]>([])
   const [showDobPicker, setShowDobPicker] = useState(false)
   const [editError, setEditError] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
@@ -221,6 +223,7 @@ export default function ProfileScreen() {
           setExtProfile({
             birthday: data.user.birthday ?? null,
             goals: data.user.goals ?? null,
+            userGoalIds: data.user.userGoalIds ?? [],
             additionalInfo: data.user.additionalInfo ?? null,
           })
         })
@@ -323,7 +326,7 @@ export default function ProfileScreen() {
     setEditName(user?.name ?? '')
     setEditLastName(user?.lastName ?? '')
     setEditPhone(user?.phone ?? '')
-    setEditGoals(extProfile.goals ?? '')
+    setEditGoalIds(extProfile.userGoalIds)
     const dob = extProfile.birthday ? new Date(extProfile.birthday) : new Date(2000, 0, 1)
     setEditDob(extProfile.birthday ?? '')
     setEditDobDate(dob)
@@ -337,7 +340,7 @@ export default function ProfileScreen() {
     if (!editLastName.trim()) return 'Please enter your last name.'
     const digits = editPhone.replace(/\D/g, '')
     if (digits.length < 7) return 'Please enter a valid phone number.'
-    if (!editGoals.trim()) return 'Please tell us your goal.'
+    if (editGoalIds.length === 0) return 'Please select at least one goal.'
     return null
   }
 
@@ -353,13 +356,13 @@ export default function ProfileScreen() {
         name: editName.trim(),
         lastName: editLastName.trim(),
         phone: editPhone.trim(),
-        goals: editGoals.trim(),
+        goalIds: editGoalIds,
         ...(editDob ? { birthday: editDob } : {}),
       })
 
       setExtProfile(p => ({
         ...p,
-        goals: editGoals.trim(),
+        userGoalIds: editGoalIds,
         birthday: editDob || p.birthday,
       }))
       setShowEditModal(false)
@@ -647,7 +650,22 @@ export default function ProfileScreen() {
                 value={extProfile.birthday ? format(new Date(extProfile.birthday), 'MMMM d, yyyy') : null}
               />
               <View style={styles.rowDivider} />
-              <InfoRow label="GOALS" value={extProfile.goals} />
+              <View style={styles.infoRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>GOALS</Text>
+                  {extProfile.userGoalIds.length > 0 ? (
+                    <View style={styles.goalsReadonlyRow}>
+                      {extProfile.goals?.split(', ').map((label, i) => (
+                        <View key={i} style={styles.goalPillReadonly}>
+                          <Text style={styles.goalPillReadonlyText}>{label}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.infoValue}>{extProfile.goals ?? '—'}</Text>
+                  )}
+                </View>
+              </View>
               <View style={styles.rowDivider} />
               <InfoRow label="MEDICAL CONDITIONS" value={extProfile.additionalInfo ?? '—'} />
             </>
@@ -928,15 +946,15 @@ export default function ProfileScreen() {
               />
             )}
 
-            <Text style={styles.editFieldLabel}>GOALS</Text>
-            <TextInput
-              style={[styles.editInput, styles.editInputMultiline]}
-              value={editGoals}
-              onChangeText={v => { setEditGoals(v); setEditError('') }}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              placeholderTextColor={C.lightGray}
+            <Text style={styles.editFieldLabel}>WHAT DO YOU WANT TO ACCOMPLISH?</Text>
+            {extProfile.userGoalIds.length === 0 && extProfile.goals !== null && (
+              <Text style={styles.legacyGoalsNotice}>
+                Your previously saved goals were entered as text. Please select your goals from the list below to update them.
+              </Text>
+            )}
+            <GoalSelector
+              selectedIds={editGoalIds}
+              onChange={ids => { setEditGoalIds(ids); setEditError('') }}
             />
 
             <Text style={styles.editFieldLabel}>MEDICAL CONDITIONS</Text>
@@ -1169,6 +1187,16 @@ const styles = StyleSheet.create({
     letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4,
   },
   infoValue: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  goalsReadonlyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
+  goalPillReadonly: {
+    borderWidth: 1, borderColor: C.midGray, borderRadius: 100,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  goalPillReadonlyText: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  legacyGoalsNotice: {
+    fontFamily: F.sansReg, fontSize: 12, color: C.midGray,
+    marginBottom: 8, lineHeight: 17,
+  },
   rowDivider: { height: 1, backgroundColor: C.rule },
   changeEmailBtn: { paddingLeft: 12, paddingVertical: 4 },
   changeEmailText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },

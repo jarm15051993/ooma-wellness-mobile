@@ -11,6 +11,7 @@ import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import { COUNTRY_CODES, PHONE_LENGTHS, CONDITIONS, MONTHS } from '@/constants/onboarding'
 import WalletModal from '@/components/WalletModal'
+import GoalSelector from '@/components/GoalSelector'
 import { setPendingGift } from '@/lib/pendingGift'
 
 const STEPS = [
@@ -391,7 +392,7 @@ export default function CompleteProfileScreen() {
   const [countryPickerVisible, setCountryPickerVisible] = useState(false)
 
   // Step 3 — goals
-  const [goals, setGoals] = useState('')
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([])
 
   // Step 4 — disclaimer (no local state beyond what DisclaimerStep manages)
 
@@ -437,7 +438,7 @@ export default function CompleteProfileScreen() {
       }
     }
     if (step === 3) {
-      if (!goals.trim()) return 'Please tell us your goal.'
+      if (selectedGoalIds.length === 0) return 'Please select at least one goal.'
     }
     // Step 4 is disclaimer — handled separately via handleDisclaimerAccept
     if (step === 5) {
@@ -529,7 +530,7 @@ export default function CompleteProfileScreen() {
         name: name.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
-        goals: goals.trim(),
+        goalIds: selectedGoalIds,
         birthday,
         additionalInfo,
       })
@@ -713,15 +714,10 @@ export default function CompleteProfileScreen() {
             {/* ─── Step 3: Goals ─── */}
             {step === 3 && (
               <View>
-                <Text style={styles.fieldLabel}>YOUR GOAL</Text>
-                <TextInput
-                  style={styles.textArea}
-                  value={goals}
-                  onChangeText={t => { setGoals(t); setError('') }}
-                  multiline
-                  numberOfLines={4}
-                  placeholderTextColor={C.lightGray}
-                  textAlignVertical="top"
+                <Text style={styles.fieldLabel}>WHAT DO YOU WANT TO ACCOMPLISH?</Text>
+                <GoalSelector
+                  selectedIds={selectedGoalIds}
+                  onChange={ids => { setSelectedGoalIds(ids); setError('') }}
                 />
               </View>
             )}
