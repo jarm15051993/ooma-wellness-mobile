@@ -47,155 +47,156 @@ type DisclaimerSection = {
 }
 
 const DISCLAIMER_HEADER = {
-  title: 'AVISO DE SALUD Y RESPONSABILIDAD — OOMA WELLNESS CLUB',
-  meta: 'Versión 1.0 · 2026 · Barcelona, Catalunya, España',
-  legal: 'Marco legal: RDL 1/2007 · Decret legislatiu 1/2000 · Última actualización: Marzo 2026',
-  notice: 'Aviso importante: La aceptación de este documento es condición necesaria para participar en cualquier actividad de OOMA Wellness Club. Si tienes dudas sobre tu estado de salud, te recomendamos consultar con un profesional médico antes de comenzar.',
+  title: 'TÉRMINOS Y CONDICIONES DEL SERVICIO\nOOMA WELLNESS CLUB',
+  meta: '',
+  legal: '',
+  notice: '',
 }
 
 const DISCLAIMER_SECTIONS: DisclaimerSection[] = [
   {
     number: '01',
-    title: 'OBJETO Y ÁMBITO DE APLICACIÓN',
+    title: 'Objeto',
     content: [
-      { type: 'paragraph', text: 'El presente Aviso de Salud y Responsabilidad (en adelante, «el Aviso») es emitido por OOMA Wellness Club (en adelante, «OOMA»), con domicilio en Barcelona, Catalunya, y es de aplicación obligatoria a todas las personas que accedan, participen o hagan uso de cualquiera de sus servicios, instalaciones, clases o actividades, ya sea de forma presencial o a través de su plataforma digital.' },
-      { type: 'paragraph', text: 'Las actividades ofrecidas por OOMA incluyen, sin carácter exhaustivo: Pilates Reformer (método STOTT), Yoga (en sus modalidades Vinyasa, Yin y Restaurativo) y Power Flow (combinación de HIIT y Reformer). Todas ellas son disciplinas de actividad física que implican esfuerzo corporal y, como tales, conllevan riesgos inherentes que el usuario acepta de forma consciente e informada al participar.' },
-      { type: 'paragraph', text: 'Este Aviso se rige por el Real Decreto Legislativo 1/2007 (Ley General para la Defensa de los Consumidores y Usuarios), el Decret legislatiu 1/2000 de la Llei de l\'Esport de Catalunya, y el Codi Civil de Catalunya.' },
+      { type: 'paragraph', text: 'Los presentes Términos y Condiciones regulan el acceso, la reserva y la participación en las actividades ofrecidas por OOMA Wellness Club, así como el uso de sus instalaciones y servicios asociados.' },
+      { type: 'paragraph', text: 'El registro en la plataforma web o app, así como la reserva de actividades, implican la aceptación plena y sin reservas de las presentes condiciones.' },
     ],
   },
   {
     number: '02',
-    title: 'APTITUD FÍSICA Y ESTADO DE SALUD',
+    title: 'Condiciones de salud y responsabilidad personal',
     content: [
-      { type: 'paragraph', text: 'La práctica de actividad física organizada requiere que el usuario se encuentre en condiciones físicas adecuadas. Al participar en OOMA, el usuario declara que:' },
+      { type: 'paragraph', text: 'La participación en las actividades se realiza bajo la exclusiva responsabilidad del alumno/a.' },
+      { type: 'paragraph', text: 'El usuario declara encontrarse en condiciones físicas adecuadas para la práctica de ejercicio físico.' },
+      { type: 'paragraph', text: 'Asimismo, el alumno/a se compromete a informar previamente al estudio sobre cualquier circunstancia relevante para su salud, incluyendo, entre otras:' },
       {
         type: 'list',
         items: [
-          'Se encuentra en buen estado de salud general y no tiene conocimiento de ninguna condición médica que contraindique la práctica de actividad física moderada o intensa.',
-          'No ha sido aconsejado por un profesional médico para abstenerse de realizar ejercicio físico o actividad similar a la ofrecida por OOMA.',
-          'En caso de padecer alguna condición médica conocida (cardiovascular, músculo-esquelética, metabólica, respiratoria u otra), lo comunicará al instructor antes del inicio de la clase.',
-          'Tiene 18 años cumplidos o, en su defecto, cuenta con la autorización expresa de su tutor legal.',
-          'Se compromete a informar a OOMA de cualquier cambio en su estado de salud que pueda afectar a su capacidad de práctica.',
-          'Practica las actividades de forma voluntaria, con plena conciencia del esfuerzo físico que implican.',
+          'lesiones previas',
+          'patologías',
+          'limitaciones físicas',
+          'embarazo',
+          'cualquier otra condición médica relevante',
         ],
       },
-      { type: 'paragraph', text: 'OOMA recomienda encarecidamente que toda persona que se incorpore por primera vez realice una revisión médica previa, especialmente si no realiza ejercicio físico de forma regular, si ha superado los 40 años, o si tiene antecedentes cardiovasculares o lesiones previas.' },
+      { type: 'paragraph', text: 'En caso de embarazo, el alumno/a declara disponer de autorización médica para la práctica de ejercicio físico.' },
+      { type: 'paragraph', text: 'OOMA Wellness Club no tiene la consideración de centro médico ni de rehabilitación, por lo que las actividades ofrecidas no sustituyen en ningún caso tratamientos médicos, diagnósticos ni procesos clínicos.' },
+      { type: 'paragraph', text: 'El instructor podrá adaptar los ejercicios, limitar o impedir la participación del alumno/a cuando lo considere necesario por motivos de seguridad, tanto individual como colectiva.' },
     ],
   },
   {
     number: '03',
-    title: 'RIESGOS INHERENTES A LA ACTIVIDAD',
+    title: 'Lesiones previas y consentimiento informado',
     content: [
-      { type: 'paragraph', text: 'La práctica de actividad física organizada, incluso bajo supervisión profesional, conlleva riesgos inherentes. El usuario reconoce haber sido informado de los siguientes:' },
-      {
-        type: 'list',
-        items: [
-          { bold: 'Músculo-esquelético:', text: ' Contracturas, distensiones, esguinces, desgarros musculares y molestias articulares derivadas del esfuerzo físico o de la ejecución incorrecta de los movimientos.' },
-          { bold: 'Cardiovascular:', text: ' Elevación de la frecuencia cardíaca y la presión arterial durante sesiones de alta intensidad, con riesgos asociados en personas con condiciones cardiovasculares preexistentes.' },
-          { bold: 'Fatiga y mareo:', text: ' Sensación de fatiga extrema, mareo o pérdida de equilibrio asociados a sesiones intensas, deshidratación o hiperventilación durante la práctica.' },
-          { bold: 'Uso de equipamiento:', text: ' Riesgos derivados del uso del Reformer y demás equipamiento de Pilates, incluyendo pellizcos, atrapamientos o caídas si el equipo no se utiliza según las instrucciones recibidas.' },
-          { bold: 'Posturas avanzadas:', text: ' En yoga y power flow, la ejecución de posturas o secuencias de dificultad media-alta puede provocar sobrecarga articular o muscular, especialmente en practicantes con poca experiencia.' },
-          { bold: 'Condición preexistente:', text: ' La práctica sin comunicar una condición médica preexistente puede agravar patologías como hernias discales, lesiones de rodilla, hombro u otras limitaciones físicas diagnosticadas.' },
-        ],
-      },
+      { type: 'paragraph', text: 'En caso de lesión previa o condición médica relevante, OOMA Wellness Club podrá requerir la firma de un documento adicional de consentimiento informado y exención de responsabilidad como condición previa a la participación en las actividades.' },
+      { type: 'paragraph', text: 'La admisión a la actividad quedará sujeta, en todo caso, a la valoración del instructor.' },
     ],
   },
   {
     number: '04',
-    title: 'OBLIGACIONES DE OOMA',
+    title: 'Reservas, cancelaciones y créditos',
     content: [
-      { type: 'paragraph', text: 'OOMA asume las siguientes obligaciones con carácter irrenunciable:' },
-      {
-        type: 'list',
-        items: [
-          { bold: 'Supervisión profesional certificada:', text: ' todas las clases serán impartidas por instructores con la titulación habilitante correspondiente conforme a la Llei 3/2008.' },
-          { bold: 'Instalaciones en condiciones óptimas:', text: ' el Reformer y el resto del equipamiento serán revisados periódicamente.' },
-          { bold: 'Seguro de responsabilidad civil:', text: ' OOMA dispone de póliza conforme al artículo 62.3 del Decret legislatiu 1/2000.' },
-          { bold: 'Ratio instructor-alumno adecuado:', text: ' OOMA mantendrá una relación que permita supervisión efectiva en todo momento.' },
-          { bold: 'Información previa a la práctica:', text: ' los instructores ofrecerán indicaciones de seguridad al inicio de cada sesión.' },
-          { bold: 'Actuación diligente ante incidencias:', text: ' ante cualquier accidente o lesión, OOMA activará los protocolos de primeros auxilios y documentará el incidente.' },
-          { bold: 'Protocolo de incorporación:', text: ' los nuevos miembros recibirán una sesión introductoria sobre el uso correcto del equipamiento.' },
-        ],
-      },
+      { type: 'paragraph', text: 'Las clases podrán cancelarse o reprogramarse sin penalización hasta con 2 horas de antelación respecto a su inicio.' },
+      { type: 'paragraph', text: 'Las cancelaciones realizadas entre 1 hora y 1 hora 59 minutos antes del inicio de la actividad conllevarán la pérdida del crédito correspondiente.' },
+      { type: 'paragraph', text: 'Las cancelaciones efectuadas con menos de 1 hora de antelación, así como la no asistencia a la sesión reservada, implicarán la pérdida automática del crédito, sin derecho a recuperación ni reembolso.' },
     ],
   },
   {
     number: '05',
-    title: 'ALCANCE Y LIMITACIÓN DE RESPONSABILIDAD',
+    title: 'Puntualidad y acceso a clase',
     content: [
-      { type: 'paragraph', text: 'Conforme al artículo 86 del RDL 1/2007, la exoneración total de responsabilidad de OOMA no es jurídicamente posible. Este documento no pretende eximir a OOMA de responsabilidad en casos de negligencia, sino informar al usuario de los riesgos inherentes y delimitar la responsabilidad de cada parte.' },
-      { type: 'subheading', text: 'OOMA sí responde de:' },
-      {
-        type: 'list',
-        items: [
-          'Lesiones causadas por mal estado del equipamiento o las instalaciones',
-          'Daños derivados de instrucciones incorrectas o negligentes del instructor',
-          'Accidentes ocurridos por ausencia o inadecuación de medidas de seguridad',
-          'Cualquier daño derivado directamente de una acción u omisión de OOMA o su personal',
-        ],
-      },
-      { type: 'subheading', text: 'OOMA no responde de:' },
-      {
-        type: 'list',
-        items: [
-          'Lesiones derivadas exclusivamente del riesgo inherente a la actividad física, debidamente informado',
-          'Daños producidos por incumplimiento de las indicaciones del instructor',
-          'Lesiones agravadas por la ocultación de una condición médica preexistente',
-          'Daños producidos por el uso inadecuado de instalaciones fuera del horario de supervisión',
-          'Pérdida o sustracción de objetos personales no depositados en taquilla bajo custodia de pago',
-        ],
-      },
+      { type: 'paragraph', text: 'Por motivos organizativos y de seguridad, no se permitirá el acceso a la clase una vez transcurridos 10 minutos desde su inicio.' },
+      { type: 'paragraph', text: 'En tal caso, la sesión se considerará consumida a todos los efectos.' },
     ],
   },
   {
     number: '06',
-    title: 'OBLIGACIONES DEL USUARIO',
+    title: 'Asignación del reformer',
     content: [
-      { type: 'paragraph', text: 'El usuario se compromete a observar las siguientes conductas en todo momento:' },
+      { type: 'paragraph', text: 'La asignación del reformer se realiza de forma automática a través del sistema de reservas.' },
+      { type: 'paragraph', text: 'El alumno/a deberá utilizar exclusivamente el reformer asignado.' },
+      { type: 'paragraph', text: 'No está permitido modificar dicha asignación sin la autorización expresa del instructor.' },
+    ],
+  },
+  {
+    number: '07',
+    title: 'Derecho de admisión y limitación de participación',
+    content: [
+      { type: 'paragraph', text: 'OOMA Wellness Club se reserva el derecho de admisión, así como la facultad de limitar o suspender la participación en actividades cuando exista un riesgo para la seguridad del alumno/a, del resto de participantes o cuando se incumplan las normas del estudio.' },
+    ],
+  },
+  {
+    number: '08',
+    title: 'Objetos personales',
+    content: [
+      { type: 'paragraph', text: 'OOMA Wellness Club no se hace responsable de la pérdida, robo, daño o deterioro de objetos personales dentro de sus instalaciones.' },
+    ],
+  },
+  {
+    number: '09',
+    title: 'Coffee corner y merchandising',
+    content: [
+      { type: 'paragraph', text: 'Los productos disponibles en el coffee corner y en el espacio de merchandising no están incluidos en el precio de las clases ni en las membresías.' },
+      { type: 'paragraph', text: 'Todos los productos deberán abonarse con carácter previo a su consumo o retirada.' },
+      { type: 'paragraph', text: 'OOMA Wellness Club se reserva el derecho de reclamar el importe correspondiente en caso de consumo o retirada sin previo pago.' },
+    ],
+  },
+  {
+    number: '10',
+    title: 'Modificaciones del servicio',
+    content: [
+      { type: 'paragraph', text: 'OOMA Wellness Club se reserva el derecho de modificar, en cualquier momento y cuando resulte necesario para el correcto funcionamiento del servicio:' },
       {
         type: 'list',
         items: [
-          { bold: 'Comunicar condiciones médicas:', text: ' informar al instructor de cualquier lesión activa, condición médica, embarazo, operación reciente u otra circunstancia relevante.' },
-          { bold: 'Seguir las indicaciones del instructor:', text: ' respetar las correcciones técnicas, las alternativas propuestas y las indicaciones de seguridad.' },
-          { bold: 'Respetar sus propios límites:', text: ' cesar en la actividad si experimenta dolor agudo, mareo, dificultad para respirar u otro síntoma de alarma.' },
-          { bold: 'Uso correcto del equipamiento:', text: ' manipular el Reformer y el resto del material siguiendo las instrucciones recibidas.' },
-          { bold: 'Hidratación y recuperación:', text: ' acudir a las sesiones en condiciones físicas adecuadas.' },
-          { bold: 'Respeto del entorno:', text: ' mantener el orden, la higiene y el respeto hacia los demás practicantes e instructores.' },
+          'horarios',
+          'instructores',
+          'actividades',
+          'servicios ofrecidos',
         ],
       },
     ],
   },
   {
-    number: '07',
-    title: 'MENORES DE EDAD Y COLECTIVOS CON NECESIDADES ESPECIALES',
+    number: '11',
+    title: 'Reglamento interno del estudio',
     content: [
-      { type: 'paragraph', text: 'Las actividades de OOMA están dirigidas a personas mayores de 18 años. En el caso excepcional de que se admita a menores de edad, será requisito indispensable la firma del presente Aviso por parte del tutor legal.' },
-      { type: 'paragraph', text: 'OOMA también trabaja con colectivos con condiciones especiales — personas en rehabilitación, embarazadas, mayores de 65 años u otras situaciones — bajo protocolo de adaptación específico. En estos casos, se requerirá informe médico que autorice la práctica.' },
+      { type: 'paragraph', text: 'El alumno/a se compromete a respetar el Reglamento Interno del Estudio, disponible tanto en la web como en las instalaciones.' },
+      { type: 'paragraph', text: 'El incumplimiento del mismo podrá dar lugar a la suspensión temporal o definitiva del acceso al estudio.' },
     ],
   },
   {
-    number: '08',
-    title: 'DATOS DE SALUD Y PROTECCIÓN DE DATOS',
+    number: '12',
+    title: 'Protección de datos personales (RGPD)',
     content: [
-      { type: 'paragraph', text: 'Los datos de salud que el usuario comunique a OOMA son considerados datos especialmente protegidos conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018.' },
-      { type: 'paragraph', text: 'Estos datos serán tratados exclusivamente con la finalidad de garantizar la seguridad del usuario durante la práctica, no serán cedidos a terceros sin consentimiento expreso y serán conservados únicamente durante la vigencia de la relación contractual. El usuario puede ejercer sus derechos de acceso, rectificación, supresión y portabilidad enviando un correo a ' },
-      { type: 'link', label: 'privacidad@ooma.club', href: 'mailto:privacidad@ooma.club' },
+      { type: 'paragraph', text: 'De conformidad con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), se informa de que los datos personales facilitados serán tratados por OOMA Wellness Club con las siguientes finalidades:' },
+      {
+        type: 'list',
+        items: [
+          'gestión de reservas',
+          'gestión de pagos',
+          'organización de actividades',
+          'mantenimiento de la relación contractual',
+          'envío de comunicaciones relacionadas con el servicio',
+        ],
+      },
+      { type: 'paragraph', text: 'Los datos no serán cedidos a terceros, salvo obligación legal o cuando resulte necesario para la correcta prestación del servicio.' },
+      { type: 'paragraph', text: 'El usuario podrá ejercer sus derechos de acceso, rectificación, supresión, limitación del tratamiento, oposición y portabilidad mediante solicitud dirigida a:' },
+      { type: 'link', label: 'admin@oomawellness.shop', href: 'mailto:admin@oomawellness.shop' },
+      { type: 'paragraph', text: 'El usuario declara haber sido informado del tratamiento de sus datos personales y acepta su uso en los términos indicados.' },
     ],
   },
   {
-    number: '09',
-    title: 'RESOLUCIÓN DE CONTROVERSIAS Y LEY APLICABLE',
+    number: '13',
+    title: 'Aceptación de los términos y condiciones',
     content: [
-      { type: 'paragraph', text: 'Cualquier controversia derivada de la aplicación de este Aviso se someterá a los mecanismos de mediación y resolución extrajudicial de conflictos de consumo disponibles en Catalunya, incluyendo la Junta Arbitral de Consum de Catalunya y la OMIC del Ayuntamiento de Barcelona.' },
-      { type: 'paragraph', text: 'Este Aviso se rige por el derecho español y catalán, con sumisión expresa a los Juzgados y Tribunales de la ciudad de Barcelona.' },
-      { type: 'paragraph', text: 'Este documento no sustituye ni modifica las condiciones generales de contratación de OOMA Wellness Club. En caso de contradicción entre ambos documentos, prevalecerá la interpretación más favorable al usuario, conforme al artículo 80 del RDL 1/2007.' },
-      { type: 'paragraph', text: 'Para cualquier consulta: ' },
-      { type: 'link', label: 'legal@ooma.club', href: 'mailto:legal@ooma.club' },
+      { type: 'paragraph', text: 'El registro en la plataforma web o app implica la lectura, comprensión y aceptación íntegra de los presentes Términos y Condiciones.' },
+      { type: 'paragraph', text: 'OOMA Wellness Club se reserva el derecho de modificar el presente documento en cualquier momento, con el fin de adaptarlo a mejoras del servicio o a cambios normativos.' },
     ],
   },
 ]
 
-const DISCLAIMER_FOOTER = 'OOMA Wellness Club · Barcelona, Catalunya · Aviso de Salud y Responsabilidad · v1.0 · 2026'
+const DISCLAIMER_FOOTER = 'OOMA Wellness Club · 47829719T · admin@oomawellness.shop · +34 744 43 2128'
 
 // ─── DisclaimerStep component ────────────────────────────────────────────────
 
@@ -294,7 +295,7 @@ function DisclaimerStep({
       {/* Pinned top notice */}
       <View style={ds.notice}>
         <Text style={ds.noticeText}>
-          Por favor, lee el aviso completo antes de continuar. Es obligatorio para crear tu cuenta.
+          Por favor, lee los términos completos antes de continuar. Es obligatorio para crear tu cuenta.
         </Text>
       </View>
 
@@ -310,15 +311,10 @@ function DisclaimerStep({
       >
         {/* Header block */}
         <Text style={ds.docTitle}>{DISCLAIMER_HEADER.title}</Text>
-        <Text style={ds.docMeta}>{DISCLAIMER_HEADER.meta}</Text>
-        <Text style={ds.docMeta}>{DISCLAIMER_HEADER.legal}</Text>
-        <View style={ds.importantNotice}>
-          <Text style={ds.importantText}>{DISCLAIMER_HEADER.notice}</Text>
-        </View>
 
         <View style={ds.divider} />
 
-        {/* 9 sections */}
+        {/* Sections */}
         {DISCLAIMER_SECTIONS.map(renderSection)}
 
         {/* Footer */}
@@ -337,7 +333,7 @@ function DisclaimerStep({
             {checked && <Text style={ds.checkmark}>✓</Text>}
           </View>
           <Text style={[ds.checkLabel, !canCheck && ds.checkLabelDisabled]}>
-            He leído y acepto el Aviso de Salud y Responsabilidad
+            He leído y acepto los Términos y Condiciones del Servicio
           </Text>
         </TouchableOpacity>
 
