@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import { COUNTRY_CODES, PHONE_LENGTHS, CONDITIONS, MONTHS } from '@/constants/onboarding'
+import { validateDNI } from '@/utils/validateDNI'
 import WalletModal from '@/components/WalletModal'
 import GoalSelector from '@/components/GoalSelector'
 import { setPendingGift } from '@/lib/pendingGift'
@@ -382,9 +383,11 @@ export default function CompleteProfileScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  // Step 1 — name
+  // Step 1 — name + DNI/NIE
   const [name, setName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [dni, setDni] = useState('')
+  const [dniError, setDniError] = useState('')
 
   // Step 2 — phone
   const [countryCode, setCountryCode] = useState('+34')
@@ -424,6 +427,8 @@ export default function CompleteProfileScreen() {
     if (step === 1) {
       if (!name.trim()) return 'Please enter your first name.'
       if (!lastName.trim()) return 'Please enter your last name.'
+      if (!dni.trim()) return 'Please enter your DNI or NIE.'
+      if (!validateDNI(dni)) return 'Please enter a valid DNI or NIE.'
     }
     if (step === 2) {
       if (!phone.trim()) return 'Please enter your phone number.'
@@ -456,6 +461,26 @@ export default function CompleteProfileScreen() {
     const err = validate()
     if (err) { setError(err); return }
     setError('')
+
+    if (step === 1) {
+      const normalizedDni = dni.trim().toUpperCase()
+      setLoading(true)
+      try {
+        await api.post('/api/mobile/auth/validate-dni', { dni: normalizedDni, userId })
+        // { available: true } — proceed
+      } catch (e: any) {
+        if (e?.response?.status === 409) {
+          setDni('')
+          setDniError('This DNI/NIE is already associated with an account. Please check and try again.')
+        } else {
+          setDniError('Could not verify your DNI/NIE. Please try again.')
+        }
+        setLoading(false)
+        return
+      } finally {
+        setLoading(false)
+      }
+    }
 
     if (step === 2) {
       const fullPhone = countryCode + phone.replace(/\D/g, '')
@@ -530,6 +555,7 @@ export default function CompleteProfileScreen() {
         name: name.trim(),
         lastName: lastName.trim(),
         phone: fullPhone,
+        dni: dni.trim().toUpperCase(),
         goalIds: selectedGoalIds,
         birthday,
         additionalInfo,
@@ -657,7 +683,7 @@ export default function CompleteProfileScreen() {
               </View>
             )}
 
-            {/* ─── Step 1: Name ─── */}
+            {/* ─── Step 1: Name + DNI/NIE ─── */}
             {step === 1 && (
               <View>
                 <Text style={styles.fieldLabel}>FIRST NAME</Text>
@@ -676,6 +702,17 @@ export default function CompleteProfileScreen() {
                   autoCapitalize="words"
                   placeholderTextColor={C.lightGray}
                 />
+                <Text style={styles.fieldLabel}>DNI / NIE</Text>
+                <TextInput
+                  style={[styles.input, dniError ? styles.inputError : null]}
+                  value={dni}
+                  onChangeText={t => { setDni(t); setDniError(''); setError('') }}
+                  placeholder="e.g. 12345678Z or X1234567L"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  placeholderTextColor={C.lightGray}
+                />
+                {dniError ? <Text style={styles.fieldError}>{dniError}</Text> : null}
               </View>
             )}
 
@@ -936,6 +973,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputFlex: { flex: 1, marginBottom: 0 },
+  inputError: {
+    borderColor: C.red,
+  },
+  fieldError: {
+    fontFamily: F.sansReg,
+    fontSize: 12,
+    color: C.red,
+    marginTop: -12,
+    marginBottom: 12,
+  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
