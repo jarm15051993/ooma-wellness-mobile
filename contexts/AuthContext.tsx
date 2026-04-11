@@ -155,6 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.token)
     applyPermissions(data.token)
     setUser(data.user)
+    setIsBeta(data.user.isBeta ?? false)
   }
 
   async function signOut() {
