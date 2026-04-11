@@ -72,10 +72,12 @@ function availabilityBadge(item: ClassItem): { label: string; bg: string; text: 
   return { label: `${item.availableSpots} spots`, bg: '#DCFCE7', text: '#15803D' }
 }
 
-const DURATION_OPTIONS = [
-  { label: '60 minutes', value: '60' },
-  { label: '90 minutes', value: '90' },
-]
+function formatDuration(mins: number): string {
+  if (mins < 60) return `${mins} min`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}min`
+}
 
 function nextHour(): Date {
   const d = new Date()
@@ -88,7 +90,7 @@ type CreateClassForm = {
   instructor: string
   date: Date
   startTime: Date
-  durationMins: string
+  durationMins: number
   capacity: string
 }
 
@@ -138,7 +140,7 @@ export default function ClassesScreen() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
     title: '', instructor: '', date: today, startTime: nextHour(),
-    durationMins: '60', capacity: '6',
+    durationMins: 60, capacity: '6',
   })
   const [createErrors, setCreateErrors] = useState<CreateClassErrors>({})
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -188,9 +190,8 @@ export default function ClassesScreen() {
     if (!validateCreateForm()) return
     setCreating(true)
     try {
-      const dur = parseInt(createForm.durationMins)
       const startTime = buildDateTimeUTC(createForm.date, createForm.startTime)
-      const endTime = addMinutes(startTime, dur)
+      const endTime = addMinutes(startTime, createForm.durationMins)
       await api.post('/api/admin/classes', {
         title: createForm.title.trim(),
         instructor: createForm.instructor.trim() || null,
@@ -199,7 +200,7 @@ export default function ClassesScreen() {
         capacity: parseInt(createForm.capacity),
       })
       setShowCreateModal(false)
-      setCreateForm({ title: '', instructor: '', date: today, startTime: today, durationMins: '50', capacity: '6' })
+      setCreateForm({ title: '', instructor: '', date: today, startTime: today, durationMins: 60, capacity: '6' })
       setCreateErrors({})
       await fetchClasses()
       setToast({ visible: true, message: 'Class created!' })
@@ -378,7 +379,7 @@ export default function ClassesScreen() {
           </View>
           {showCreateButton && (
             <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-              setCreateForm({ title: '', instructor: '', date: today, startTime: nextHour(), durationMins: '60', capacity: '6' })
+              setCreateForm({ title: '', instructor: '', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
               setCreateErrors({})
               setShowCreateModal(true)
             }}>
@@ -725,18 +726,20 @@ export default function ClassesScreen() {
               )}
 
               <Text style={styles.fieldLabel}>DURATION *</Text>
-              <View style={styles.durationRow}>
-                {DURATION_OPTIONS.map(opt => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={[styles.durationPill, createForm.durationMins === opt.value && styles.durationPillActive]}
-                    onPress={() => setCreateForm(f => ({ ...f, durationMins: opt.value }))}
-                  >
-                    <Text style={[styles.durationPillText, createForm.durationMins === opt.value && styles.durationPillTextActive]}>
-                      {opt.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.stepperRow}>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => setCreateForm(f => ({ ...f, durationMins: Math.max(30, f.durationMins - 10) }))}
+                >
+                  <Text style={styles.stepperBtnText}>−</Text>
+                </TouchableOpacity>
+                <Text style={styles.stepperValue}>{formatDuration(createForm.durationMins)}</Text>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => setCreateForm(f => ({ ...f, durationMins: Math.min(180, f.durationMins + 10) }))}
+                >
+                  <Text style={styles.stepperBtnText}>+</Text>
+                </TouchableOpacity>
               </View>
 
               <Text style={styles.fieldLabel}>AVAILABLE SPOTS (1–6) *</Text>
@@ -1085,31 +1088,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.red,
     marginTop: 4,
-  },
-  durationRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  durationPill: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: C.rule,
-    borderRadius: 4,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: C.warmWhite,
-  },
-  durationPillActive: {
-    borderColor: C.burg,
-    backgroundColor: C.burgPale,
-  },
-  durationPillText: {
-    fontFamily: F.sansMed,
-    fontSize: 13,
-    color: C.midGray,
-  },
-  durationPillTextActive: {
-    color: C.burg,
   },
   stepperRow: {
     flexDirection: 'row',
