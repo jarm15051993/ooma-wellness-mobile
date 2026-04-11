@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router'
 import { Text } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { C, F } from '@/constants/theme'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -18,6 +19,7 @@ function TabIcon({ label, color }: { label: string; color: string }) {
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation()
   const { isAdmin, isOwner, canViewStudents, tenantUser } = useAuth()
 
   const isStaff = isAdmin || isOwner
@@ -45,14 +47,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Classes',
+          title: t('classes.tabTitle'),
           tabBarIcon: ({ color }) => <TabIcon label="Classes" color={color} />,
         }}
       />
       <Tabs.Screen
         name="bookings"
         options={{
-          title: 'My Bookings',
+          title: t('bookings.tabTitle'),
           tabBarIcon: ({ color }) => <TabIcon label="Bookings" color={color} />,
           tabBarItemStyle: showBookings ? undefined : { display: 'none' },
           tabBarButton: showBookings ? undefined : () => null,
@@ -61,7 +63,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('profile.tabTitle'),
           tabBarIcon: ({ color }) => <TabIcon label="Profile" color={color} />,
         }}
       />

@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { C, F } from '@/constants/theme'
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 }
 
 export default function WelcomeGiftModal({ visible, onClaim, onDismiss, claiming }: Props) {
+  const { t } = useTranslation()
   const opacity = useRef(new Animated.Value(0)).current
   const scale = useRef(new Animated.Value(0.88)).current
 
@@ -48,22 +50,19 @@ export default function WelcomeGiftModal({ visible, onClaim, onDismiss, claiming
       <View style={s.overlay}>
         <Animated.View style={[s.card, { opacity, transform: [{ scale }] }]}>
           <Text style={s.sparkle}>✦</Text>
-          <Text style={s.title}>A gift for you</Text>
-          <Text style={s.subtitle}>Early Member Free Class</Text>
-          <Text style={s.body}>
-            As one of our early members, we're giving you a complimentary class — on us. No
-            strings attached.
-          </Text>
+          <Text style={s.title}>{t('profile.welcome.title')}</Text>
+          <Text style={s.subtitle}>{t('profile.welcome.subtitle')}</Text>
+          <Text style={s.body}>{t('profile.welcome.message')}</Text>
           <TouchableOpacity
             style={[s.claimBtn, claiming && s.claimBtnDisabled]}
             onPress={onClaim}
             disabled={claiming}
             activeOpacity={0.8}
           >
-            <Text style={s.claimBtnText}>{claiming ? 'CLAIMING…' : 'CLAIM FREE CLASS'}</Text>
+            <Text style={s.claimBtnText}>{t('profile.welcome.claimButton')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onDismiss} disabled={claiming} style={s.dismissBtn}>
-            <Text style={s.dismissText}>Maybe later</Text>
+            <Text style={s.dismissText}>{t('common.done')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>

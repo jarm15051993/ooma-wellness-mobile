@@ -1,0 +1,474 @@
+{
+  "common": {
+    "continue": "CONTINUAR",
+    "back": "ATRÁS",
+    "save": "GUARDAR",
+    "cancel": "CANCELAR",
+    "confirm": "CONFIRMAR",
+    "ok": "OK",
+    "yes": "SÍ",
+    "no": "NO",
+    "error": "Error",
+    "loading": "Cargando...",
+    "somethingWentWrong": "Algo ha salido mal. Por favor, inténtalo de nuevo.",
+    "tryAgain": "Intentar de nuevo",
+    "close": "CERRAR",
+    "edit": "EDITAR",
+    "done": "Listo"
+  },
+
+  "auth": {
+    "login": {
+      "title": "BIENVENIDO/A",
+      "emailPlaceholder": "Dirección de email",
+      "passwordPlaceholder": "Contraseña",
+      "signInButton": "INICIAR SESIÓN",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "noAccount": "¿No tienes cuenta?",
+      "register": "Créala aquí",
+      "invalidCredentials": "Email o contraseña incorrectos.",
+      "enterEmail": "Por favor, introduce tu dirección de email.",
+      "enterPassword": "Por favor, introduce tu contraseña."
+    },
+    "register": {
+      "title": "CREAR CUENTA",
+      "emailPlaceholder": "Dirección de email",
+      "createButton": "CREAR CUENTA",
+      "alreadyHaveAccount": "¿Ya tienes cuenta?",
+      "signIn": "Iniciar sesión",
+      "invalidEmail": "Por favor, introduce una dirección de email válida.",
+      "checkEmail": "Revisa tu correo para activar tu cuenta."
+    },
+    "checkEmail": {
+      "title": "Revisa tu correo",
+      "subtitle": "Te hemos enviado un enlace de activación. Abre tu app de correo y pulsa el enlace para continuar.",
+      "openMailApp": "ABRIR APP DE CORREO",
+      "resend": "Reenviar email de activación",
+      "resendSuccess": "Se ha enviado un nuevo enlace de activación.",
+      "noMailApp": "App de correo no encontrada",
+      "noMailAppMessage": "Por favor, abre tu app de correo manualmente y revisa tu bandeja de entrada."
+    },
+    "activate": {
+      "activating": "Activando tu cuenta...",
+      "success": "¡Cuenta activada!",
+      "successMessage": "Tu cuenta está lista. Vamos a configurar tu perfil.",
+      "continueButton": "CONFIGURAR PERFIL",
+      "error": "Activación fallida",
+      "errorMessage": "Este enlace puede haber caducado. Solicita un nuevo email de activación.",
+      "requestNew": "Solicitar nuevo enlace"
+    },
+    "forgotPassword": {
+      "title": "Restablecer contraseña",
+      "subtitle": "Introduce tu dirección de email y te enviaremos un enlace para restablecer tu contraseña.",
+      "emailPlaceholder": "Dirección de email",
+      "sendButton": "ENVIAR ENLACE",
+      "backToLogin": "Volver al inicio de sesión",
+      "successTitle": "Revisa tu correo",
+      "successMessage": "Si ese email está registrado, se ha enviado un enlace de restablecimiento.",
+      "enterEmail": "Por favor, introduce tu dirección de email."
+    }
+  },
+
+  "onboarding": {
+    "languageStep": {
+      "title": "Choose your language / Elige tu idioma / Tria el teu idioma"
+    },
+    "steps": {
+      "password": "Crea tu contraseña",
+      "about": "Cuéntanos sobre ti",
+      "contact": "¿Cómo podemos contactarte?",
+      "goals": "¿Cuál es tu objetivo?",
+      "disclaimer": "Términos y Condiciones",
+      "more": "Un poco más sobre ti"
+    },
+    "password": {
+      "passwordLabel": "CONTRASEÑA",
+      "passwordPlaceholder": "Mínimo 8 caracteres",
+      "confirmLabel": "CONFIRMAR CONTRASEÑA",
+      "confirmPlaceholder": "Repite tu contraseña",
+      "rules": "8+ caracteres, una mayúscula, un carácter especial",
+      "errorEmpty": "Por favor, introduce una contraseña.",
+      "errorLength": "La contraseña debe tener al menos 8 caracteres.",
+      "errorCapital": "La contraseña debe contener al menos una letra mayúscula.",
+      "errorSpecial": "La contraseña debe contener al menos un carácter especial.",
+      "errorMatch": "Las contraseñas no coinciden."
+    },
+    "about": {
+      "firstNameLabel": "NOMBRE",
+      "firstNamePlaceholder": "Tu nombre",
+      "lastNameLabel": "APELLIDOS",
+      "lastNamePlaceholder": "Tus apellidos",
+      "dniLabel": "DNI / NIE",
+      "dniPlaceholder": "p. ej. 12345678A o X1234567A",
+      "dniHint": "Tu documento de identidad español o NIE",
+      "errorFirstName": "Por favor, introduce tu nombre.",
+      "errorLastName": "Por favor, introduce tus apellidos.",
+      "errorDniEmpty": "Por favor, introduce tu DNI o NIE.",
+      "errorDniInvalid": "Por favor, introduce un DNI o NIE válido.",
+      "errorDniTaken": "Este DNI/NIE ya está asociado a una cuenta. Por favor, compruébalo y vuelve a intentarlo.",
+      "errorDniVerify": "No se ha podido verificar tu DNI/NIE. Por favor, inténtalo de nuevo."
+    },
+    "contact": {
+      "phoneLabel": "NÚMERO DE TELÉFONO",
+      "phonePlaceholder": "Número de teléfono",
+      "errorEmpty": "Por favor, introduce tu número de teléfono.",
+      "errorLength": "El teléfono debe tener exactamente {{min}} dígitos para {{code}}.",
+      "errorRange": "El teléfono debe tener entre {{min}} y {{max}} dígitos para {{code}}.",
+      "errorTaken": "Ese número de teléfono ya está registrado."
+    },
+    "goals": {
+      "hint": "Selecciona entre 1 y 3 objetivos",
+      "errorEmpty": "Por favor, selecciona al menos un objetivo."
+    },
+    "disclaimer": {
+      "notice": "Por favor, lee los términos completos antes de continuar. Es obligatorio para crear tu cuenta.",
+      "checkboxLabel": "He leído y acepto los Términos y Condiciones del Servicio",
+      "acceptButton": "ACEPTO Y CONTINUAR",
+      "errorSave": "No se pudo guardar tu aceptación. Por favor, inténtalo de nuevo.",
+      "title": "TÉRMINOS Y CONDICIONES DEL SERVICIO\nOOMA WELLNESS CLUB",
+      "footer": "OOMA Wellness Club · 47829719T · admin@oomawellness.shop · +34 744 43 2128",
+      "sections": {
+        "01": {
+          "title": "Objeto",
+          "p1": "Los presentes Términos y Condiciones regulan el acceso, la reserva y la participación en las actividades ofrecidas por OOMA Wellness Club, así como el uso de sus instalaciones y servicios asociados.",
+          "p2": "El registro en la plataforma web o app, así como la reserva de actividades, implican la aceptación plena y sin reservas de las presentes condiciones."
+        },
+        "02": {
+          "title": "Condiciones de salud y responsabilidad personal",
+          "p1": "La participación en las actividades se realiza bajo la exclusiva responsabilidad del alumno/a.",
+          "p2": "El usuario declara encontrarse en condiciones físicas adecuadas para la práctica de ejercicio físico.",
+          "p3": "Asimismo, el alumno/a se compromete a informar previamente al estudio sobre cualquier circunstancia relevante para su salud, incluyendo, entre otras:",
+          "items": ["lesiones previas", "patologías", "limitaciones físicas", "embarazo", "cualquier otra condición médica relevante"],
+          "p4": "En caso de embarazo, el alumno/a declara disponer de autorización médica para la práctica de ejercicio físico.",
+          "p5": "OOMA Wellness Club no tiene la consideración de centro médico ni de rehabilitación, por lo que las actividades ofrecidas no sustituyen en ningún caso tratamientos médicos, diagnósticos ni procesos clínicos.",
+          "p6": "El instructor podrá adaptar los ejercicios, limitar o impedir la participación del alumno/a cuando lo considere necesario por motivos de seguridad, tanto individual como colectiva."
+        },
+        "03": {
+          "title": "Lesiones previas y consentimiento informado",
+          "p1": "En caso de lesión previa o condición médica relevante, OOMA Wellness Club podrá requerir la firma de un documento adicional de consentimiento informado y exención de responsabilidad como condición previa a la participación en las actividades.",
+          "p2": "La admisión a la actividad quedará sujeta, en todo caso, a la valoración del instructor."
+        },
+        "04": {
+          "title": "Reservas, cancelaciones y créditos",
+          "p1": "Las clases podrán cancelarse o reprogramarse sin penalización hasta con 2 horas de antelación respecto a su inicio.",
+          "p2": "Las cancelaciones realizadas entre 1 hora y 1 hora 59 minutos antes del inicio de la actividad conllevarán la pérdida del crédito correspondiente.",
+          "p3": "Las cancelaciones efectuadas con menos de 1 hora de antelación, así como la no asistencia a la sesión reservada, implicarán la pérdida automática del crédito, sin derecho a recuperación ni reembolso."
+        },
+        "05": {
+          "title": "Puntualidad y acceso a clase",
+          "p1": "Por motivos organizativos y de seguridad, no se permitirá el acceso a la clase una vez transcurridos 10 minutos desde su inicio.",
+          "p2": "En tal caso, la sesión se considerará consumida a todos los efectos."
+        },
+        "06": {
+          "title": "Asignación del reformer",
+          "p1": "La asignación del reformer se realiza de forma automática a través del sistema de reservas.",
+          "p2": "El alumno/a deberá utilizar exclusivamente el reformer asignado.",
+          "p3": "No está permitido modificar dicha asignación sin la autorización expresa del instructor."
+        },
+        "07": {
+          "title": "Derecho de admisión y limitación de participación",
+          "p1": "OOMA Wellness Club se reserva el derecho de admisión, así como la facultad de limitar o suspender la participación en actividades cuando exista un riesgo para la seguridad del alumno/a, del resto de participantes o cuando se incumplan las normas del estudio."
+        },
+        "08": {
+          "title": "Objetos personales",
+          "p1": "OOMA Wellness Club no se hace responsable de la pérdida, robo, daño o deterioro de objetos personales dentro de sus instalaciones."
+        },
+        "09": {
+          "title": "Coffee corner y merchandising",
+          "p1": "Los productos disponibles en el coffee corner y en el espacio de merchandising no están incluidos en el precio de las clases ni en las membresías.",
+          "p2": "Todos los productos deberán abonarse con carácter previo a su consumo o retirada.",
+          "p3": "OOMA Wellness Club se reserva el derecho de reclamar el importe correspondiente en caso de consumo o retirada sin previo pago."
+        },
+        "10": {
+          "title": "Modificaciones del servicio",
+          "p1": "OOMA Wellness Club se reserva el derecho de modificar, en cualquier momento y cuando resulte necesario para el correcto funcionamiento del servicio:",
+          "items": ["horarios", "instructores", "actividades", "servicios ofrecidos"]
+        },
+        "11": {
+          "title": "Reglamento interno del estudio",
+          "p1": "El alumno/a se compromete a respetar el Reglamento Interno del Estudio, disponible tanto en la web como en las instalaciones.",
+          "p2": "El incumplimiento del mismo podrá dar lugar a la suspensión temporal o definitiva del acceso al estudio."
+        },
+        "12": {
+          "title": "Protección de datos personales (RGPD)",
+          "p1": "De conformidad con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), se informa de que los datos personales facilitados serán tratados por OOMA Wellness Club con las siguientes finalidades:",
+          "items": ["gestión de reservas", "gestión de pagos", "organización de actividades", "mantenimiento de la relación contractual", "envío de comunicaciones relacionadas con el servicio"],
+          "p2": "Los datos no serán cedidos a terceros, salvo obligación legal o cuando resulte necesario para la correcta prestación del servicio.",
+          "p3": "El usuario podrá ejercer sus derechos de acceso, rectificación, supresión, limitación del tratamiento, oposición y portabilidad mediante solicitud dirigida a:",
+          "p4": "El usuario declara haber sido informado del tratamiento de sus datos personales y acepta su uso en los términos indicados."
+        },
+        "13": {
+          "title": "Aceptación de los términos y condiciones",
+          "p1": "El registro en la plataforma web o app implica la lectura, comprensión y aceptación íntegra de los presentes Términos y Condiciones.",
+          "p2": "OOMA Wellness Club se reserva el derecho de modificar el presente documento en cualquier momento, con el fin de adaptarlo a mejoras del servicio o a cambios normativos."
+        }
+      }
+    },
+    "more": {
+      "birthdayLabel": "FECHA DE NACIMIENTO",
+      "monthPlaceholder": "Mes",
+      "dayPlaceholder": "Día",
+      "yearPlaceholder": "Año",
+      "conditionsQuestion": "¿TIENES ALGUNA LESIÓN O CONDICIÓN ESPECIAL?",
+      "conditionsYes": "SÍ",
+      "conditionsNo": "NO",
+      "conditions": {
+        "Pregnancy": "Embarazo",
+        "Post-Surgery": "Postoperatorio",
+        "Hernia": "Hernia",
+        "Chronic Condition": "Condición crónica",
+        "Other": "Otro"
+      },
+      "otherPlaceholder": "Por favor, describe tu condición",
+      "errorBirthday": "Por favor, introduce tu fecha de nacimiento.",
+      "errorConditions": "Por favor, responde a la pregunta sobre condiciones de salud.",
+      "errorConditionsSelect": "Por favor, selecciona al menos una condición.",
+      "errorOther": "Por favor, describe tu otra condición."
+    },
+    "submit": {
+      "accountCreated": "Cuenta creada",
+      "accountCreatedMessage": "Tu perfil ha sido guardado. Por favor, inicia sesión para continuar.",
+      "logIn": "Iniciar sesión",
+      "letsGo": "¡VAMOS!"
+    }
+  },
+
+  "classes": {
+    "tabTitle": "Clases",
+    "title": "Clases",
+    "loading": "Cargando clases...",
+    "errorLoad": "Error al cargar las clases",
+    "noClasses": "Sin clases programadas",
+    "noClassesMessage": "Vuelve pronto para ver las próximas clases.",
+    "spotsLeft": "{{count}} plazas",
+    "oneSpotLeft": "1 plaza",
+    "classFull": "Clase completa",
+    "booked": "Reformer #{{number}}",
+    "bookButton": "RESERVAR",
+    "bookingSuccess": "¡Reserva confirmada!",
+    "bookingSuccessMessage": "Estás apuntado/a a {{title}}",
+    "addToCalendar": "AÑADIR AL CALENDARIO",
+    "calendarAdded": "Añadido al calendario",
+    "calendarError": "No se pudo añadir al calendario",
+    "calendarPermission": "Permiso requerido",
+    "calendarPermissionMessage": "Permite el acceso al calendario en Ajustes para añadir clases.",
+    "cancelTitle": "¿Cancelar esta clase?",
+    "cancelMessage": "¿Seguro que quieres cancelar tu reserva de {{title}}?",
+    "cancelWarning": "Cancelar ahora te costará un crédito — esta clase empieza en menos de {{hours}} hora.",
+    "cancelWarningPlural": "Cancelar ahora te costará un crédito — esta clase empieza en menos de {{hours}} horas.",
+    "keepBooking": "NO CANCELAR — MANTENER RESERVA",
+    "cancelClass": "CANCELAR CLASE",
+    "cancellationSuccess": "Reserva cancelada",
+    "cancellationSuccessMessage": "Tu reserva de {{title}} ha sido cancelada.",
+    "creditLostWarning": "Tu crédito no será devuelto.",
+    "creditReturned": "Tu crédito ha sido devuelto.",
+    "errorBook": "Error al reservar la clase. Por favor, inténtalo de nuevo.",
+    "errorCancel": "Error al cancelar la reserva. Por favor, inténtalo de nuevo.",
+    "createClass": {
+      "title": "Crear clase",
+      "classTitle": "TÍTULO DE LA CLASE",
+      "instructor": "INSTRUCTOR/A",
+      "date": "FECHA",
+      "startTime": "HORA DE INICIO",
+      "duration": "DURACIÓN",
+      "capacity": "AFORO",
+      "createButton": "CREAR CLASE",
+      "minutes": "min",
+      "hour": "h",
+      "errorTitle": "Por favor, introduce un título para la clase.",
+      "errorDate": "Por favor, selecciona una fecha.",
+      "errorStart": "Por favor, selecciona una hora de inicio.",
+      "successTitle": "Clase creada",
+      "successMessage": "La clase ha sido añadida al horario."
+    }
+  },
+
+  "bookings": {
+    "tabTitle": "Mis Reservas",
+    "title": "Mis Reservas",
+    "upcoming": "PRÓXIMAS",
+    "history": "HISTORIAL",
+    "loading": "Cargando reservas...",
+    "errorLoad": "Error al cargar las reservas",
+    "noUpcoming": "Sin próximas reservas",
+    "noUpcomingMessage": "Ve a la pestaña Clases para reservar una clase.",
+    "noHistory": "Aún no hay reservas pasadas",
+    "reformer": "Reformer #{{number}}",
+    "cancelled": "Cancelada",
+    "attended": "Asistida",
+    "creditLost": "Crédito perdido"
+  },
+
+  "profile": {
+    "tabTitle": "Perfil",
+    "title": "Perfil",
+    "signOut": "CERRAR SESIÓN",
+    "signOutConfirmTitle": "Cerrar sesión",
+    "signOutConfirmMessage": "¿Seguro que quieres cerrar sesión?",
+    "packages": {
+      "title": "MIS PAQUETES",
+      "classesRemaining": "{{count}} clases restantes",
+      "oneClassRemaining": "1 clase restante",
+      "buyMore": "COMPRAR MÁS CLASES",
+      "active": "Activo",
+      "expired": "Caducado",
+      "showExpired": "Mostrar paquetes caducados",
+      "hideExpired": "Ocultar paquetes caducados",
+      "noActive": "Sin paquetes activos",
+      "expiresOn": "Caduca el {{date}}",
+      "allUsed": "Se usaron todas las clases",
+      "expiredOn": "Caducó el {{date}}"
+    },
+    "wallet": {
+      "title": "MI PASE DE CLASES",
+      "addApple": "AÑADIR A APPLE WALLET",
+      "addGoogle": "AÑADIR A GOOGLE WALLET",
+      "passAdded": "Pase añadido",
+      "passAddedMessage": "Tu pase de Ooma ha sido añadido a tu wallet.",
+      "errorApple": "No se pudo añadir a Apple Wallet. Por favor, inténtalo de nuevo.",
+      "errorGoogle": "No se pudo abrir Google Wallet. Por favor, inténtalo de nuevo."
+    },
+    "notifications": {
+      "title": "NOTIFICACIONES",
+      "email": "EMAIL",
+      "push": "PUSH",
+      "classBooked": "Clase reservada",
+      "bookingCancelled": "Reserva cancelada",
+      "packagePurchase": "Compra de paquete",
+      "comingSoon": "Próximamente"
+    },
+    "info": {
+      "title": "PERFIL",
+      "email": "Email",
+      "phone": "Teléfono",
+      "birthday": "Fecha de nacimiento",
+      "dni": "DNI / NIE",
+      "goals": "Objetivos",
+      "conditions": "Condiciones médicas",
+      "editButton": "EDITAR PERFIL"
+    },
+    "language": {
+      "title": "Idioma",
+      "updated": "Idioma actualizado"
+    },
+    "editProfile": {
+      "title": "Editar perfil",
+      "firstNameLabel": "NOMBRE",
+      "lastNameLabel": "APELLIDOS",
+      "phoneLabel": "TELÉFONO",
+      "birthdayLabel": "FECHA DE NACIMIENTO",
+      "goalsLabel": "¿QUÉ QUIERES CONSEGUIR?",
+      "conditionsLabel": "CONDICIONES MÉDICAS",
+      "editConditions": "Editar condiciones",
+      "saveButton": "GUARDAR CAMBIOS",
+      "errorSave": "Error al guardar. Por favor, inténtalo de nuevo.",
+      "legacyGoals": "Por favor, vuelve a seleccionar tus objetivos para actualizarlos."
+    },
+    "conditions": {
+      "title": "Condiciones médicas",
+      "question": "¿TIENES ALGUNA LESIÓN O CONDICIÓN ESPECIAL?",
+      "yes": "SÍ",
+      "no": "NO",
+      "conditions": {
+        "Pregnancy": "Embarazo",
+        "Post-Surgery": "Postoperatorio",
+        "Hernia": "Hernia",
+        "Chronic Condition": "Condición crónica",
+        "Other": "Otro"
+      },
+      "otherPlaceholder": "Por favor, describe tu condición",
+      "saveButton": "GUARDAR"
+    },
+    "changeEmail": {
+      "title": "Cambiar email",
+      "verifyTitle": "Verifica tu identidad",
+      "verifySubtitle": "Introduce tu contraseña actual para continuar.",
+      "passwordLabel": "CONTRASEÑA ACTUAL",
+      "passwordPlaceholder": "Introduce tu contraseña",
+      "verifyButton": "VERIFICAR",
+      "newEmailTitle": "Introduce el nuevo email",
+      "newEmailLabel": "NUEVA DIRECCIÓN DE EMAIL",
+      "newEmailPlaceholder": "tu@email.com",
+      "sendButton": "ENVIAR VERIFICACIÓN",
+      "successTitle": "Revisa tu bandeja de entrada",
+      "successMessage": "Hemos enviado un enlace de verificación a tu nueva dirección de email.",
+      "openMail": "ABRIR APP DE CORREO",
+      "errorPassword": "Contraseña incorrecta. Por favor, inténtalo de nuevo.",
+      "errorEmailTaken": "Esa dirección de email ya está en uso.",
+      "errorSend": "Error al enviar el email de verificación. Por favor, inténtalo de nuevo."
+    },
+    "photo": {
+      "changePhoto": "Cambiar foto",
+      "camera": "Tomar foto",
+      "library": "Elegir de la galería",
+      "permissionTitle": "Permiso requerido",
+      "permissionMessage": "Permite el acceso a la galería en Ajustes.",
+      "errorUpload": "Error al subir la foto. Por favor, inténtalo de nuevo."
+    },
+    "welcome": {
+      "title": "Un regalo para ti",
+      "subtitle": "Clase gratuita para miembros iniciales",
+      "message": "Como miembro inicial de OOMA Wellness Club, te regalamos una clase. ¡Bienvenido/a al club!",
+      "claimButton": "RECLAMAR CLASE GRATUITA",
+      "errorClaim": "No se pudo reclamar tu regalo. Por favor, inténtalo de nuevo."
+    },
+    "studentStatus": {
+      "markAsStudent": "Marcar como estudiante",
+      "marked": "Marcado como estudiante",
+      "removed": "Ya no es estudiante",
+      "onlyRegularUsers": "El estado de estudiante solo se puede asignar a usuarios regulares."
+    }
+  },
+
+  "packages": {
+    "title": "Paquetes de clases",
+    "headingPrefix": "Comprar",
+    "headingItalic": "Clases",
+    "subtitlePending": "Compra un bono para reservar esta clase",
+    "subtitleDefault": "Elige el paquete que mejor te convenga",
+    "loading": "Cargando paquetes...",
+    "errorLoad": "Error al cargar los paquetes",
+    "studentsOnly": "Solo para estudiantes",
+    "studentsOnlyMessage": "Estos paquetes solo están disponibles para estudiantes verificados.",
+    "regularPackages": "Paquetes estándar",
+    "studentPackages": "Paquetes de estudiante 🎓",
+    "notForStudents": "No disponible para estudiantes",
+    "perClass": "por clase",
+    "selectPackage": "Selecciona un paquete",
+    "buyButton": "COMPRAR",
+    "buyAndBook": "COMPRAR Y RESERVAR",
+    "paymentSuccess": "Pago exitoso",
+    "paymentSuccessMessage": "Tus créditos han sido añadidos a tu cuenta.",
+    "paymentFailed": "Pago fallido",
+    "paymentFailedMessage": "Tu pago no pudo procesarse. Por favor, inténtalo de nuevo.",
+    "betaDisabled": "Las compras aún no están disponibles.",
+    "stripeNote": "Pago seguro con Stripe · Créditos añadidos inmediatamente tras el pago"
+  },
+
+  "beta": {
+    "comingSoon": "Próximamente",
+    "message": "Estamos dando los últimos retoques a algo especial. ¡Pronto tendrás noticias!"
+  },
+
+  "admin": {
+    "tenantBanner": "Sesión como {{name}} · {{email}}",
+    "exitSession": "Salir",
+    "exitSessionTitle": "¿Salir de la sesión?",
+    "exitSessionMessage": "¿Salir de la sesión de {{name}}?",
+    "stay": "Permanecer",
+    "exitSessionButton": "Salir de la sesión",
+    "sessionExpired": "Sesión expirada",
+    "sessionExpiredMessage": "Tu sesión de {{name}} ha expirado por inactividad."
+  },
+
+  "errors": {
+    "networkError": "Error de red. Por favor, comprueba tu conexión.",
+    "serverError": "Error del servidor. Por favor, inténtalo más tarde.",
+    "unauthorized": "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.",
+    "notFound": "No encontrado.",
+    "permissionCamera": "Permite el acceso a la cámara en Ajustes.",
+    "noMailApp": "App de correo no encontrada",
+    "noMailAppMessage": "Por favor, abre tu app de correo manualmente y revisa tu bandeja de entrada.",
+    "accountExists": "Ya existe una cuenta con este correo. Intenta iniciar sesión."
+  }
+}

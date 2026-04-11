@@ -1,0 +1,474 @@
+{
+  "common": {
+    "continue": "CONTINUAR",
+    "back": "ENRERE",
+    "save": "DESAR",
+    "cancel": "CANCEL·LAR",
+    "confirm": "CONFIRMAR",
+    "ok": "D'ACORD",
+    "yes": "SÍ",
+    "no": "NO",
+    "error": "Error",
+    "loading": "Carregant...",
+    "somethingWentWrong": "Alguna cosa ha anat malament. Si us plau, torna-ho a intentar.",
+    "tryAgain": "Torna-ho a intentar",
+    "close": "TANCAR",
+    "edit": "EDITAR",
+    "done": "Fet"
+  },
+
+  "auth": {
+    "login": {
+      "title": "BENVINGUT/DA",
+      "emailPlaceholder": "Adreça de correu electrònic",
+      "passwordPlaceholder": "Contrasenya",
+      "signInButton": "INICIAR SESSIÓ",
+      "forgotPassword": "Has oblidat la contrasenya?",
+      "noAccount": "No tens compte?",
+      "register": "Crea'n un",
+      "invalidCredentials": "Correu electrònic o contrasenya incorrectes.",
+      "enterEmail": "Si us plau, introdueix la teva adreça de correu electrònic.",
+      "enterPassword": "Si us plau, introdueix la teva contrasenya."
+    },
+    "register": {
+      "title": "CREAR COMPTE",
+      "emailPlaceholder": "Adreça de correu electrònic",
+      "createButton": "CREAR COMPTE",
+      "alreadyHaveAccount": "Ja tens compte?",
+      "signIn": "Inicia sessió",
+      "invalidEmail": "Si us plau, introdueix una adreça de correu electrònic vàlida.",
+      "checkEmail": "Comprova el teu correu per activar el compte."
+    },
+    "checkEmail": {
+      "title": "Comprova el teu correu",
+      "subtitle": "T'hem enviat un enllaç d'activació. Obre la teva app de correu i toca l'enllaç per continuar.",
+      "openMailApp": "OBRIR APP DE CORREU",
+      "resend": "Reenviar correu d'activació",
+      "resendSuccess": "S'ha enviat un nou enllaç d'activació.",
+      "noMailApp": "App de correu no trobada",
+      "noMailAppMessage": "Si us plau, obre la teva app de correu manualment i comprova la teva safata d'entrada."
+    },
+    "activate": {
+      "activating": "Activant el teu compte...",
+      "success": "Compte activat!",
+      "successMessage": "El teu compte és a punt. Configurem el teu perfil.",
+      "continueButton": "CONFIGURAR PERFIL",
+      "error": "Activació fallida",
+      "errorMessage": "Aquest enllaç pot haver caducat. Sol·licita un nou correu d'activació.",
+      "requestNew": "Sol·licitar nou enllaç"
+    },
+    "forgotPassword": {
+      "title": "Restablir contrasenya",
+      "subtitle": "Introdueix la teva adreça de correu i t'enviarem un enllaç per restablir la teva contrasenya.",
+      "emailPlaceholder": "Adreça de correu electrònic",
+      "sendButton": "ENVIAR ENLLAÇ",
+      "backToLogin": "Tornar a l'inici de sessió",
+      "successTitle": "Comprova el teu correu",
+      "successMessage": "Si aquest correu està registrat, s'ha enviat un enllaç de restabliment.",
+      "enterEmail": "Si us plau, introdueix la teva adreça de correu electrònic."
+    }
+  },
+
+  "onboarding": {
+    "languageStep": {
+      "title": "Choose your language / Elige tu idioma / Tria el teu idioma"
+    },
+    "steps": {
+      "password": "Crea la teva contrasenya",
+      "about": "Explica'ns sobre tu",
+      "contact": "Com podem contactar amb tu?",
+      "goals": "Quin és el teu objectiu?",
+      "disclaimer": "Termes i Condicions",
+      "more": "Una mica més sobre tu"
+    },
+    "password": {
+      "passwordLabel": "CONTRASENYA",
+      "passwordPlaceholder": "Mínim 8 caràcters",
+      "confirmLabel": "CONFIRMAR CONTRASENYA",
+      "confirmPlaceholder": "Repeteix la teva contrasenya",
+      "rules": "8+ caràcters, una majúscula, un caràcter especial",
+      "errorEmpty": "Si us plau, introdueix una contrasenya.",
+      "errorLength": "La contrasenya ha de tenir almenys 8 caràcters.",
+      "errorCapital": "La contrasenya ha de contenir almenys una lletra majúscula.",
+      "errorSpecial": "La contrasenya ha de contenir almenys un caràcter especial.",
+      "errorMatch": "Les contrasenyes no coincideixen."
+    },
+    "about": {
+      "firstNameLabel": "NOM",
+      "firstNamePlaceholder": "El teu nom",
+      "lastNameLabel": "COGNOMS",
+      "lastNamePlaceholder": "Els teus cognoms",
+      "dniLabel": "DNI / NIE",
+      "dniPlaceholder": "p. ex. 12345678A o X1234567A",
+      "dniHint": "El teu document d'identitat espanyol o NIE",
+      "errorFirstName": "Si us plau, introdueix el teu nom.",
+      "errorLastName": "Si us plau, introdueix els teus cognoms.",
+      "errorDniEmpty": "Si us plau, introdueix el teu DNI o NIE.",
+      "errorDniInvalid": "Si us plau, introdueix un DNI o NIE vàlid.",
+      "errorDniTaken": "Aquest DNI/NIE ja està associat a un compte. Si us plau, comprova'l i torna-ho a intentar.",
+      "errorDniVerify": "No s'ha pogut verificar el teu DNI/NIE. Si us plau, torna-ho a intentar."
+    },
+    "contact": {
+      "phoneLabel": "NÚMERO DE TELÈFON",
+      "phonePlaceholder": "Número de telèfon",
+      "errorEmpty": "Si us plau, introdueix el teu número de telèfon.",
+      "errorLength": "El telèfon ha de tenir exactament {{min}} dígits per a {{code}}.",
+      "errorRange": "El telèfon ha de tenir entre {{min}} i {{max}} dígits per a {{code}}.",
+      "errorTaken": "Aquest número de telèfon ja està registrat."
+    },
+    "goals": {
+      "hint": "Selecciona entre 1 i 3 objectius",
+      "errorEmpty": "Si us plau, selecciona almenys un objectiu."
+    },
+    "disclaimer": {
+      "notice": "Si us plau, llegeix els termes complets abans de continuar. És obligatori per crear el teu compte.",
+      "checkboxLabel": "He llegit i accepto els Termes i Condicions del Servei",
+      "acceptButton": "ACCEPTO I CONTINUO",
+      "errorSave": "No s'ha pogut desar la teva acceptació. Si us plau, torna-ho a intentar.",
+      "title": "TERMES I CONDICIONS DEL SERVEI\nOOMA WELLNESS CLUB",
+      "footer": "OOMA Wellness Club · 47829719T · admin@oomawellness.shop · +34 744 43 2128",
+      "sections": {
+        "01": {
+          "title": "Objecte",
+          "p1": "Els presents Termes i Condicions regulen l'accés, la reserva i la participació en les activitats ofertes per OOMA Wellness Club, així com l'ús de les seves instal·lacions i serveis associats.",
+          "p2": "El registre a la plataforma web o app, així com la reserva d'activitats, impliquen l'acceptació plena i sense reserves de les presents condicions."
+        },
+        "02": {
+          "title": "Condicions de salut i responsabilitat personal",
+          "p1": "La participació en les activitats es realitza sota l'exclusiva responsabilitat de l'alumne/a.",
+          "p2": "L'usuari declara trobar-se en condicions físiques adequades per a la pràctica d'exercici físic.",
+          "p3": "Així mateix, l'alumne/a es compromet a informar prèviament l'estudi sobre qualsevol circumstància rellevant per a la seva salut, incloent, entre d'altres:",
+          "items": ["lesions prèvies", "patologies", "limitacions físiques", "embaràs", "qualsevol altra condició mèdica rellevant"],
+          "p4": "En cas d'embaràs, l'alumne/a declara disposar d'autorització mèdica per a la pràctica d'exercici físic.",
+          "p5": "OOMA Wellness Club no té la consideració de centre mèdic ni de rehabilitació, de manera que les activitats ofertes no substitueixen en cap cas tractaments mèdics, diagnòstics ni processos clínics.",
+          "p6": "L'instructor podrà adaptar els exercicis, limitar o impedir la participació de l'alumne/a quan ho consideri necessari per motius de seguretat, tant individual com col·lectiva."
+        },
+        "03": {
+          "title": "Lesions prèvies i consentiment informat",
+          "p1": "En cas de lesió prèvia o condició mèdica rellevant, OOMA Wellness Club podrà requerir la signatura d'un document addicional de consentiment informat i exempció de responsabilitat com a condició prèvia a la participació en les activitats.",
+          "p2": "L'admissió a l'activitat quedarà subjecta, en tot cas, a la valoració de l'instructor."
+        },
+        "04": {
+          "title": "Reserves, cancel·lacions i crèdits",
+          "p1": "Les classes podran cancel·lar-se o reprogramar-se sense penalització fins a 2 hores d'antelació respecte al seu inici.",
+          "p2": "Les cancel·lacions realitzades entre 1 hora i 1 hora 59 minuts abans de l'inici de l'activitat comportaran la pèrdua del crèdit corresponent.",
+          "p3": "Les cancel·lacions efectuades amb menys d'1 hora d'antelació, així com la no assistència a la sessió reservada, implicaran la pèrdua automàtica del crèdit, sense dret a recuperació ni reemborsament."
+        },
+        "05": {
+          "title": "Puntualitat i accés a classe",
+          "p1": "Per motius organitzatius i de seguretat, no es permetrà l'accés a la classe un cop transcorreguts 10 minuts des del seu inici.",
+          "p2": "En aquest cas, la sessió es considerarà consumida a tots els efectes."
+        },
+        "06": {
+          "title": "Assignació del reformer",
+          "p1": "L'assignació del reformer es realitza de forma automàtica a través del sistema de reserves.",
+          "p2": "L'alumne/a haurà d'utilitzar exclusivament el reformer assignat.",
+          "p3": "No està permès modificar aquesta assignació sense l'autorització expressa de l'instructor."
+        },
+        "07": {
+          "title": "Dret d'admissió i limitació de participació",
+          "p1": "OOMA Wellness Club es reserva el dret d'admissió, així com la facultat de limitar o suspendre la participació en activitats quan hi hagi un risc per a la seguretat de l'alumne/a, de la resta de participants o quan s'incompleixin les normes de l'estudi."
+        },
+        "08": {
+          "title": "Objectes personals",
+          "p1": "OOMA Wellness Club no es fa responsable de la pèrdua, robatori, dany o deteriorament d'objectes personals dins de les seves instal·lacions."
+        },
+        "09": {
+          "title": "Coffee corner i marxandatge",
+          "p1": "Els productes disponibles al coffee corner i a l'espai de marxandatge no estan inclosos en el preu de les classes ni en les membresies.",
+          "p2": "Tots els productes s'hauran d'abonar prèviament al seu consum o retirada.",
+          "p3": "OOMA Wellness Club es reserva el dret de reclamar l'import corresponent en cas de consum o retirada sense pagament previ."
+        },
+        "10": {
+          "title": "Modificacions del servei",
+          "p1": "OOMA Wellness Club es reserva el dret de modificar, en qualsevol moment i quan resulti necessari per al correcte funcionament del servei:",
+          "items": ["horaris", "instructors", "activitats", "serveis oferts"]
+        },
+        "11": {
+          "title": "Reglament intern de l'estudi",
+          "p1": "L'alumne/a es compromet a respectar el Reglament Intern de l'Estudi, disponible tant a la web com a les instal·lacions.",
+          "p2": "L'incompliment del mateix podrà donar lloc a la suspensió temporal o definitiva de l'accés a l'estudi."
+        },
+        "12": {
+          "title": "Protecció de dades personals (RGPD)",
+          "p1": "De conformitat amb el Reglament (UE) 2016/679 (RGPD) i la Llei Orgànica 3/2018 (LOPDGDD), s'informa que les dades personals facilitades seran tractades per OOMA Wellness Club amb les finalitats següents:",
+          "items": ["gestió de reserves", "gestió de pagaments", "organització d'activitats", "manteniment de la relació contractual", "enviament de comunicacions relacionades amb el servei"],
+          "p2": "Les dades no seran cedides a tercers, excepte obligació legal o quan resulti necessari per a la correcta prestació del servei.",
+          "p3": "L'usuari podrà exercir els seus drets d'accés, rectificació, supressió, limitació del tractament, oposició i portabilitat mitjançant sol·licitud adreçada a:",
+          "p4": "L'usuari declara haver estat informat del tractament de les seves dades personals i accepta el seu ús en els termes indicats."
+        },
+        "13": {
+          "title": "Acceptació dels termes i condicions",
+          "p1": "El registre a la plataforma web o app implica la lectura, comprensió i acceptació íntegra dels presents Termes i Condicions.",
+          "p2": "OOMA Wellness Club es reserva el dret de modificar el present document en qualsevol moment, amb la finalitat d'adaptar-lo a millores del servei o a canvis normatius."
+        }
+      }
+    },
+    "more": {
+      "birthdayLabel": "DATA DE NAIXEMENT",
+      "monthPlaceholder": "Mes",
+      "dayPlaceholder": "Dia",
+      "yearPlaceholder": "Any",
+      "conditionsQuestion": "TENS ALGUNA LESIÓ O CONDICIÓ ESPECIAL?",
+      "conditionsYes": "SÍ",
+      "conditionsNo": "NO",
+      "conditions": {
+        "Pregnancy": "Embaràs",
+        "Post-Surgery": "Postoperatori",
+        "Hernia": "Hèrnia",
+        "Chronic Condition": "Condició crònica",
+        "Other": "Altre"
+      },
+      "otherPlaceholder": "Si us plau, descriu la teva condició",
+      "errorBirthday": "Si us plau, introdueix la teva data de naixement.",
+      "errorConditions": "Si us plau, respon a la pregunta sobre condicions de salut.",
+      "errorConditionsSelect": "Si us plau, selecciona almenys una condició.",
+      "errorOther": "Si us plau, descriu la teva altra condició."
+    },
+    "submit": {
+      "accountCreated": "Compte creat",
+      "accountCreatedMessage": "El teu perfil ha estat desat. Si us plau, inicia sessió per continuar.",
+      "logIn": "Iniciar sessió",
+      "letsGo": "ANEM!"
+    }
+  },
+
+  "classes": {
+    "tabTitle": "Classes",
+    "title": "Classes",
+    "loading": "Carregant classes...",
+    "errorLoad": "Error en carregar les classes",
+    "noClasses": "Sense classes programades",
+    "noClassesMessage": "Torna aviat per veure les properes classes.",
+    "spotsLeft": "{{count}} places",
+    "oneSpotLeft": "1 plaça",
+    "classFull": "Classe completa",
+    "booked": "Reformer #{{number}}",
+    "bookButton": "RESERVAR",
+    "bookingSuccess": "Reserva confirmada!",
+    "bookingSuccessMessage": "Estàs apuntat/da a {{title}}",
+    "addToCalendar": "AFEGIR AL CALENDARI",
+    "calendarAdded": "Afegit al calendari",
+    "calendarError": "No s'ha pogut afegir al calendari",
+    "calendarPermission": "Permís requerit",
+    "calendarPermissionMessage": "Permet l'accés al calendari a Ajustos per afegir classes.",
+    "cancelTitle": "Cancel·lar aquesta classe?",
+    "cancelMessage": "Segur que vols cancel·lar la teva reserva de {{title}}?",
+    "cancelWarning": "Cancel·lar ara et costarà un crèdit — aquesta classe comença en menys d'{{hours}} hora.",
+    "cancelWarningPlural": "Cancel·lar ara et costarà un crèdit — aquesta classe comença en menys de {{hours}} hores.",
+    "keepBooking": "NO CANCEL·LAR — MANTENIR RESERVA",
+    "cancelClass": "CANCEL·LAR CLASSE",
+    "cancellationSuccess": "Reserva cancel·lada",
+    "cancellationSuccessMessage": "La teva reserva de {{title}} ha estat cancel·lada.",
+    "creditLostWarning": "El teu crèdit no serà retornat.",
+    "creditReturned": "El teu crèdit ha estat retornat.",
+    "errorBook": "Error en reservar la classe. Si us plau, torna-ho a intentar.",
+    "errorCancel": "Error en cancel·lar la reserva. Si us plau, torna-ho a intentar.",
+    "createClass": {
+      "title": "Crear classe",
+      "classTitle": "TÍTOL DE LA CLASSE",
+      "instructor": "INSTRUCTOR/A",
+      "date": "DATA",
+      "startTime": "HORA D'INICI",
+      "duration": "DURADA",
+      "capacity": "AFORAMENT",
+      "createButton": "CREAR CLASSE",
+      "minutes": "min",
+      "hour": "h",
+      "errorTitle": "Si us plau, introdueix un títol per a la classe.",
+      "errorDate": "Si us plau, selecciona una data.",
+      "errorStart": "Si us plau, selecciona una hora d'inici.",
+      "successTitle": "Classe creada",
+      "successMessage": "La classe ha estat afegida a l'horari."
+    }
+  },
+
+  "bookings": {
+    "tabTitle": "Les meves reserves",
+    "title": "Les meves reserves",
+    "upcoming": "PROPERES",
+    "history": "HISTORIAL",
+    "loading": "Carregant reserves...",
+    "errorLoad": "Error en carregar les reserves",
+    "noUpcoming": "Sense properes reserves",
+    "noUpcomingMessage": "Vés a la pestanya Classes per reservar una classe.",
+    "noHistory": "Encara no hi ha reserves passades",
+    "reformer": "Reformer #{{number}}",
+    "cancelled": "Cancel·lada",
+    "attended": "Assistida",
+    "creditLost": "Crèdit perdut"
+  },
+
+  "profile": {
+    "tabTitle": "Perfil",
+    "title": "Perfil",
+    "signOut": "TANCAR SESSIÓ",
+    "signOutConfirmTitle": "Tancar sessió",
+    "signOutConfirmMessage": "Segur que vols tancar la sessió?",
+    "packages": {
+      "title": "ELS MEUS PAQUETS",
+      "classesRemaining": "{{count}} classes restants",
+      "oneClassRemaining": "1 classe restant",
+      "buyMore": "COMPRAR MÉS CLASSES",
+      "active": "Actiu",
+      "expired": "Caducat",
+      "showExpired": "Mostrar paquets caducats",
+      "hideExpired": "Amagar paquets caducats",
+      "noActive": "Sense paquets actius",
+      "expiresOn": "Caduca el {{date}}",
+      "allUsed": "Es van usar totes les classes",
+      "expiredOn": "Va caducar el {{date}}"
+    },
+    "wallet": {
+      "title": "EL MEU PASSI DE CLASSES",
+      "addApple": "AFEGIR A APPLE WALLET",
+      "addGoogle": "AFEGIR A GOOGLE WALLET",
+      "passAdded": "Passi afegit",
+      "passAddedMessage": "El teu passi d'Ooma ha estat afegit a la teva wallet.",
+      "errorApple": "No s'ha pogut afegir a Apple Wallet. Si us plau, torna-ho a intentar.",
+      "errorGoogle": "No s'ha pogut obrir Google Wallet. Si us plau, torna-ho a intentar."
+    },
+    "notifications": {
+      "title": "NOTIFICACIONS",
+      "email": "CORREU",
+      "push": "PUSH",
+      "classBooked": "Classe reservada",
+      "bookingCancelled": "Reserva cancel·lada",
+      "packagePurchase": "Compra de paquet",
+      "comingSoon": "Pròximament"
+    },
+    "info": {
+      "title": "PERFIL",
+      "email": "Correu electrònic",
+      "phone": "Telèfon",
+      "birthday": "Data de naixement",
+      "dni": "DNI / NIE",
+      "goals": "Objectius",
+      "conditions": "Condicions mèdiques",
+      "editButton": "EDITAR PERFIL"
+    },
+    "language": {
+      "title": "Idioma",
+      "updated": "Idioma actualitzat"
+    },
+    "editProfile": {
+      "title": "Editar perfil",
+      "firstNameLabel": "NOM",
+      "lastNameLabel": "COGNOMS",
+      "phoneLabel": "TELÈFON",
+      "birthdayLabel": "DATA DE NAIXEMENT",
+      "goalsLabel": "QUÈ VOLS ACONSEGUIR?",
+      "conditionsLabel": "CONDICIONS MÈDIQUES",
+      "editConditions": "Editar condicions",
+      "saveButton": "DESAR CANVIS",
+      "errorSave": "Error en desar. Si us plau, torna-ho a intentar.",
+      "legacyGoals": "Si us plau, torna a seleccionar els teus objectius per actualitzar-los."
+    },
+    "conditions": {
+      "title": "Condicions mèdiques",
+      "question": "TENS ALGUNA LESIÓ O CONDICIÓ ESPECIAL?",
+      "yes": "SÍ",
+      "no": "NO",
+      "conditions": {
+        "Pregnancy": "Embaràs",
+        "Post-Surgery": "Postoperatori",
+        "Hernia": "Hèrnia",
+        "Chronic Condition": "Condició crònica",
+        "Other": "Altre"
+      },
+      "otherPlaceholder": "Si us plau, descriu la teva condició",
+      "saveButton": "DESAR"
+    },
+    "changeEmail": {
+      "title": "Canviar correu electrònic",
+      "verifyTitle": "Verifica la teva identitat",
+      "verifySubtitle": "Introdueix la teva contrasenya actual per continuar.",
+      "passwordLabel": "CONTRASENYA ACTUAL",
+      "passwordPlaceholder": "Introdueix la teva contrasenya",
+      "verifyButton": "VERIFICAR",
+      "newEmailTitle": "Introdueix el nou correu",
+      "newEmailLabel": "NOVA ADREÇA DE CORREU ELECTRÒNIC",
+      "newEmailPlaceholder": "el.teu@correu.com",
+      "sendButton": "ENVIAR VERIFICACIÓ",
+      "successTitle": "Comprova la teva safata d'entrada",
+      "successMessage": "Hem enviat un enllaç de verificació a la teva nova adreça de correu.",
+      "openMail": "OBRIR APP DE CORREU",
+      "errorPassword": "Contrasenya incorrecta. Si us plau, torna-ho a intentar.",
+      "errorEmailTaken": "Aquesta adreça de correu ja està en ús.",
+      "errorSend": "Error en enviar el correu de verificació. Si us plau, torna-ho a intentar."
+    },
+    "photo": {
+      "changePhoto": "Canviar foto",
+      "camera": "Fer foto",
+      "library": "Triar de la galeria",
+      "permissionTitle": "Permís requerit",
+      "permissionMessage": "Permet l'accés a la galeria a Ajustos.",
+      "errorUpload": "Error en pujar la foto. Si us plau, torna-ho a intentar."
+    },
+    "welcome": {
+      "title": "Un regal per a tu",
+      "subtitle": "Classe gratuïta per a membres inicials",
+      "message": "Com a membre inicial d'OOMA Wellness Club, et regalem una classe. Benvingut/da al club!",
+      "claimButton": "RECLAMAR CLASSE GRATUÏTA",
+      "errorClaim": "No s'ha pogut reclamar el teu regal. Si us plau, torna-ho a intentar."
+    },
+    "studentStatus": {
+      "markAsStudent": "Marcar com a estudiant",
+      "marked": "Marcat com a estudiant",
+      "removed": "Ja no és estudiant",
+      "onlyRegularUsers": "L'estat d'estudiant només es pot assignar a usuaris regulars."
+    }
+  },
+
+  "packages": {
+    "title": "Paquets de classes",
+    "headingPrefix": "Comprar",
+    "headingItalic": "Classes",
+    "subtitlePending": "Compra un bo per reservar aquesta classe",
+    "subtitleDefault": "Tria el paquet que millor t'encaixi",
+    "loading": "Carregant paquets...",
+    "errorLoad": "Error en carregar els paquets",
+    "studentsOnly": "Només per a estudiants",
+    "studentsOnlyMessage": "Aquests paquets només estan disponibles per a estudiants verificats.",
+    "regularPackages": "Paquets estàndard",
+    "studentPackages": "Paquets d'estudiant 🎓",
+    "notForStudents": "No disponible per a estudiants",
+    "perClass": "per classe",
+    "selectPackage": "Selecciona un paquet",
+    "buyButton": "COMPRAR",
+    "buyAndBook": "COMPRAR I RESERVAR",
+    "paymentSuccess": "Pagament exitós",
+    "paymentSuccessMessage": "Els teus crèdits han estat afegits al teu compte.",
+    "paymentFailed": "Pagament fallit",
+    "paymentFailedMessage": "El teu pagament no s'ha pogut processar. Si us plau, torna-ho a intentar.",
+    "betaDisabled": "Les compres encara no estan disponibles.",
+    "stripeNote": "Pagament segur amb Stripe · Crèdits afegits immediatament després del pagament"
+  },
+
+  "beta": {
+    "comingSoon": "Pròximament",
+    "message": "Estem donant els últims retocs a quelcom especial. Aviat tindràs notícies!"
+  },
+
+  "admin": {
+    "tenantBanner": "Sessió com {{name}} · {{email}}",
+    "exitSession": "Sortir",
+    "exitSessionTitle": "Sortir de la sessió?",
+    "exitSessionMessage": "Sortir de la sessió de {{name}}?",
+    "stay": "Quedar-se",
+    "exitSessionButton": "Sortir de la sessió",
+    "sessionExpired": "Sessió expirada",
+    "sessionExpiredMessage": "La teva sessió de {{name}} ha expirat per inactivitat."
+  },
+
+  "errors": {
+    "networkError": "Error de xarxa. Si us plau, comprova la teva connexió.",
+    "serverError": "Error del servidor. Si us plau, torna-ho a intentar més tard.",
+    "unauthorized": "La teva sessió ha expirat. Si us plau, inicia sessió de nou.",
+    "notFound": "No trobat.",
+    "permissionCamera": "Permet l'accés a la càmera a Ajustos.",
+    "noMailApp": "App de correu no trobada",
+    "noMailAppMessage": "Si us plau, obre la teva app de correu manualment i comprova la teva safata d'entrada.",
+    "accountExists": "Ja existeix un compte amb aquest correu. Intenta iniciar sessió."
+  }
+}

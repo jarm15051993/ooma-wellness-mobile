@@ -11,6 +11,7 @@ import {
   SafeAreaView,
 } from 'react-native'
 import { useStripe } from '@stripe/stripe-react-native'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
@@ -41,6 +42,7 @@ export default function BuyClassesModal({
   onPurchaseAndBooked,
   onPurchaseOnly,
 }: Props) {
+  const { t } = useTranslation()
   const { refreshUser, isStudent } = useAuth()
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [packages, setPackages] = useState<Package[]>([])
@@ -52,13 +54,13 @@ export default function BuyClassesModal({
     setLoadingPackages(true)
     api.get('/api/mobile/packages')
       .then(({ data }) => setPackages(data.packages))
-      .catch(() => Alert.alert('Error', 'Could not load packages.'))
+      .catch(() => Alert.alert(t('common.error'), t('packages.errorLoad')))
       .finally(() => setLoadingPackages(false))
   }, [visible])
 
   async function handlePurchase(pkg: Package) {
     if (!pkg.isPurchasable) {
-      Alert.alert('Students only', 'These packages are only available to verified students.')
+      Alert.alert(t('packages.studentsOnly'), t('packages.studentsOnlyMessage'))
       return
     }
     setLoadingId(pkg.id)
@@ -74,7 +76,7 @@ export default function BuyClassesModal({
 
       const { error: presentError } = await presentPaymentSheet()
       if (presentError) {
-        if (presentError.code !== 'Canceled') Alert.alert('Payment failed', presentError.message)
+        if (presentError.code !== 'Canceled') Alert.alert(t('packages.paymentFailed'), presentError.message)
         return
       }
 
@@ -97,8 +99,8 @@ export default function BuyClassesModal({
         onPurchaseOnly?.()
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.error ?? err?.message ?? 'Something went wrong'
-      Alert.alert('Error', msg)
+      const msg = err?.response?.data?.error ?? err?.message ?? t('common.somethingWentWrong')
+      Alert.alert(t('common.error'), msg)
     } finally {
       setLoadingId(null)
     }
@@ -114,11 +116,11 @@ export default function BuyClassesModal({
           <View style={styles.headerRow}>
             <View>
               <View style={styles.headingRow}>
-                <Text style={styles.headingRegular}>Buy </Text>
-                <Text style={styles.headingItalic}>Classes</Text>
+                <Text style={styles.headingRegular}>{t('packages.headingPrefix')} </Text>
+                <Text style={styles.headingItalic}>{t('packages.headingItalic')}</Text>
               </View>
               <Text style={styles.subtitle}>
-                {pendingClassId ? 'Purchase a pack to book this class' : 'Choose the package that suits you'}
+                {pendingClassId ? t('packages.subtitlePending') : t('packages.subtitleDefault')}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} disabled={loadingId !== null}>
@@ -144,10 +146,10 @@ export default function BuyClassesModal({
                 <>
                   <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>
-                      {isStudent ? 'Regular Packages' : 'Student Packages 🎓'}
+                      {isStudent ? t('packages.regularPackages') : t('packages.studentPackages')}
                     </Text>
                     <Text style={styles.sectionSubtitle}>
-                      {isStudent ? 'Not available for students' : 'Available for verified students only'}
+                      {isStudent ? t('packages.notForStudents') : t('packages.studentsOnlyMessage')}
                     </Text>
                   </View>
                   {lockedPackages.map(pkg => (
@@ -165,9 +167,7 @@ export default function BuyClassesModal({
             </>
           )}
 
-          <Text style={styles.note}>
-            Secure payment via Stripe · Credits added immediately after payment
-          </Text>
+          <Text style={styles.note}>{t('packages.stripeNote')}</Text>
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -187,6 +187,7 @@ function PackageCard({
   onPress: () => void
   locked?: boolean
 }) {
+  const { t } = useTranslation()
   const isLoading = loadingId === pkg.id
   const perClass = (pkg.price / pkg.classCount).toFixed(2)
 
@@ -200,10 +201,10 @@ function PackageCard({
         <Text style={styles.packageDesc}>{pkg.description}</Text>
       )}
       {pkg.classCount > 1 && (
-        <Text style={[styles.perClass, locked && styles.lockedText]}>€{perClass} per class</Text>
+        <Text style={[styles.perClass, locked && styles.lockedText]}>€{perClass} {t('packages.perClass')}</Text>
       )}
       {locked && (
-        <Text style={styles.lockedBadge}>Available for students only</Text>
+        <Text style={styles.lockedBadge}>{t('packages.studentsOnly')}</Text>
       )}
       <View style={styles.divider} />
       <TouchableOpacity
@@ -214,7 +215,7 @@ function PackageCard({
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
           : <Text style={styles.buyBtnText}>
-              {locked ? 'STUDENTS ONLY' : pendingClassId ? 'BUY & BOOK CLASS' : 'BUY NOW'}
+              {locked ? t('packages.studentsOnly').toUpperCase() : pendingClassId ? t('packages.buyAndBook') : t('packages.buyButton')}
             </Text>
         }
       </TouchableOpacity>

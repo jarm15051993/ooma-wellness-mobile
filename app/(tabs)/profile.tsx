@@ -35,15 +35,12 @@ import { consumePendingGift } from '@/lib/pendingGift'
 import Toast from '@/components/Toast'
 import { consumePendingWalletToast } from '@/lib/pendingToast'
 import { CONDITIONS } from '@/constants/onboarding'
+import { useTranslation } from 'react-i18next'
+import { LANGUAGES, type AppLanguage } from '@/lib/i18n'
 
 type NotifType = 'booking_confirmation' | 'booking_cancellation' | 'package_purchase'
 type NotifPrefs = Record<NotifType, boolean>
 
-const NOTIF_LABELS: Record<NotifType, string> = {
-  booking_confirmation: 'Class Booked',
-  booking_cancellation: 'Booking Cancelled',
-  package_purchase: 'Package Purchase',
-}
 
 type ExtendedProfile = {
   birthday: string | null
@@ -131,8 +128,15 @@ function InfoRow({ label, value, trailing }: { label: string; value: string | nu
 }
 
 export default function ProfileScreen() {
+  const { t } = useTranslation()
+
+  const NOTIF_LABELS: Record<NotifType, string> = {
+    booking_confirmation: t('profile.notifications.classBooked'),
+    booking_cancellation: t('profile.notifications.bookingCancelled'),
+    package_purchase: t('profile.notifications.packagePurchase'),
+  }
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, isBeta } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, isBeta, language, setLanguage } = useAuth()
   const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
   const [activePackages, setActivePackages] = useState<UserPackage[]>([])
@@ -194,6 +198,10 @@ export default function ProfileScreen() {
   // Welcome gift modal
   const [showGiftModal, setShowGiftModal] = useState(false)
   const [claimingGift, setClaimingGift] = useState(false)
+
+  // Language modal
+  const [showLanguageModal, setShowLanguageModal] = useState(false)
+  const [savingLanguage, setSavingLanguage] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -575,10 +583,25 @@ export default function ProfileScreen() {
   }
 
   async function handleSignOut() {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign out', style: 'destructive', onPress: signOut },
+    Alert.alert(t('profile.signOutConfirmTitle'), t('profile.signOutConfirmMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('profile.signOut'), style: 'destructive', onPress: signOut },
     ])
+  }
+
+  async function handleLanguageSelect(lang: AppLanguage) {
+    if (lang === language) { setShowLanguageModal(false); return }
+    setSavingLanguage(true)
+    try {
+      await api.patch('/api/user/update', { userId: user!.id, language: lang })
+      setLanguage(lang)
+      setShowLanguageModal(false)
+      setNotifToast({ visible: true, message: t('profile.language.updated'), isError: false })
+    } catch {
+      setNotifToast({ visible: true, message: t('common.somethingWentWrong'), isError: true })
+    } finally {
+      setSavingLanguage(false)
+    }
   }
 
   const initials = [displayUser?.name, displayUser?.lastName]
@@ -598,7 +621,7 @@ export default function ProfileScreen() {
         {/* Heading */}
         <View style={styles.headingRow}>
           <Text style={styles.headingRegular}>My </Text>
-          <Text style={styles.headingItalic}>Profile</Text>
+          <Text style={styles.headingItalic}>{t('profile.title')}</Text>
         </View>
 
         {/* Avatar */}
@@ -625,12 +648,12 @@ export default function ProfileScreen() {
 
         {/* Info card — read-only */}
         <View style={styles.infoCard}>
-          <InfoRow label="FIRST NAME" value={displayUser?.name} />
+          <InfoRow label={t('onboarding.about.firstNameLabel')} value={displayUser?.name} />
           <View style={styles.rowDivider} />
-          <InfoRow label="LAST NAME" value={displayUser?.lastName} />
+          <InfoRow label={t('onboarding.about.lastNameLabel')} value={displayUser?.lastName} />
           <View style={styles.rowDivider} />
           <InfoRow
-            label="EMAIL"
+            label={t('profile.info.email').toUpperCase()}
             value={displayUser?.email}
             trailing={
               !isStaff ? (
@@ -641,18 +664,18 @@ export default function ProfileScreen() {
             }
           />
           <View style={styles.rowDivider} />
-          <InfoRow label="PHONE" value={displayUser?.phone} />
+          <InfoRow label={t('profile.info.phone').toUpperCase()} value={displayUser?.phone} />
           {!isStaff && (
             <>
               <View style={styles.rowDivider} />
               <InfoRow
-                label="DATE OF BIRTH"
+                label={t('profile.info.birthday').toUpperCase()}
                 value={extProfile.birthday ? format(new Date(extProfile.birthday), 'MMMM d, yyyy') : null}
               />
               <View style={styles.rowDivider} />
               <View style={styles.infoRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.infoLabel}>GOALS</Text>
+                  <Text style={styles.infoLabel}>{t('profile.info.goals').toUpperCase()}</Text>
                   {extProfile.userGoalIds.length > 0 ? (
                     <View style={styles.goalsReadonlyRow}>
                       {extProfile.goals?.split(', ').map((label, i) => (
@@ -667,7 +690,7 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <View style={styles.rowDivider} />
-              <InfoRow label="MEDICAL CONDITIONS" value={extProfile.additionalInfo ?? '—'} />
+              <InfoRow label={t('profile.info.conditions').toUpperCase()} value={extProfile.additionalInfo ?? '—'} />
             </>
           )}
         </View>
@@ -675,7 +698,7 @@ export default function ProfileScreen() {
         {/* Edit Profile button — students only */}
         {!isStaff && (
           <TouchableOpacity style={styles.editProfileBtn} onPress={openEditModal}>
-            <Text style={styles.editProfileBtnText}>EDIT PROFILE</Text>
+            <Text style={styles.editProfileBtnText}>{t('profile.info.editButton')}</Text>
           </TouchableOpacity>
         )}
 
@@ -700,7 +723,7 @@ export default function ProfileScreen() {
 
         {/* My Packages — hidden for staff */}
         {!isStaff && <View style={styles.packagesSection}>
-          <Text style={styles.sectionLabel}>MY PACKAGES</Text>
+          <Text style={styles.sectionLabel}>{t('profile.packages.title')}</Text>
           <View style={styles.creditsDivider} />
 
           {!loadingPackages && (
@@ -757,13 +780,13 @@ export default function ProfileScreen() {
             onPress={isBeta ? undefined : () => router.push('/packages')}
             disabled={isBeta}
           >
-            <Text style={styles.buyBtnText}>BUY MORE CLASSES</Text>
+            <Text style={styles.buyBtnText}>{t('profile.packages.buyMore')}</Text>
           </TouchableOpacity>
         </View>}
 
         {/* Class Pass / Wallet card */}
         {!tenantUser && <View style={styles.passCard}>
-          <Text style={styles.creditsCardLabel}>MY CLASS PASS</Text>
+          <Text style={styles.creditsCardLabel}>{t('profile.wallet.title')}</Text>
           <View style={styles.creditsDivider} />
 
           {qrCode ? (
@@ -789,7 +812,7 @@ export default function ProfileScreen() {
             >
               {walletLoading
                 ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.walletBtnText}>ADD TO APPLE WALLET</Text>
+                : <Text style={styles.walletBtnText}>{t('profile.wallet.addApple')}</Text>
               }
             </TouchableOpacity>
           ) : (
@@ -800,7 +823,7 @@ export default function ProfileScreen() {
             >
               {walletLoading
                 ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.walletBtnText}>ADD TO GOOGLE WALLET</Text>
+                : <Text style={styles.walletBtnText}>{t('profile.wallet.addGoogle')}</Text>
               }
             </TouchableOpacity>
           )}
@@ -809,10 +832,10 @@ export default function ProfileScreen() {
         {/* Notifications — students only */}
         {!isStaff && (
           <View style={styles.notifSection}>
-            <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
+            <Text style={styles.sectionLabel}>{t('profile.notifications.title')}</Text>
             <View style={styles.creditsDivider} />
 
-            <Text style={styles.notifGroupLabel}>EMAIL</Text>
+            <Text style={styles.notifGroupLabel}>{t('profile.notifications.email')}</Text>
             {(Object.keys(NOTIF_LABELS) as NotifType[]).map(type => (
               <View key={type} style={styles.notifRow}>
                 <Text style={styles.notifLabel}>{NOTIF_LABELS[type]}</Text>
@@ -827,7 +850,7 @@ export default function ProfileScreen() {
             ))}
 
             <View style={[styles.creditsDivider, { marginTop: 16 }]} />
-            <Text style={styles.notifGroupLabel}>PUSH NOTIFICATIONS</Text>
+            <Text style={styles.notifGroupLabel}>{t('profile.notifications.push')}</Text>
             {[0, 1, 2].map(i => (
               <View key={i} style={styles.notifRow}>
                 <Text style={[styles.notifLabel, styles.notifDisabled]}>Coming soon</Text>
@@ -838,10 +861,23 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* Language — students only, hidden in tenant mode */}
+        {!isStaff && !tenantUser && (
+          <TouchableOpacity style={styles.languageRow} onPress={() => setShowLanguageModal(true)}>
+            <View>
+              <Text style={styles.languageLabel}>{t('profile.language.title')}</Text>
+              <Text style={styles.languageValue}>
+                {LANGUAGES.find(l => l.code === language)?.label ?? language.toUpperCase()}
+              </Text>
+            </View>
+            <Text style={styles.languageChevron}>›</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Sign out — hidden in tenant mode */}
         {!tenantUser && (
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-            <Text style={styles.signOutText}>SIGN OUT</Text>
+            <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -866,12 +902,42 @@ export default function ProfileScreen() {
             <View style={styles.modalIconCircle}>
               <Text style={styles.modalIconText}>✓</Text>
             </View>
-            <Text style={styles.modalTitle}>Pass Added</Text>
-            <Text style={styles.modalBody}>
-              Your Ooma Pass has been added to your wallet. Show this when entering to class.
-            </Text>
+            <Text style={styles.modalTitle}>{t('profile.wallet.passAdded')}</Text>
+            <Text style={styles.modalBody}>{t('profile.wallet.passAddedMessage')}</Text>
             <TouchableOpacity style={styles.modalBtn} onPress={() => setShowWalletSuccessModal(false)}>
-              <Text style={styles.modalBtnText}>GOT IT</Text>
+              <Text style={styles.modalBtnText}>{t('common.ok')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── Language picker modal ─── */}
+      <Modal visible={showLanguageModal} transparent animationType="fade" onRequestClose={() => setShowLanguageModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.langPickerCard}>
+            <Text style={styles.langPickerTitle}>{t('profile.language.title')}</Text>
+            <View style={styles.langPickerDivider} />
+            {LANGUAGES.map(lang => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[styles.langPickerRow, lang.code === language && styles.langPickerRowActive]}
+                onPress={() => handleLanguageSelect(lang.code)}
+                disabled={savingLanguage}
+              >
+                {lang.flag === 'ca' ? (
+                  <Image source={require('@/assets/flag-ca.png')} style={styles.langPickerFlag} resizeMode="cover" />
+                ) : (
+                  <Text style={styles.langPickerEmoji}>{lang.flag}</Text>
+                )}
+                <Text style={[styles.langPickerLabel, lang.code === language && styles.langPickerLabelActive]}>
+                  {lang.label}
+                </Text>
+                {lang.code === language && <Text style={styles.langPickerCheck}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+            {savingLanguage && <ActivityIndicator size="small" color={C.burg} style={{ marginTop: 12 }} />}
+            <TouchableOpacity style={styles.langPickerCancel} onPress={() => setShowLanguageModal(false)} disabled={savingLanguage}>
+              <Text style={styles.langPickerCancelText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -882,19 +948,19 @@ export default function ProfileScreen() {
         <SafeAreaView style={styles.modalSheetSafe}>
           <View style={styles.modalSheetHeader}>
             <TouchableOpacity onPress={() => setShowEditModal(false)} disabled={savingEdit}>
-              <Text style={styles.modalSheetCancel}>Cancel</Text>
+              <Text style={styles.modalSheetCancel}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={styles.modalSheetTitle}>Edit Profile</Text>
+            <Text style={styles.modalSheetTitle}>{t('profile.editProfile.title')}</Text>
             <TouchableOpacity onPress={saveEditProfile} disabled={savingEdit}>
               {savingEdit
                 ? <ActivityIndicator size="small" color={C.burg} />
-                : <Text style={styles.modalSheetSave}>Save</Text>
+                : <Text style={styles.modalSheetSave}>{t('common.save')}</Text>
               }
             </TouchableOpacity>
           </View>
 
           <ScrollView contentContainerStyle={styles.modalSheetBody} keyboardShouldPersistTaps="handled">
-            <Text style={styles.editFieldLabel}>FIRST NAME</Text>
+            <Text style={styles.editFieldLabel}>{t('profile.editProfile.firstNameLabel')}</Text>
             <TextInput
               style={styles.editInput}
               value={editName}
@@ -903,7 +969,7 @@ export default function ProfileScreen() {
               placeholderTextColor={C.lightGray}
             />
 
-            <Text style={styles.editFieldLabel}>LAST NAME</Text>
+            <Text style={styles.editFieldLabel}>{t('profile.editProfile.lastNameLabel')}</Text>
             <TextInput
               style={styles.editInput}
               value={editLastName}
@@ -912,7 +978,7 @@ export default function ProfileScreen() {
               placeholderTextColor={C.lightGray}
             />
 
-            <Text style={styles.editFieldLabel}>PHONE</Text>
+            <Text style={styles.editFieldLabel}>{t('profile.editProfile.phoneLabel')}</Text>
             <TextInput
               style={styles.editInput}
               value={editPhone}
@@ -921,7 +987,7 @@ export default function ProfileScreen() {
               placeholderTextColor={C.lightGray}
             />
 
-            <Text style={styles.editFieldLabel}>DATE OF BIRTH</Text>
+            <Text style={styles.editFieldLabel}>{t('profile.editProfile.birthdayLabel')}</Text>
             <TouchableOpacity
               style={styles.dobDisplayBtn}
               onPress={() => setShowDobPicker(v => !v)}
@@ -946,7 +1012,7 @@ export default function ProfileScreen() {
               />
             )}
 
-            <Text style={styles.editFieldLabel}>WHAT DO YOU WANT TO ACCOMPLISH?</Text>
+            <Text style={styles.editFieldLabel}>{t('profile.editProfile.goalsLabel')}</Text>
             {extProfile.userGoalIds.length === 0 && extProfile.goals !== null && (
               <Text style={styles.legacyGoalsNotice}>
                 Your previously saved goals were entered as text. Please select your goals from the list below to update them.
@@ -957,10 +1023,10 @@ export default function ProfileScreen() {
               onChange={ids => { setEditGoalIds(ids); setEditError('') }}
             />
 
-            <Text style={styles.editFieldLabel}>MEDICAL CONDITIONS</Text>
+            <Text style={styles.editFieldLabel}>{t('profile.editProfile.conditionsLabel')}</Text>
             <TouchableOpacity style={styles.conditionsEditRow} onPress={() => openConditionsModal(true)}>
               <Text style={styles.conditionsEditValue} numberOfLines={2}>
-                {extProfile.additionalInfo ?? 'None'}
+                {extProfile.additionalInfo ?? t('common.no')}
               </Text>
               <Text style={styles.conditionsEditChevron}>›</Text>
             </TouchableOpacity>
@@ -974,7 +1040,7 @@ export default function ProfileScreen() {
             >
               {savingEdit
                 ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.sheetSaveBtnText}>SAVE CHANGES</Text>
+                : <Text style={styles.sheetSaveBtnText}>{t('profile.editProfile.saveButton')}</Text>
               }
             </TouchableOpacity>
           </ScrollView>
@@ -986,31 +1052,31 @@ export default function ProfileScreen() {
         <SafeAreaView style={styles.modalSheetSafe}>
           <View style={styles.modalSheetHeader}>
             <TouchableOpacity onPress={() => setShowConditionsModal(false)} disabled={savingConditions}>
-              <Text style={styles.modalSheetCancel}>Cancel</Text>
+              <Text style={styles.modalSheetCancel}>{t('common.cancel')}</Text>
             </TouchableOpacity>
-            <Text style={styles.modalSheetTitle}>Medical Conditions</Text>
+            <Text style={styles.modalSheetTitle}>{t('profile.conditions.title')}</Text>
             <TouchableOpacity onPress={saveConditions} disabled={savingConditions}>
               {savingConditions
                 ? <ActivityIndicator size="small" color={C.burg} />
-                : <Text style={styles.modalSheetSave}>Save</Text>
+                : <Text style={styles.modalSheetSave}>{t('profile.conditions.saveButton')}</Text>
               }
             </TouchableOpacity>
           </View>
 
           <ScrollView contentContainerStyle={styles.modalSheetBody} keyboardShouldPersistTaps="handled">
-            <Text style={styles.condQuestion}>DO YOU HAVE ANY INJURIES OR SPECIAL CONDITIONS?</Text>
+            <Text style={styles.condQuestion}>{t('profile.conditions.question')}</Text>
             <View style={styles.yesNoRow}>
               <TouchableOpacity
                 style={[styles.yesNoBtn, condHasConditions === false && styles.yesNoBtnActive]}
                 onPress={() => { setCondHasConditions(false); setCondSelected([]) }}
               >
-                <Text style={[styles.yesNoText, condHasConditions === false && styles.yesNoTextActive]}>NO</Text>
+                <Text style={[styles.yesNoText, condHasConditions === false && styles.yesNoTextActive]}>{t('profile.conditions.no')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.yesNoBtn, condHasConditions === true && styles.yesNoBtnActive]}
                 onPress={() => setCondHasConditions(true)}
               >
-                <Text style={[styles.yesNoText, condHasConditions === true && styles.yesNoTextActive]}>YES</Text>
+                <Text style={[styles.yesNoText, condHasConditions === true && styles.yesNoTextActive]}>{t('profile.conditions.yes')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -1059,7 +1125,7 @@ export default function ProfileScreen() {
             >
               {savingConditions
                 ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.sheetSaveBtnText}>SAVE CHANGES</Text>
+                : <Text style={styles.sheetSaveBtnText}>{t('profile.editProfile.saveButton')}</Text>
               }
             </TouchableOpacity>
           </ScrollView>
@@ -1246,6 +1312,36 @@ const styles = StyleSheet.create({
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
   signOutBtn: { height: 48, borderWidth: 1, borderColor: C.burg, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   signOutText: { fontFamily: F.sansMed, fontSize: 11, color: C.burg, letterSpacing: 2, textTransform: 'uppercase' },
+  // Language row
+  languageRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
+    borderRadius: 4, paddingHorizontal: 18, paddingVertical: 14, marginBottom: 16,
+  },
+  languageLabel: { fontFamily: F.sansMed, fontSize: 9, color: C.midGray, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+  languageValue: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  languageChevron: { fontFamily: F.sansReg, fontSize: 22, color: C.midGray },
+  // Language picker modal
+  langPickerCard: {
+    backgroundColor: C.cream, borderRadius: 16, padding: 24,
+    width: '100%', gap: 0,
+  },
+  langPickerTitle: { fontFamily: F.serifReg, fontSize: 22, color: C.ink, marginBottom: 16 },
+  langPickerDivider: { height: 1, backgroundColor: C.rule, marginBottom: 8 },
+  langPickerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.rule,
+  },
+  langPickerRowActive: { backgroundColor: C.burgPale },
+  langPickerEmoji: { fontSize: 28 },
+  langPickerFlag: { width: 40, height: 28, borderRadius: 3 },
+  langPickerLabel: { flex: 1, fontFamily: F.sansMed, fontSize: 16, color: C.ink },
+  langPickerLabelActive: { color: C.burg },
+  langPickerCheck: { fontFamily: F.sansMed, fontSize: 16, color: C.burg },
+  langPickerCancel: {
+    height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 8,
+  },
+  langPickerCancelText: { fontFamily: F.sansReg, fontSize: 14, color: C.midGray },
   passCard: {
     backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
     borderRadius: 4, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 18,

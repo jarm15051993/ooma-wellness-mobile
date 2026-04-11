@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, Modal, StyleSheet, ActivityIndicator } from 'react-native'
 import { differenceInMinutes } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { C, F } from '@/constants/theme'
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 }
 
 export default function CancelBookingModal({ visible, classStartsAt, loading, onKeep, onConfirm }: Props) {
+  const { t } = useTranslation()
   const minutesUntilClass = differenceInMinutes(new Date(classStartsAt), new Date())
   const isLate = minutesUntilClass < 60
 
@@ -18,21 +20,21 @@ export default function CancelBookingModal({ visible, classStartsAt, loading, on
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onKeep}>
       <View style={styles.overlay}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>Cancel this class?</Text>
+          <Text style={styles.title}>{t('classes.cancelTitle')}</Text>
           <View style={styles.divider} />
 
           {isLate ? (
             <Text style={styles.body}>
-              This class starts in less than 1 hour. If you cancel now, you will lose this class credit and it will not be returned to your package.
+              {t('classes.cancelWarning', { hours: 1 })}
             </Text>
           ) : (
             <Text style={styles.body}>
-              Your class credit will be returned to your package.
+              {t('classes.creditReturned')}
             </Text>
           )}
 
           <TouchableOpacity style={styles.keepBtn} onPress={onKeep} disabled={loading}>
-            <Text style={styles.keepBtnText}>{isLate ? "DON'T CANCEL" : "DON'T CANCEL - KEEP BOOKING"}</Text>
+            <Text style={styles.keepBtnText}>{t('classes.keepBooking')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -43,9 +45,7 @@ export default function CancelBookingModal({ visible, classStartsAt, loading, on
             {loading ? (
               <ActivityIndicator size="small" color={C.cream} />
             ) : (
-              <Text style={styles.cancelBtnText}>
-                {isLate ? 'CANCEL ANYWAY — LOSE CREDIT' : 'CANCEL CLASS'}
-              </Text>
+              <Text style={styles.cancelBtnText}>{t('classes.cancelClass')}</Text>
             )}
           </TouchableOpacity>
         </View>

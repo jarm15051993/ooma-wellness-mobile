@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store'
 import { AppState } from 'react-native'
 import { useRouter } from 'expo-router'
 import { api, setTenantUserId } from '@/lib/api'
+import i18n, { type AppLanguage } from '@/lib/i18n'
 
 export type User = {
   id: string
@@ -15,6 +16,7 @@ export type User = {
   onboardingCompleted: boolean
   qrCode: string | null
   isBeta: boolean
+  language: AppLanguage
 }
 
 type AuthContextType = {
@@ -28,6 +30,7 @@ type AuthContextType = {
   canMarkAsStudent: boolean
   isStudent: boolean
   isBeta: boolean
+  language: AppLanguage
   isLoading: boolean
   tenantUser: User | null
   lastActivityAt: React.MutableRefObject<number>
@@ -36,6 +39,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
+  setLanguage: (lang: AppLanguage) => void
 }
 
 type DecodedPermissions = {
@@ -82,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [canMarkAsStudent, setCanMarkAsStudent] = useState(false)
   const [isStudent, setIsStudent] = useState(false)
   const [isBeta, setIsBeta] = useState(false)
+  const [language, setLanguageState] = useState<AppLanguage>('es')
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const lastActivityAt = useRef<number>(Date.now())
@@ -98,6 +103,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsStudent(p.isStudent)
   }
 
+  function setLanguage(lang: AppLanguage) {
+    setLanguageState(lang)
+    i18n.changeLanguage(lang)
+  }
+
   useEffect(() => {
     async function restore() {
       try {
@@ -108,6 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data } = await api.get('/api/mobile/me')
           setUser(data.user)
           setIsBeta(data.user.isBeta ?? false)
+          const lang: AppLanguage = data.user.language ?? 'es'
+          setLanguageState(lang)
+          i18n.changeLanguage(lang)
         }
       } catch {
         await SecureStore.deleteItemAsync('access_token')
@@ -156,6 +169,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     applyPermissions(data.token)
     setUser(data.user)
     setIsBeta(data.user.isBeta ?? false)
+    const lang: AppLanguage = data.user.language ?? 'es'
+    setLanguageState(lang)
+    i18n.changeLanguage(lang)
   }
 
   async function signOut() {
@@ -169,6 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCanMarkAsStudent(false)
     setIsStudent(false)
     setIsBeta(false)
+    setLanguageState('es')
+    i18n.changeLanguage('es')
     setUser(null)
     setTenantUser(null)
     setTenantUserId(null)
@@ -178,15 +196,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = await api.get('/api/mobile/me')
     setUser(data.user)
     setIsBeta(data.user.isBeta ?? false)
+    const lang: AppLanguage = data.user.language ?? 'es'
+    setLanguageState(lang)
+    i18n.changeLanguage(lang)
   }
 
   return (
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
       canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent, isBeta,
+      language,
       isLoading, tenantUser, lastActivityAt,
       startTenantSession, exitTenantSession,
-      signIn, signOut, refreshUser,
+      signIn, signOut, refreshUser, setLanguage,
     }}>
       {children}
     </AuthContext.Provider>

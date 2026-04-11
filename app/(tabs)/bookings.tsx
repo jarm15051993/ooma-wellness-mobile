@@ -12,6 +12,7 @@ import {
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 import CancelBookingModal from '@/components/CancelBookingModal'
@@ -50,6 +51,7 @@ type PastClass = {
 type Tab = 'upcoming' | 'past'
 
 export default function BookingsScreen() {
+  const { t } = useTranslation()
   const { isBeta } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('upcoming')
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -95,8 +97,8 @@ export default function BookingsScreen() {
       setToast({
         visible: true,
         message: data.creditLost
-          ? 'Booking cancelled — credit not returned'
-          : 'Booking cancelled',
+          ? t('classes.creditLostWarning')
+          : t('classes.cancellationSuccess'),
       })
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.error ?? 'Something went wrong')
@@ -111,7 +113,7 @@ export default function BookingsScreen() {
         <View style={styles.cardTop}>
           <Text style={styles.classTitle}>{item.class.title}</Text>
           <View style={styles.reformerBadge}>
-            <Text style={styles.reformerBadgeText}>Reformer {item.stretcherNumber}</Text>
+            <Text style={styles.reformerBadgeText}>{t('bookings.reformer', { number: item.stretcherNumber })}</Text>
           </View>
         </View>
         <Text style={styles.dateText}>
@@ -126,7 +128,7 @@ export default function BookingsScreen() {
         ) : null}
         <View style={styles.divider} />
         <TouchableOpacity style={styles.cancelBtn} onPress={() => setCancelTarget(item)}>
-          <Text style={styles.cancelBtnText}>CANCEL CLASS</Text>
+          <Text style={styles.cancelBtnText}>{t('classes.cancelClass').toUpperCase()}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -138,7 +140,7 @@ export default function BookingsScreen() {
         <View style={styles.cardTop}>
           <Text style={styles.classTitle}>{item.class.title}</Text>
           <View style={styles.attendedBadge}>
-            <Text style={styles.attendedBadgeText}>ATTENDED</Text>
+            <Text style={styles.attendedBadgeText}>{t('bookings.attended').toUpperCase()}</Text>
           </View>
         </View>
         <Text style={styles.dateText}>
@@ -150,7 +152,7 @@ export default function BookingsScreen() {
         {item.class.instructor ? (
           <Text style={styles.instructorText}>{item.class.instructor}</Text>
         ) : null}
-        <Text style={styles.reformerText}>Reformer {item.stretcherNumber}</Text>
+        <Text style={styles.reformerText}>{t('bookings.reformer', { number: item.stretcherNumber })}</Text>
       </View>
     )
   }
@@ -159,7 +161,7 @@ export default function BookingsScreen() {
     <>
       <View style={styles.headingRow}>
         <Text style={styles.headingRegular}>My </Text>
-        <Text style={styles.headingItalic}>Classes</Text>
+        <Text style={styles.headingItalic}>{t('bookings.title')}</Text>
       </View>
       <View style={styles.toggle}>
         <TouchableOpacity
@@ -167,7 +169,7 @@ export default function BookingsScreen() {
           onPress={() => setActiveTab('upcoming')}
         >
           <Text style={[styles.toggleBtnText, activeTab === 'upcoming' && styles.toggleBtnTextActive]}>
-            UPCOMING
+            {t('bookings.upcoming')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -175,7 +177,7 @@ export default function BookingsScreen() {
           onPress={() => setActiveTab('past')}
         >
           <Text style={[styles.toggleBtnText, activeTab === 'past' && styles.toggleBtnTextActive]}>
-            PAST
+            {t('bookings.history')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -212,8 +214,8 @@ export default function BookingsScreen() {
           ListHeaderComponent={header}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No upcoming classes.</Text>
-              <Text style={styles.emptySubtext}>Browse classes to book your next session.</Text>
+              <Text style={styles.emptyText}>{t('bookings.noUpcoming')}</Text>
+              <Text style={styles.emptySubtext}>{t('bookings.noUpcomingMessage')}</Text>
             </View>
           }
         />
@@ -237,8 +239,8 @@ export default function BookingsScreen() {
           ListHeaderComponent={header}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No past classes yet.</Text>
-              <Text style={styles.emptySubtext}>Attended classes will appear here.</Text>
+              <Text style={styles.emptyText}>{t('bookings.noHistory')}</Text>
+              <Text style={styles.emptySubtext}>{t('bookings.noUpcomingMessage')}</Text>
             </View>
           }
         />

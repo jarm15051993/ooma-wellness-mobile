@@ -5,6 +5,8 @@ import { setPendingWalletToast } from '@/lib/pendingToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { StripeProvider } from '@stripe/stripe-react-native'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { I18nextProvider } from 'react-i18next'
+import i18n from '@/lib/i18n'
 import { useFonts } from 'expo-font'
 import {
   CormorantGaramond_300Light_Italic,
@@ -174,13 +176,15 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
-        <AuthProvider>
-          <RootLayoutNav />
-        </AuthProvider>
-      </StripeProvider>
-    </GestureHandlerRootView>
+    <I18nextProvider i18n={i18n}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
+          <AuthProvider>
+            <RootLayoutNav />
+          </AuthProvider>
+        </StripeProvider>
+      </GestureHandlerRootView>
+    </I18nextProvider>
   )
 }
 
