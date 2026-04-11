@@ -5,10 +5,12 @@ import {
   Platform, ScrollView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation()
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,7 +19,7 @@ export default function ForgotPasswordScreen() {
 
   async function handleSubmit() {
     if (!email) {
-      setError('Please enter your email.')
+      setError(t('auth.forgotPassword.enterEmail'))
       return
     }
     setError('')
@@ -26,7 +28,7 @@ export default function ForgotPasswordScreen() {
       await api.post('/api/auth/forgot-password', { email: email.trim().toLowerCase() })
       setSent(true)
     } catch {
-      setError('Something went wrong. Please try again.')
+      setError(t('common.somethingWentWrong'))
     } finally {
       setLoading(false)
     }
@@ -49,21 +51,21 @@ export default function ForgotPasswordScreen() {
 
           <View style={styles.divider} />
 
-          <Text style={styles.subtitle}>RESET PASSWORD</Text>
+          <Text style={styles.subtitle}>{t('auth.forgotPassword.title').toUpperCase()}</Text>
 
           {sent ? (
             <View style={styles.sentContainer}>
               <Text style={styles.sentMessage}>
-                Check your email — we've sent a password reset link.
+                {t('auth.forgotPassword.successMessage')}
               </Text>
               <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-                <Text style={styles.buttonText}>BACK TO LOGIN</Text>
+                <Text style={styles.buttonText}>{t('auth.forgotPassword.backToLogin').toUpperCase()}</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <>
               <Text style={styles.description}>
-                Enter your email and we'll send you a reset link.
+                {t('auth.forgotPassword.subtitle')}
               </Text>
 
               <Text style={styles.fieldLabel}>EMAIL</Text>
@@ -85,12 +87,12 @@ export default function ForgotPasswordScreen() {
               >
                 {loading
                   ? <ActivityIndicator color={C.cream} />
-                  : <Text style={styles.buttonText}>SEND RESET LINK</Text>
+                  : <Text style={styles.buttonText}>{t('auth.forgotPassword.sendButton')}</Text>
                 }
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
-                <Text style={styles.backText}>← Back to login</Text>
+                <Text style={styles.backText}>← {t('auth.forgotPassword.backToLogin')}</Text>
               </TouchableOpacity>
             </>
           )}

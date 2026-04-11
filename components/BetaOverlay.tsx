@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { View, Text, Image, Animated, StyleSheet } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { C, F } from '@/constants/theme'
 
 export default function BetaOverlay() {
+  const { t } = useTranslation()
   const opacity = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
@@ -16,10 +18,8 @@ export default function BetaOverlay() {
   return (
     <Animated.View style={[s.overlay, { opacity }]} pointerEvents="box-only">
       <Image source={require('@/assets/splash-icon.png')} style={s.logo} resizeMode="contain" />
-      <Text style={s.heading}>Coming Soon</Text>
-      <Text style={s.subtext}>
-        We're putting the finishing touches on something special. Stay tuned.
-      </Text>
+      <Text style={s.heading}>{t('beta.comingSoon')}</Text>
+      <Text style={s.subtext}>{t('beta.message')}</Text>
     </Animated.View>
   )
 }

@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react'
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Image,
   ActivityIndicator, Modal, FlatList, ScrollView,
   KeyboardAvoidingView, Platform, Alert, Linking,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
@@ -14,15 +15,7 @@ import { validateDNI } from '@/utils/validateDNI'
 import WalletModal from '@/components/WalletModal'
 import GoalSelector from '@/components/GoalSelector'
 import { setPendingGift } from '@/lib/pendingGift'
-
-const STEPS = [
-  'Create your password',
-  'Tell us about yourself',
-  'How can we reach you?',
-  "What's your goal",
-  'Aviso de Salud y Responsabilidad',
-  'A little more about you',
-]
+import i18n, { LANGUAGES, type AppLanguage } from '@/lib/i18n'
 
 const MIN_YEAR = 1940
 const MAX_YEAR = new Date().getFullYear() - 14
@@ -367,35 +360,49 @@ export default function CompleteProfileScreen() {
   const email = params.email ? decodeURIComponent(params.email) : ''
   const { signIn, token, refreshUser } = useAuth()
   const router = useRouter()
+  const { t } = useTranslation()
+
+  const steps = [
+    t('onboarding.languageStep.title'),
+    t('onboarding.steps.password'),
+    t('onboarding.steps.about'),
+    t('onboarding.steps.contact'),
+    t('onboarding.steps.goals'),
+    t('onboarding.steps.disclaimer'),
+    t('onboarding.steps.more'),
+  ]
 
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showWalletModal, setShowWalletModal] = useState(false)
 
-  // Step 0 — password
+  // Step 0 — language
+  const [language, setLanguageState] = useState<AppLanguage>('es')
+
+  // Step 1 — password
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  // Step 1 — name + DNI/NIE
+  // Step 2 — name + DNI/NIE
   const [name, setName] = useState('')
   const [lastName, setLastName] = useState('')
   const [dni, setDni] = useState('')
   const [dniError, setDniError] = useState('')
 
-  // Step 2 — phone
+  // Step 3 — phone
   const [countryCode, setCountryCode] = useState('+34')
   const [phone, setPhone] = useState('')
   const [countryPickerVisible, setCountryPickerVisible] = useState(false)
 
-  // Step 3 — goals
+  // Step 4 — goals
   const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([])
 
-  // Step 4 — disclaimer (no local state beyond what DisclaimerStep manages)
+  // Step 5 — disclaimer (no local state beyond what DisclaimerStep manages)
 
-  // Step 5 — birthday + conditions
+  // Step 6 — birthday + conditions
   const [birthMonth, setBirthMonth] = useState('')
   const [birthDay, setBirthDay] = useState('')
   const [birthYear, setBirthYear] = useState('')
@@ -412,21 +419,28 @@ export default function CompleteProfileScreen() {
     scrollRef.current?.scrollTo({ y: 0, animated: false })
   }
 
+  function handleLanguageSelect(lang: AppLanguage) {
+    setLanguageState(lang)
+    i18n.changeLanguage(lang)
+    setStep(1)
+    scrollTop()
+  }
+
   function validate(): string | null {
-    if (step === 0) {
+    if (step === 1) {
       if (!password) return 'Please enter a password.'
       if (password.length < 8) return 'Password must be at least 8 characters.'
       if (!/[A-Z]/.test(password)) return 'Password must contain at least one capital letter.'
       if (!/[^A-Za-z0-9]/.test(password)) return 'Password must contain at least one special character.'
       if (password !== confirmPassword) return 'Passwords do not match.'
     }
-    if (step === 1) {
+    if (step === 2) {
       if (!name.trim()) return 'Please enter your first name.'
       if (!lastName.trim()) return 'Please enter your last name.'
       if (!dni.trim()) return 'Please enter your DNI or NIE.'
       if (!validateDNI(dni)) return 'Please enter a valid DNI or NIE.'
     }
-    if (step === 2) {
+    if (step === 3) {
       if (!phone.trim()) return 'Please enter your phone number.'
       const lengths = PHONE_LENGTHS[countryCode]
       if (lengths) {
@@ -438,11 +452,11 @@ export default function CompleteProfileScreen() {
         }
       }
     }
-    if (step === 3) {
+    if (step === 4) {
       if (selectedGoalIds.length === 0) return 'Please select at least one goal.'
     }
-    // Step 4 is disclaimer — handled separately via handleDisclaimerAccept
-    if (step === 5) {
+    // Step 5 is disclaimer — handled separately via handleDisclaimerAccept
+    if (step === 6) {
       if (!birthMonth || !birthDay || !birthYear) return 'Please enter your birthday.'
       if (hasConditions === null) return 'Please answer the health conditions question.'
       if (hasConditions && selectedConditions.length === 0) return 'Please select at least one condition.'
@@ -458,7 +472,7 @@ export default function CompleteProfileScreen() {
     if (err) { setError(err); return }
     setError('')
 
-    if (step === 1) {
+    if (step === 2) {
       const normalizedDni = dni.trim().toUpperCase()
       setLoading(true)
       try {
@@ -478,7 +492,7 @@ export default function CompleteProfileScreen() {
       }
     }
 
-    if (step === 2) {
+    if (step === 3) {
       const fullPhone = countryCode + phone.replace(/\D/g, '')
       setLoading(true)
       try {
@@ -497,7 +511,7 @@ export default function CompleteProfileScreen() {
       }
     }
 
-    if (step < STEPS.length - 1) {
+    if (step < steps.length - 1) {
       setStep(s => s + 1)
       scrollTop()
     } else {
@@ -555,6 +569,7 @@ export default function CompleteProfileScreen() {
         goalIds: selectedGoalIds,
         birthday,
         additionalInfo,
+        language,
       })
       if (data?.user?.email) confirmedEmail = data.user.email.trim().toLowerCase()
     } catch (e: any) {
@@ -615,7 +630,7 @@ export default function CompleteProfileScreen() {
       >
         {/* Progress dots */}
         <View style={styles.progressBar}>
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <View
               key={i}
               style={[
@@ -627,7 +642,7 @@ export default function CompleteProfileScreen() {
         </View>
 
         {/* Disclaimer step gets its own full layout */}
-        {step === 4 ? (
+        {step === 5 ? (
           <DisclaimerStep
             onBack={handleBack}
             onAccept={handleDisclaimerAccept}
@@ -641,10 +656,35 @@ export default function CompleteProfileScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.stepHeading}>{STEPS[step]}</Text>
+            <Text style={styles.stepHeading}>{steps[step]}</Text>
 
-            {/* ─── Step 0: Password ─── */}
+            {/* ─── Step 0: Language ─── */}
             {step === 0 && (
+              <View style={styles.langCards}>
+                {LANGUAGES.map(lang => (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={styles.langCard}
+                    onPress={() => handleLanguageSelect(lang.code)}
+                    activeOpacity={0.75}
+                  >
+                    {lang.flag === 'ca' ? (
+                      <Image
+                        source={require('@/assets/flag-ca.png')}
+                        style={styles.langFlag}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text style={styles.langFlagEmoji}>{lang.flag}</Text>
+                    )}
+                    <Text style={styles.langLabel}>{lang.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* ─── Step 1: Password ─── */}
+            {step === 1 && (
               <View>
                 <Text style={styles.fieldLabel}>PASSWORD</Text>
                 <View style={styles.inputRow}>
@@ -679,8 +719,8 @@ export default function CompleteProfileScreen() {
               </View>
             )}
 
-            {/* ─── Step 1: Name + DNI/NIE ─── */}
-            {step === 1 && (
+            {/* ─── Step 2: Name + DNI/NIE ─── */}
+            {step === 2 && (
               <View>
                 <Text style={styles.fieldLabel}>FIRST NAME</Text>
                 <TextInput
@@ -712,8 +752,8 @@ export default function CompleteProfileScreen() {
               </View>
             )}
 
-            {/* ─── Step 2: Phone ─── */}
-            {step === 2 && (
+            {/* ─── Step 3: Phone ─── */}
+            {step === 3 && (
               <View>
                 <Text style={styles.fieldLabel}>PHONE NUMBER</Text>
                 <View style={styles.phoneRow}>
@@ -744,8 +784,8 @@ export default function CompleteProfileScreen() {
               </View>
             )}
 
-            {/* ─── Step 3: Goals ─── */}
-            {step === 3 && (
+            {/* ─── Step 4: Goals ─── */}
+            {step === 4 && (
               <View>
                 <Text style={styles.fieldLabel}>WHAT DO YOU WANT TO ACCOMPLISH?</Text>
                 <GoalSelector
@@ -755,8 +795,8 @@ export default function CompleteProfileScreen() {
               </View>
             )}
 
-            {/* ─── Step 5: Birthday + Conditions ─── */}
-            {step === 5 && (
+            {/* ─── Step 6: Birthday + Conditions ─── */}
+            {step === 6 && (
               <View>
                 <Text style={styles.fieldLabel}>BIRTHDAY</Text>
                 <View style={styles.birthdayRow}>
@@ -831,28 +871,30 @@ export default function CompleteProfileScreen() {
               </View>
             )}
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {step > 0 && error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            {/* Navigation buttons */}
-            <View style={styles.navRow}>
-              {step > 0 && (
-                <TouchableOpacity style={styles.backBtn} onPress={handleBack} disabled={loading}>
-                  <Text style={styles.backBtnText}>BACK</Text>
+            {/* Navigation buttons — hidden on step 0 (language cards act as the action) */}
+            {step > 0 && (
+              <View style={styles.navRow}>
+                {step > 1 && (
+                  <TouchableOpacity style={styles.backBtn} onPress={handleBack} disabled={loading}>
+                    <Text style={styles.backBtnText}>BACK</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[styles.nextBtn, step === 1 && styles.nextBtnFull, loading && styles.btnDisabled]}
+                  onPress={handleNext}
+                  disabled={loading}
+                >
+                  {loading
+                    ? <ActivityIndicator color={C.cream} />
+                    : <Text style={styles.nextBtnText}>
+                        {step === steps.length - 1 ? t('onboarding.submit.letsGo') : t('common.continue')}
+                      </Text>
+                  }
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[styles.nextBtn, step === 0 && styles.nextBtnFull, loading && styles.btnDisabled]}
-                onPress={handleNext}
-                disabled={loading}
-              >
-                {loading
-                  ? <ActivityIndicator color={C.cream} />
-                  : <Text style={styles.nextBtnText}>
-                      {step === STEPS.length - 1 ? "LET'S GO!" : 'CONTINUE'}
-                    </Text>
-                }
-              </TouchableOpacity>
-            </View>
+              </View>
+            )}
           </ScrollView>
         )}
       </KeyboardAvoidingView>
@@ -939,6 +981,36 @@ const styles = StyleSheet.create({
   progressActive: { width: 24, backgroundColor: C.burg },
   progressDone: { width: 8, backgroundColor: C.burgPale },
   progressPending: { width: 8, backgroundColor: C.rule },
+  // Language step
+  langCards: {
+    gap: 16,
+    marginTop: 8,
+  },
+  langCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.rule,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+  },
+  langFlagEmoji: {
+    fontSize: 32,
+  },
+  langFlag: {
+    width: 48,
+    height: 32,
+    borderRadius: 4,
+  },
+  langLabel: {
+    fontFamily: F.sansMed,
+    fontSize: 18,
+    color: C.ink,
+    letterSpacing: 0.3,
+  },
   stepHeading: {
     fontFamily: F.serif,
     fontSize: 26,

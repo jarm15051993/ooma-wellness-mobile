@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import * as Calendar from 'expo-calendar'
 import {
   View,
@@ -65,11 +66,11 @@ function groupByDate(classes: ClassItem[]): Record<string, ClassItem[]> {
   return map
 }
 
-function availabilityBadge(item: ClassItem): { label: string; bg: string; text: string } {
-  if (item.isBooked) return { label: `Reformer #${item.userStretcherNumber}`, bg: C.burgPale, text: C.burg }
-  if (item.isFull) return { label: 'Class Full', bg: '#FEE2E2', text: C.red }
-  if (item.availableSpots <= 3) return { label: `${item.availableSpots} left`, bg: '#FEF9C3', text: '#92400E' }
-  return { label: `${item.availableSpots} spots`, bg: '#DCFCE7', text: '#15803D' }
+function AvailabilityBadge(item: ClassItem, t: (key: string, opts?: any) => string): { label: string; bg: string; text: string } {
+  if (item.isBooked) return { label: t('classes.booked', { number: item.userStretcherNumber }), bg: C.burgPale, text: C.burg }
+  if (item.isFull) return { label: t('classes.classFull'), bg: '#FEE2E2', text: C.red }
+  if (item.availableSpots <= 3) return { label: t('classes.spotsLeft', { count: item.availableSpots }), bg: '#FEF9C3', text: '#92400E' }
+  return { label: t('classes.spotsLeft', { count: item.availableSpots }), bg: '#DCFCE7', text: '#15803D' }
 }
 
 function formatDuration(mins: number): string {
@@ -103,6 +104,7 @@ function buildDateTimeUTC(date: Date, time: Date): Date {
 }
 
 export default function ClassesScreen() {
+  const { t } = useTranslation()
   const { isAdmin, isOwner, canCreateClass, tenantUser, isBeta } = useAuth()
   const router = useRouter()
   const today = new Date()
@@ -203,7 +205,7 @@ export default function ClassesScreen() {
       setCreateForm({ title: '', instructor: '', date: today, startTime: today, durationMins: 60, capacity: '6' })
       setCreateErrors({})
       await fetchClasses()
-      setToast({ visible: true, message: 'Class created!' })
+      setToast({ visible: true, message: t('classes.createClass.successTitle') })
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.error ?? 'Failed to create class')
     } finally {
@@ -257,7 +259,7 @@ export default function ClassesScreen() {
         location: 'OOMA Wellness Club',
       })
       setBookingSuccessData(null)
-      setToast({ visible: true, message: 'Added to your calendar!' })
+      setToast({ visible: true, message: t('classes.calendarAdded') })
     } catch {
       Alert.alert('Error', 'Could not add to calendar. Please try again.')
     } finally {
@@ -276,7 +278,7 @@ export default function ClassesScreen() {
       await fetchClasses()
       setCancelTarget(null)
       if (data.creditLost) {
-        setToast({ visible: true, message: 'Booking cancelled — credit not returned' })
+        setToast({ visible: true, message: t('classes.creditLostWarning') })
       } else {
         setCancellationData({ title: classTitle, startTime, endTime })
       }
@@ -294,7 +296,7 @@ export default function ClassesScreen() {
       const { status } = await Calendar.requestCalendarPermissionsAsync()
       if (status !== 'granted') {
         setCancellationData(null)
-        setToast({ visible: true, message: 'Calendar access denied. Enable it in Settings.' })
+        setToast({ visible: true, message: t('classes.calendarPermissionMessage') })
         return
       }
       const start = new Date(cancellationData.startTime)
@@ -312,10 +314,10 @@ export default function ClassesScreen() {
       if (match) {
         await Calendar.deleteEventAsync(match.id)
         setCancellationData(null)
-        setToast({ visible: true, message: 'Removed from your calendar' })
+        setToast({ visible: true, message: t('classes.cancellationSuccess') })
       } else {
         setCancellationData(null)
-        setToast({ visible: true, message: 'No matching event found in your calendar' })
+        setToast({ visible: true, message: t('classes.cancellationSuccess') })
       }
     } catch {
       Alert.alert('Error', 'Could not remove from calendar. Please try again.')
@@ -465,7 +467,7 @@ export default function ClassesScreen() {
           ) : (
             selectedClasses.map(item => {
               const isActing = actingClassId === item.id
-              const badge = availabilityBadge(item)
+              const badge = AvailabilityBadge(item, t)
               return (
                 <View key={item.id} style={styles.classCard}>
                   <View style={styles.classCardTop}>
@@ -500,12 +502,12 @@ export default function ClassesScreen() {
                         onPress={() => setCancelTarget(item)}
                         disabled={isActing}
                       >
-                        <Text style={styles.cancelBtnText}>CANCEL CLASS</Text>
+                        <Text style={styles.cancelBtnText}>{t('classes.cancelClass').toUpperCase()}</Text>
                       </TouchableOpacity>
                     ) : item.isFull ? (
                       // Class is full — disabled
                       <TouchableOpacity style={[styles.bookBtn, styles.btnDisabled]} disabled>
-                        <Text style={styles.bookBtnText}>CLASS FULL</Text>
+                        <Text style={styles.bookBtnText}>{t('classes.classFull').toUpperCase()}</Text>
                       </TouchableOpacity>
                     ) : userCredits > 0 ? (
                       // Case 1: has balance → Book
@@ -516,7 +518,7 @@ export default function ClassesScreen() {
                       >
                         {isActing
                           ? <ActivityIndicator size="small" color={C.cream} />
-                          : <Text style={styles.bookBtnText}>BOOK</Text>
+                          : <Text style={styles.bookBtnText}>{t('classes.bookButton')}</Text>
                         }
                       </TouchableOpacity>
                     ) : (
@@ -525,7 +527,7 @@ export default function ClassesScreen() {
                         style={styles.buyMoreBtn}
                         onPress={() => setBuyTarget(item.id)}
                       >
-                        <Text style={styles.buyMoreBtnText}>BUY MORE CLASSES</Text>
+                        <Text style={styles.buyMoreBtnText}>{t('profile.packages.buyMore')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -572,7 +574,7 @@ export default function ClassesScreen() {
       <Modal visible={!!bookingSuccessData} transparent animationType="fade" onRequestClose={() => setBookingSuccessData(null)}>
         <View style={styles.successOverlay}>
           <View style={styles.successSheet}>
-            <Text style={styles.successTitle}>Class Booked!</Text>
+            <Text style={styles.successTitle}>{t('classes.bookingSuccess')}</Text>
             <View style={styles.successDivider} />
 
             {bookingSuccessData && (
@@ -587,7 +589,7 @@ export default function ClassesScreen() {
                 </Text>
                 <View style={{ marginBottom: 28 }}>
                   {bookingSuccessData.stretcherNumber != null && (
-                    <Text style={[styles.successReformer, { marginBottom: 0 }]}>Reformer #{bookingSuccessData.stretcherNumber}</Text>
+                    <Text style={[styles.successReformer, { marginBottom: 0 }]}>{t('classes.booked', { number: bookingSuccessData.stretcherNumber })}</Text>
                   )}
                 </View>
               </>
@@ -600,12 +602,12 @@ export default function ClassesScreen() {
             >
               {addingToCalendar
                 ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.calendarBtnText}>ADD TO CALENDAR</Text>
+                : <Text style={styles.calendarBtnText}>{t('classes.addToCalendar')}</Text>
               }
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.noThanksBtn} onPress={() => setBookingSuccessData(null)} disabled={addingToCalendar}>
-              <Text style={styles.noThanksBtnText}>No thanks</Text>
+              <Text style={styles.noThanksBtnText}>{t('common.done')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -615,7 +617,7 @@ export default function ClassesScreen() {
       <Modal visible={!!cancellationData} transparent animationType="fade" onRequestClose={() => setCancellationData(null)}>
         <View style={styles.successOverlay}>
           <View style={styles.successSheet}>
-            <Text style={styles.successTitle}>Booking Cancelled</Text>
+            <Text style={styles.successTitle}>{t('classes.cancellationSuccess')}</Text>
             <View style={styles.successDivider} />
 
             {cancellationData && (
@@ -637,12 +639,12 @@ export default function ClassesScreen() {
             >
               {removingFromCalendar
                 ? <ActivityIndicator size="small" color={C.cream} />
-                : <Text style={styles.calendarBtnText}>REMOVE FROM CALENDAR</Text>
+                : <Text style={styles.calendarBtnText}>{t('classes.cancellationSuccess')}</Text>
               }
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.noThanksBtn} onPress={() => setCancellationData(null)} disabled={removingFromCalendar}>
-              <Text style={styles.noThanksBtnText}>No thanks</Text>
+              <Text style={styles.noThanksBtnText}>{t('common.done')}</Text>
             </TouchableOpacity>
           </View>
         </View>

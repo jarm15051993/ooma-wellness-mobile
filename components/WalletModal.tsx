@@ -12,6 +12,7 @@ import {
 import * as FileSystem from 'expo-file-system/legacy'
 import * as SecureStore from 'expo-secure-store'
 import * as Sharing from 'expo-sharing'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { API_BASE_URL } from '@/constants/api'
 import { C, F } from '@/constants/theme'
@@ -24,6 +25,7 @@ type Props = {
 }
 
 export default function WalletModal({ visible, userId, initialQrCode, onDismiss }: Props) {
+  const { t } = useTranslation()
   const [qrCode, setQrCode] = useState<string | null>(initialQrCode ?? null)
   const [loading, setLoading] = useState(false)
   const [walletLoading, setWalletLoading] = useState(false)
@@ -100,9 +102,9 @@ export default function WalletModal({ visible, userId, initialQrCode, onDismiss 
             <Text style={styles.logoText}>O</Text>
           </View>
 
-          <Text style={styles.heading}>Add your Class Pass{'\n'}to your wallet</Text>
+          <Text style={styles.heading}>{t('profile.wallet.title')}</Text>
           <Text style={styles.subtext}>
-            Show this at the studio to check in to any class.
+            {t('profile.wallet.passAddedMessage')}
           </Text>
 
           {loading ? (
@@ -111,7 +113,7 @@ export default function WalletModal({ visible, userId, initialQrCode, onDismiss 
             <>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity style={styles.primaryBtn} onPress={onDismiss}>
-                <Text style={styles.primaryBtnText}>GO TO HOME</Text>
+                <Text style={styles.primaryBtnText}>{t('common.close')}</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -124,7 +126,7 @@ export default function WalletModal({ visible, userId, initialQrCode, onDismiss 
                 >
                   {walletLoading
                     ? <ActivityIndicator size="small" color={C.cream} />
-                    : <Text style={styles.primaryBtnText}>ADD TO APPLE WALLET</Text>
+                    : <Text style={styles.primaryBtnText}>{t('profile.wallet.addApple')}</Text>
                   }
                 </TouchableOpacity>
               ) : (
@@ -135,13 +137,13 @@ export default function WalletModal({ visible, userId, initialQrCode, onDismiss 
                 >
                   {walletLoading
                     ? <ActivityIndicator size="small" color={C.cream} />
-                    : <Text style={styles.primaryBtnText}>ADD TO GOOGLE WALLET</Text>
+                    : <Text style={styles.primaryBtnText}>{t('profile.wallet.addGoogle')}</Text>
                   }
                 </TouchableOpacity>
               )}
 
               <TouchableOpacity onPress={onDismiss} style={styles.laterBtn}>
-                <Text style={styles.laterText}>Maybe Later</Text>
+                <Text style={styles.laterText}>{t('common.done')}</Text>
               </TouchableOpacity>
             </>
           )}

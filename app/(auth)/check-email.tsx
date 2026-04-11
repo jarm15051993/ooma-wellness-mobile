@@ -6,12 +6,14 @@ import {
 import * as IntentLauncher from 'expo-intent-launcher'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 
 const RESEND_COOLDOWN = 30
 
 export default function CheckEmailScreen() {
+  const { t } = useTranslation()
   const { email } = useLocalSearchParams<{ email: string }>()
   const router = useRouter()
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN)
@@ -55,7 +57,7 @@ export default function CheckEmailScreen() {
         }
       }
     } catch {
-      Alert.alert('No mail app found', 'Please open your email app manually and check your inbox.')
+      Alert.alert(t('errors.noMailApp'), t('errors.noMailAppMessage'))
     }
   }
 
@@ -67,7 +69,7 @@ export default function CheckEmailScreen() {
       await api.post('/api/auth/resend-activation', { email, platform: 'mobile' })
       setCooldown(RESEND_COOLDOWN)
     } catch {
-      setResendError('Could not resend. Please try again.')
+      setResendError(t('common.somethingWentWrong'))
     } finally {
       setResending(false)
     }
@@ -80,15 +82,14 @@ export default function CheckEmailScreen() {
         <Text style={styles.clubLabel}>Wellness Club</Text>
         <View style={styles.divider} />
 
-        <Text style={styles.heading}>Check your email</Text>
+        <Text style={styles.heading}>{t('auth.checkEmail.title')}</Text>
         <Text style={styles.body}>
-          We sent an activation link to{'\n'}
+          {t('auth.checkEmail.subtitle')}{'\n'}
           <Text style={styles.emailHighlight}>{email}</Text>
-          {'\n'}Check your inbox.
         </Text>
 
         <TouchableOpacity style={styles.button} onPress={openMailApp}>
-          <Text style={styles.buttonText}>OPEN MAIL APP</Text>
+          <Text style={styles.buttonText}>{t('auth.checkEmail.openMailApp')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -100,8 +101,8 @@ export default function CheckEmailScreen() {
             ? <ActivityIndicator size="small" color={C.burg} />
             : <Text style={[styles.resendText, cooldown > 0 && styles.resendTextDisabled]}>
                 {cooldown > 0
-                  ? `Resend email (${cooldown}s)`
-                  : 'Resend email'
+                  ? `${t('auth.checkEmail.resend')} (${cooldown}s)`
+                  : t('auth.checkEmail.resend')
                 }
               </Text>
           }
@@ -109,7 +110,7 @@ export default function CheckEmailScreen() {
         {resendError ? <Text style={styles.errorText}>{resendError}</Text> : null}
 
         <TouchableOpacity style={styles.backRow} onPress={() => router.replace('/(auth)/login')}>
-          <Text style={styles.backText}>Back to log in</Text>
+          <Text style={styles.backText}>{t('auth.forgotPassword.backToLogin')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

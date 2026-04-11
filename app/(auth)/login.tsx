@@ -5,10 +5,12 @@ import {
   Platform, ScrollView,
 } from 'react-native'
 import { Link } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 
 export default function LoginScreen() {
+  const { t } = useTranslation()
   const { signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,16 +19,14 @@ export default function LoginScreen() {
   const [error, setError] = useState('')
 
   async function handleLogin() {
-    if (!email || !password) {
-      setError('Please enter your email and password.')
-      return
-    }
+    if (!email) { setError(t('auth.login.enterEmail')); return }
+    if (!password) { setError(t('auth.login.enterPassword')); return }
     setError('')
     setLoading(true)
     try {
       await signIn(email.trim().toLowerCase(), password)
     } catch (e: any) {
-      setError(e?.response?.data?.error ?? 'Please check your credentials.')
+      setError(e?.response?.data?.error ?? t('auth.login.invalidCredentials'))
     } finally {
       setLoading(false)
     }
@@ -49,7 +49,7 @@ export default function LoginScreen() {
 
           <View style={styles.divider} />
 
-          <Text style={styles.welcomeLabel}>WELCOME BACK</Text>
+          <Text style={styles.welcomeLabel}>{t('auth.login.title')}</Text>
 
           {/* Email */}
           <Text style={styles.fieldLabel}>EMAIL</Text>
@@ -92,14 +92,14 @@ export default function LoginScreen() {
           >
             {loading
               ? <ActivityIndicator color={C.cream} />
-              : <Text style={styles.buttonText}>LOG IN</Text>
+              : <Text style={styles.buttonText}>{t('auth.login.signInButton')}</Text>
             }
           </TouchableOpacity>
 
           {/* Forgot password */}
           <Link href="/(auth)/forgot-password" asChild>
             <TouchableOpacity style={styles.forgotLink}>
-              <Text style={styles.forgotText}>Forgot my password?</Text>
+              <Text style={styles.forgotText}>{t('auth.login.forgotPassword')}</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -108,8 +108,8 @@ export default function LoginScreen() {
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity style={styles.signupRow}>
             <Text style={styles.signupText}>
-              Don't have an account?{' '}
-              <Text style={styles.signupLink}>Sign up</Text>
+              {t('auth.login.noAccount')}{' '}
+              <Text style={styles.signupLink}>{t('auth.login.register')}</Text>
             </Text>
           </TouchableOpacity>
         </Link>

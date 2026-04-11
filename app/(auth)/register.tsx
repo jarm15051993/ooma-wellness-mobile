@@ -5,10 +5,12 @@ import {
   Platform, ScrollView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 
 export default function RegisterScreen() {
+  const { t } = useTranslation()
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,12 +19,12 @@ export default function RegisterScreen() {
   async function handleContinue() {
     const trimmed = email.trim().toLowerCase()
     if (!trimmed) {
-      setError('Please enter your email address.')
+      setError(t('auth.forgotPassword.enterEmail'))
       return
     }
     const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRx.test(trimmed)) {
-      setError('Please enter a valid email address.')
+      setError(t('auth.register.invalidEmail'))
       return
     }
     setError('')
@@ -34,9 +36,9 @@ export default function RegisterScreen() {
       const status = e?.response?.status
       const msg = e?.response?.data?.message ?? e?.response?.data?.error
       if (status === 409) {
-        setError('Account already exists. Try logging in instead.')
+        setError(t('errors.accountExists'))
       } else {
-        setError(msg ?? 'Something went wrong. Please try again.')
+        setError(msg ?? t('common.somethingWentWrong'))
       }
     } finally {
       setLoading(false)
@@ -57,7 +59,7 @@ export default function RegisterScreen() {
           <Text style={styles.logo}>OOMA</Text>
           <Text style={styles.clubLabel}>Wellness Club</Text>
           <View style={styles.divider} />
-          <Text style={styles.subtitle}>CREATE YOUR ACCOUNT</Text>
+          <Text style={styles.subtitle}>{t('auth.register.title')}</Text>
 
           <Text style={styles.fieldLabel}>EMAIL</Text>
           <TextInput
@@ -79,14 +81,14 @@ export default function RegisterScreen() {
           >
             {loading
               ? <ActivityIndicator color={C.cream} />
-              : <Text style={styles.buttonText}>CONTINUE</Text>
+              : <Text style={styles.buttonText}>{t('common.continue')}</Text>
             }
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.loginRow} onPress={() => router.replace('/(auth)/login')}>
             <Text style={styles.loginText}>
-              Already have an account?{' '}
-              <Text style={styles.loginLink}>Log in</Text>
+              {t('auth.register.alreadyHaveAccount')}{' '}
+              <Text style={styles.loginLink}>{t('auth.register.signIn')}</Text>
             </Text>
           </TouchableOpacity>
         </View>
