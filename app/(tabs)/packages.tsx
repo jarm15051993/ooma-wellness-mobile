@@ -120,7 +120,6 @@ export default function PackagesScreen() {
         }
       >
         <View style={styles.headingRow}>
-          <Text style={styles.headingRegular}>My </Text>
           <Text style={styles.headingItalic}>{t('packages.screenHeading')}</Text>
         </View>
 
