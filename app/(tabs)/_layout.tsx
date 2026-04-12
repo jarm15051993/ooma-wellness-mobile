@@ -8,6 +8,7 @@ function TabIcon({ label, color }: { label: string; color: string }) {
   const icons: Record<string, string> = {
     Classes: '◈',
     Bookings: '◉',
+    Packages: '◫',
     Profile: '◎',
     Students: '⊕',
   }
@@ -25,6 +26,7 @@ export default function TabLayout() {
   const isStaff = isAdmin || isOwner
   const showStudents = (canViewStudents || isOwner) && !tenantUser
   const showBookings = !isStaff || !!tenantUser
+  const showPackages = !isStaff || !!tenantUser
 
   return (
     <Tabs
@@ -58,6 +60,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon label="Bookings" color={color} />,
           tabBarItemStyle: showBookings ? undefined : { display: 'none' },
           tabBarButton: showBookings ? undefined : () => null,
+        }}
+      />
+      <Tabs.Screen
+        name="packages"
+        options={{
+          title: t('packages.tabTitle'),
+          tabBarIcon: ({ color }) => <TabIcon label="Packages" color={color} />,
+          tabBarItemStyle: showPackages ? undefined : { display: 'none' },
+          tabBarButton: showPackages ? undefined : () => null,
         }}
       />
       <Tabs.Screen

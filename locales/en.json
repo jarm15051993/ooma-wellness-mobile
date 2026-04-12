@@ -234,8 +234,8 @@
   },
 
   "classes": {
-    "tabTitle": "Classes",
-    "title": "Classes",
+    "tabTitle": "Calendar",
+    "title": "Calendar",
     "loading": "Loading classes...",
     "errorLoad": "Failed to load classes",
     "noClasses": "No classes scheduled",
@@ -284,14 +284,14 @@
   },
 
   "bookings": {
-    "tabTitle": "My Bookings",
-    "title": "My Bookings",
+    "tabTitle": "My Classes",
+    "title": "Classes",
     "upcoming": "UPCOMING",
     "history": "HISTORY",
     "loading": "Loading bookings...",
     "errorLoad": "Failed to load bookings",
     "noUpcoming": "No upcoming bookings",
-    "noUpcomingMessage": "Head to the Classes tab to book a class.",
+    "noUpcomingMessage": "Head to the Calendar tab to book a class.",
     "noHistory": "No past bookings yet",
     "reformer": "Reformer #{{number}}",
     "cancelled": "Cancelled",
@@ -421,6 +421,13 @@
   },
 
   "packages": {
+    "tabTitle": "Packages",
+    "screenHeading": "Packages",
+    "studentSection": "Student Packages 🎓",
+    "standardSection": "Class Packages",
+    "emptyState": "No packages available right now. Check back soon.",
+    "classCount_one": "{{count}} class",
+    "classCount_other": "{{count}} classes",
     "title": "Class Packages",
     "headingPrefix": "Buy",
     "headingItalic": "Classes",

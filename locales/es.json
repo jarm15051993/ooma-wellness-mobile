@@ -234,8 +234,8 @@
   },
 
   "classes": {
-    "tabTitle": "Clases",
-    "title": "Clases",
+    "tabTitle": "Calendario",
+    "title": "Calendario",
     "loading": "Cargando clases...",
     "errorLoad": "Error al cargar las clases",
     "noClasses": "Sin clases programadas",
@@ -284,14 +284,14 @@
   },
 
   "bookings": {
-    "tabTitle": "Mis Reservas",
-    "title": "Mis Reservas",
+    "tabTitle": "Mis Clases",
+    "title": "Clases",
     "upcoming": "PRÓXIMAS",
     "history": "HISTORIAL",
     "loading": "Cargando reservas...",
     "errorLoad": "Error al cargar las reservas",
     "noUpcoming": "Sin próximas reservas",
-    "noUpcomingMessage": "Ve a la pestaña Clases para reservar una clase.",
+    "noUpcomingMessage": "Ve a la pestaña Calendario para reservar una clase.",
     "noHistory": "Aún no hay reservas pasadas",
     "reformer": "Reformer #{{number}}",
     "cancelled": "Cancelada",
@@ -421,6 +421,13 @@
   },
 
   "packages": {
+    "tabTitle": "Paquetes",
+    "screenHeading": "Paquetes",
+    "studentSection": "Paquetes de estudiante 🎓",
+    "standardSection": "Paquetes de clases",
+    "emptyState": "No hay paquetes disponibles ahora mismo. Vuelve pronto.",
+    "classCount_one": "{{count}} clase",
+    "classCount_other": "{{count}} clases",
     "title": "Paquetes de clases",
     "headingPrefix": "Comprar",
     "headingItalic": "Clases",

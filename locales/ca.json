@@ -234,8 +234,8 @@
   },
 
   "classes": {
-    "tabTitle": "Classes",
-    "title": "Classes",
+    "tabTitle": "Calendari",
+    "title": "Calendari",
     "loading": "Carregant classes...",
     "errorLoad": "Error en carregar les classes",
     "noClasses": "Sense classes programades",
@@ -284,14 +284,14 @@
   },
 
   "bookings": {
-    "tabTitle": "Les meves reserves",
-    "title": "Les meves reserves",
+    "tabTitle": "Les meves classes",
+    "title": "Classes",
     "upcoming": "PROPERES",
     "history": "HISTORIAL",
     "loading": "Carregant reserves...",
     "errorLoad": "Error en carregar les reserves",
     "noUpcoming": "Sense properes reserves",
-    "noUpcomingMessage": "Vés a la pestanya Classes per reservar una classe.",
+    "noUpcomingMessage": "Vés a la pestanya Calendari per reservar una classe.",
     "noHistory": "Encara no hi ha reserves passades",
     "reformer": "Reformer #{{number}}",
     "cancelled": "Cancel·lada",
@@ -421,6 +421,13 @@
   },
 
   "packages": {
+    "tabTitle": "Paquets",
+    "screenHeading": "Paquets",
+    "studentSection": "Paquets d'estudiant 🎓",
+    "standardSection": "Paquets de classes",
+    "emptyState": "No hi ha paquets disponibles ara mateix. Torna aviat.",
+    "classCount_one": "{{count}} classe",
+    "classCount_other": "{{count}} classes",
     "title": "Paquets de classes",
     "headingPrefix": "Comprar",
     "headingItalic": "Classes",

@@ -376,7 +376,6 @@ export default function ClassesScreen() {
         {/* Heading */}
         <View style={styles.headingRow}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <Text style={styles.headingRegular}>My </Text>
             <Text style={styles.headingItalic}>Calendar</Text>
           </View>
           {showCreateButton && (
