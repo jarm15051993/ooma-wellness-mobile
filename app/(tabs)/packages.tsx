@@ -28,6 +28,8 @@ type Package = {
   durationDays: number
   isStudentPackage: boolean
   isPurchasable: boolean
+  packageType: 'REFORMER' | 'YOGA' | 'BOTH'
+  isUnlimited: boolean
 }
 
 export default function PackagesScreen() {
@@ -190,6 +192,12 @@ function PackageCard({
   const isDisabled = loadingId !== null
   const perClass = (pkg.price / pkg.classCount).toFixed(0)
 
+  const typeLabel = pkg.packageType === 'REFORMER'
+    ? t('packages.typeReformer')
+    : pkg.packageType === 'YOGA'
+    ? t('packages.typeYoga')
+    : t('packages.typeBoth')
+
   return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -199,12 +207,24 @@ function PackageCard({
       {pkg.description ? (
         <Text style={styles.packageDesc}>{pkg.description}</Text>
       ) : null}
-      <Text style={styles.classCount}>
-        {pkg.classCount === 1
-          ? t('packages.classCount_one', { count: 1 })
-          : t('packages.classCount_other', { count: pkg.classCount })}
-      </Text>
-      {pkg.classCount > 1 && (
+      <View style={styles.typeBadgeRow}>
+        <View style={styles.typeBadge}>
+          <Text style={styles.typeBadgeText}>{typeLabel.toUpperCase()}</Text>
+        </View>
+        {pkg.isUnlimited && (
+          <View style={[styles.typeBadge, styles.unlimitedBadge]}>
+            <Text style={[styles.typeBadgeText, styles.unlimitedBadgeText]}>{t('packages.unlimitedBadge')}</Text>
+          </View>
+        )}
+      </View>
+      {!pkg.isUnlimited && (
+        <Text style={styles.classCount}>
+          {pkg.classCount === 1
+            ? t('packages.classCount_one', { count: 1 })
+            : t('packages.classCount_other', { count: pkg.classCount })}
+        </Text>
+      )}
+      {!pkg.isUnlimited && pkg.classCount > 1 && (
         <Text style={styles.perClass}>€{perClass} {t('packages.perClass')}</Text>
       )}
       <View style={styles.divider} />
@@ -263,6 +283,17 @@ const styles = StyleSheet.create({
   packageName: { fontFamily: F.serifBold, fontSize: 22, color: C.ink, flex: 1 },
   packagePrice: { fontFamily: F.serifBold, fontSize: 28, color: C.burg },
   packageDesc: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 4 },
+  typeBadgeRow: { flexDirection: 'row', gap: 6, marginBottom: 6, marginTop: 2 },
+  typeBadge: {
+    backgroundColor: C.burgPale,
+    borderRadius: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
+  },
+  typeBadgeText: { fontFamily: F.sansMed, fontSize: 9, color: C.burg, letterSpacing: 0.8 },
+  unlimitedBadge: { backgroundColor: '#DCFCE7' },
+  unlimitedBadgeText: { color: '#15803D' },
   classCount: { fontFamily: F.sansMed, fontSize: 12, color: C.ink, marginTop: 2 },
   perClass: { fontFamily: F.sansMed, fontSize: 11, color: C.green, letterSpacing: 0.3, marginTop: 2 },
   divider: { height: 1, backgroundColor: C.rule, marginVertical: 14 },

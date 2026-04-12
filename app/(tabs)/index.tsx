@@ -40,6 +40,7 @@ type ClassItem = {
   userStretcherNumber: number | null
   instructor: string | null
   bookingId: string | null
+  classType: 'REFORMER' | 'YOGA'
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -119,7 +120,7 @@ export default function ClassesScreen() {
   const [cancelling, setCancelling] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
   const [userCredits, setUserCredits] = useState(0)
-  const [buyTarget, setBuyTarget] = useState<string | null>(null)
+  const [buyTarget, setBuyTarget] = useState<{ classId: string; classType: 'REFORMER' | 'YOGA' } | null>(null)
 
   // Create Class modal state
   const [bookingSuccessData, setBookingSuccessData] = useState<{
@@ -484,6 +485,9 @@ export default function ClassesScreen() {
                   {item.instructor ? (
                     <Text style={styles.classMeta}>{item.instructor}</Text>
                   ) : null}
+                  <Text style={styles.classTypeMeta}>
+                    {item.classType === 'YOGA' ? t('classes.typeYoga') : t('classes.typeReformer')}
+                  </Text>
 
                   <View style={styles.cardActions}>
                     {isAdmin && !tenantUser ? (
@@ -524,7 +528,7 @@ export default function ClassesScreen() {
                       // Case 3: no balance → Buy More Classes
                       <TouchableOpacity
                         style={styles.buyMoreBtn}
-                        onPress={() => setBuyTarget(item.id)}
+                        onPress={() => setBuyTarget({ classId: item.id, classType: item.classType })}
                       >
                         <Text style={styles.buyMoreBtnText}>{t('profile.packages.buyMore')}</Text>
                       </TouchableOpacity>
@@ -549,17 +553,18 @@ export default function ClassesScreen() {
 
       <BuyClassesModal
         visible={buyTarget !== null}
-        pendingClassId={buyTarget}
+        pendingClassId={buyTarget?.classId ?? null}
+        classType={buyTarget?.classType ?? null}
         onClose={() => setBuyTarget(null)}
         onPurchaseAndBooked={() => {
           setBuyTarget(null)
           fetchClasses()
-          setToast({ visible: true, message: 'Payment successful — class booked!' })
+          setToast({ visible: true, message: t('packages.paymentSuccess') })
         }}
         onPurchaseOnly={() => {
           setBuyTarget(null)
           fetchClasses()
-          setToast({ visible: true, message: 'Payment successful — credits added!' })
+          setToast({ visible: true, message: t('packages.paymentSuccess') })
         }}
       />
 
@@ -969,6 +974,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: C.midGray,
     marginBottom: 2,
+  },
+  classTypeMeta: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
+    color: C.burg,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
   cardActions: {
     marginTop: 12,

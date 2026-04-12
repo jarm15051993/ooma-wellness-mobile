@@ -264,6 +264,8 @@
     "creditReturned": "Tu crédito ha sido devuelto.",
     "errorBook": "Error al reservar la clase. Por favor, inténtalo de nuevo.",
     "errorCancel": "Error al cancelar la reserva. Por favor, inténtalo de nuevo.",
+    "typeReformer": "Pilates en Reformer",
+    "typeYoga": "Yoga",
     "createClass": {
       "title": "Crear clase",
       "classTitle": "TÍTULO DE LA CLASE",
@@ -449,7 +451,11 @@
     "paymentFailed": "Pago fallido",
     "paymentFailedMessage": "Tu pago no pudo procesarse. Por favor, inténtalo de nuevo.",
     "betaDisabled": "Las compras aún no están disponibles.",
-    "stripeNote": "Pago seguro con Stripe · Créditos añadidos inmediatamente tras el pago"
+    "stripeNote": "Pago seguro con Stripe · Créditos añadidos inmediatamente tras el pago",
+    "typeReformer": "Reformer",
+    "typeYoga": "Yoga",
+    "typeBoth": "Todas las clases",
+    "unlimitedBadge": "ILIMITADO"
   },
 
   "beta": {

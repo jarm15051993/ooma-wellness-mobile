@@ -25,11 +25,14 @@ type Package = {
   durationDays: number
   isStudentPackage: boolean
   isPurchasable: boolean
+  packageType: 'REFORMER' | 'YOGA' | 'BOTH'
+  isUnlimited: boolean
 }
 
 type Props = {
   visible: boolean
   pendingClassId?: string | null
+  classType?: 'REFORMER' | 'YOGA' | null
   onClose: () => void
   onPurchaseAndBooked?: () => void
   onPurchaseOnly?: () => void
@@ -38,6 +41,7 @@ type Props = {
 export default function BuyClassesModal({
   visible,
   pendingClassId,
+  classType,
   onClose,
   onPurchaseAndBooked,
   onPurchaseOnly,
@@ -106,8 +110,13 @@ export default function BuyClassesModal({
     }
   }
 
-  const purchasablePackages = packages.filter(p => p.isPurchasable)
-  const lockedPackages = packages.filter(p => !p.isPurchasable)
+  // If classType is set, only show packages that cover this class type
+  const compatiblePackages = classType
+    ? packages.filter(p => p.packageType === classType || p.packageType === 'BOTH')
+    : packages
+
+  const purchasablePackages = compatiblePackages.filter(p => p.isPurchasable)
+  const lockedPackages = compatiblePackages.filter(p => !p.isPurchasable)
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>

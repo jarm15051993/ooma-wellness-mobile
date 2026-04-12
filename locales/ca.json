@@ -264,6 +264,8 @@
     "creditReturned": "El teu crèdit ha estat retornat.",
     "errorBook": "Error en reservar la classe. Si us plau, torna-ho a intentar.",
     "errorCancel": "Error en cancel·lar la reserva. Si us plau, torna-ho a intentar.",
+    "typeReformer": "Pilates al Reformer",
+    "typeYoga": "Ioga",
     "createClass": {
       "title": "Crear classe",
       "classTitle": "TÍTOL DE LA CLASSE",
@@ -449,7 +451,11 @@
     "paymentFailed": "Pagament fallit",
     "paymentFailedMessage": "El teu pagament no s'ha pogut processar. Si us plau, torna-ho a intentar.",
     "betaDisabled": "Les compres encara no estan disponibles.",
-    "stripeNote": "Pagament segur amb Stripe · Crèdits afegits immediatament després del pagament"
+    "stripeNote": "Pagament segur amb Stripe · Crèdits afegits immediatament després del pagament",
+    "typeReformer": "Reformer",
+    "typeYoga": "Ioga",
+    "typeBoth": "Totes les classes",
+    "unlimitedBadge": "IL·LIMITAT"
   },
 
   "beta": {

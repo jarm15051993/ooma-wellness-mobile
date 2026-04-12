@@ -264,6 +264,8 @@
     "creditReturned": "Your credit has been returned.",
     "errorBook": "Failed to book class. Please try again.",
     "errorCancel": "Failed to cancel booking. Please try again.",
+    "typeReformer": "Reformer Pilates",
+    "typeYoga": "Yoga",
     "createClass": {
       "title": "Create Class",
       "classTitle": "CLASS TITLE",
@@ -449,7 +451,11 @@
     "paymentFailed": "Payment failed",
     "paymentFailedMessage": "Your payment could not be processed. Please try again.",
     "betaDisabled": "Purchases are not available yet.",
-    "stripeNote": "Secure payment via Stripe · Credits added immediately after payment"
+    "stripeNote": "Secure payment via Stripe · Credits added immediately after payment",
+    "typeReformer": "Reformer",
+    "typeYoga": "Yoga",
+    "typeBoth": "All Classes",
+    "unlimitedBadge": "UNLIMITED"
   },
 
   "beta": {
