@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Linking,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -32,7 +33,7 @@ type Package = {
   isUnlimited: boolean
 }
 
-type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH'
+type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH' | 'PERSONAL'
 
 const SPECIAL_BG = '#F7F1E4'
 const SPECIAL_BORDER = '#C9A96A'
@@ -49,9 +50,10 @@ export default function PackagesScreen() {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [toast, setToast] = useState({ visible: false, message: '' })
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
-    REFORMER: true,
-    YOGA: true,
-    BOTH: true,
+    REFORMER: false,
+    YOGA: false,
+    BOTH: false,
+    PERSONAL: false,
   })
 
   async function fetchPackages() {
@@ -209,6 +211,11 @@ export default function PackagesScreen() {
             </>
           )}
         </Section>
+
+        <PersonalSection
+          expanded={expanded.PERSONAL}
+          onToggle={() => toggleSection('PERSONAL')}
+        />
       </ScrollView>
 
       <Toast
@@ -266,6 +273,56 @@ function Section({
 
       {expanded && (
         <View style={styles.sectionBody}>{children}</View>
+      )}
+    </View>
+  )
+}
+
+function PersonalSection({
+  expanded,
+  onToggle,
+}: {
+  expanded: boolean
+  onToggle: () => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <View style={styles.sectionPersonal}>
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={onToggle}
+        activeOpacity={0.7}
+      >
+        <View style={styles.sectionTitleRow}>
+          <Text style={styles.sectionTitlePersonal}>
+            {t('packages.sectionPersonal')}
+          </Text>
+          <View style={styles.personalBadge}>
+            <Text style={styles.personalBadgeText}>{t('packages.personalBadge')}</Text>
+          </View>
+        </View>
+        <Text
+          style={[
+            styles.chevron,
+            styles.chevronPersonal,
+            { transform: [{ rotate: expanded ? '90deg' : '0deg' }] },
+          ]}
+        >
+          ›
+        </Text>
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={[styles.sectionBody, styles.sectionBodyPersonal]}>
+          <Text style={styles.personalDescription}>{t('packages.personalDescription')}</Text>
+          <TouchableOpacity
+            style={styles.personalCTABtn}
+            onPress={() => Linking.openURL('https://wa.me/34744432128?text=Me%20interest%20class%20personalizadas')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.personalCTAText}>{t('packages.personalCTA')}</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   )
@@ -462,6 +519,60 @@ const styles = StyleSheet.create({
   },
   buyBtnDisabled: { opacity: 0.5 },
   buyBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+
+  // ── Personal section ──────────────────────────────────────────────────────
+  sectionPersonal: {
+    borderWidth: 1,
+    borderColor: C.burg,
+    borderRadius: 4,
+    marginBottom: 16,
+    overflow: 'hidden',
+    backgroundColor: C.burgPale,
+  },
+  sectionTitlePersonal: {
+    fontFamily: F.serifBold,
+    fontSize: 20,
+    color: C.burg,
+  },
+  sectionBodyPersonal: {
+    borderTopColor: C.burg,
+  },
+  chevronPersonal: {
+    color: C.burg,
+  },
+  personalBadge: {
+    backgroundColor: C.burg,
+    borderRadius: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  personalBadgeText: {
+    fontFamily: F.sansMed,
+    fontSize: 9,
+    color: C.cream,
+    letterSpacing: 1.2,
+  },
+  personalDescription: {
+    fontFamily: F.sansReg,
+    fontSize: 14,
+    color: C.ink,
+    lineHeight: 21,
+    marginBottom: 16,
+  },
+  personalCTABtn: {
+    height: 44,
+    backgroundColor: C.burg,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  personalCTAText: {
     fontFamily: F.sansMed,
     fontSize: 11,
     color: C.cream,

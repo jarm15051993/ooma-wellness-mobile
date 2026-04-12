@@ -461,7 +461,11 @@
     "sectionBoth": "Reformer + Yoga",
     "specialBadge": "SPECIAL PACK",
     "unlimitedClasses": "Unlimited classes / month",
-    "classesPerMonth": "{{count}} classes / month"
+    "classesPerMonth": "{{count}} classes / month",
+    "sectionPersonal": "Personal Classes",
+    "personalBadge": "1 ON 1",
+    "personalDescription": "Ooma offers the possibility to unlock the next level by working 1 on 1 with our coaches. Interested? Let's get started!",
+    "personalCTA": "LET'S GET STARTED"
   },
 
   "beta": {

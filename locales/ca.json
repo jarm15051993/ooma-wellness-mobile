@@ -461,7 +461,11 @@
     "sectionBoth": "Reformer + Ioga",
     "specialBadge": "PACK ESPECIAL",
     "unlimitedClasses": "Classes il·limitades / mes",
-    "classesPerMonth": "{{count}} classes / mes"
+    "classesPerMonth": "{{count}} classes / mes",
+    "sectionPersonal": "Classes Personals",
+    "personalBadge": "1 A 1",
+    "personalDescription": "Ooma ofereix la possibilitat de portar la teva pràctica al següent nivell treballant 1 a 1 amb els nostres coaches. T'interessa?",
+    "personalCTA": "COMENCEM"
   },
 
   "beta": {
