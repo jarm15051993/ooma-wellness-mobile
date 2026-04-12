@@ -455,7 +455,13 @@
     "typeReformer": "Reformer",
     "typeYoga": "Yoga",
     "typeBoth": "All Classes",
-    "unlimitedBadge": "UNLIMITED"
+    "unlimitedBadge": "UNLIMITED",
+    "sectionReformer": "Reformer Pilates",
+    "sectionYoga": "Yoga",
+    "sectionBoth": "Reformer + Yoga",
+    "specialBadge": "SPECIAL PACK",
+    "unlimitedClasses": "Unlimited classes / month",
+    "classesPerMonth": "{{count}} classes / month"
   },
 
   "beta": {
