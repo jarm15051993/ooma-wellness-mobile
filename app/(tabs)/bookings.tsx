@@ -160,7 +160,6 @@ export default function BookingsScreen() {
   const header = (
     <>
       <View style={styles.headingRow}>
-        <Text style={styles.headingRegular}>My </Text>
         <Text style={styles.headingItalic}>{t('bookings.title')}</Text>
       </View>
       <View style={styles.toggle}>

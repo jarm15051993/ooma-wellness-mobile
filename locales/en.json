@@ -285,7 +285,7 @@
 
   "bookings": {
     "tabTitle": "My Classes",
-    "title": "Classes",
+    "title": "My Classes",
     "upcoming": "UPCOMING",
     "history": "HISTORY",
     "loading": "Loading bookings...",
