@@ -234,8 +234,8 @@
   },
 
   "classes": {
-    "tabTitle": "Classes",
-    "title": "Classes",
+    "tabTitle": "Calendari",
+    "title": "Calendari",
     "loading": "Carregant classes...",
     "errorLoad": "Error en carregar les classes",
     "noClasses": "Sense classes programades",
@@ -264,6 +264,8 @@
     "creditReturned": "El teu crèdit ha estat retornat.",
     "errorBook": "Error en reservar la classe. Si us plau, torna-ho a intentar.",
     "errorCancel": "Error en cancel·lar la reserva. Si us plau, torna-ho a intentar.",
+    "typeReformer": "Pilates al Reformer",
+    "typeYoga": "Ioga",
     "createClass": {
       "title": "Crear classe",
       "classTitle": "TÍTOL DE LA CLASSE",
@@ -284,14 +286,14 @@
   },
 
   "bookings": {
-    "tabTitle": "Les meves reserves",
-    "title": "Les meves reserves",
+    "tabTitle": "Les meves classes",
+    "title": "Les meves classes",
     "upcoming": "PROPERES",
     "history": "HISTORIAL",
     "loading": "Carregant reserves...",
     "errorLoad": "Error en carregar les reserves",
     "noUpcoming": "Sense properes reserves",
-    "noUpcomingMessage": "Vés a la pestanya Classes per reservar una classe.",
+    "noUpcomingMessage": "Vés a la pestanya Calendari per reservar una classe.",
     "noHistory": "Encara no hi ha reserves passades",
     "reformer": "Reformer #{{number}}",
     "cancelled": "Cancel·lada",
@@ -421,6 +423,13 @@
   },
 
   "packages": {
+    "tabTitle": "Paquets",
+    "screenHeading": "Paquets",
+    "studentSection": "Paquets d'estudiant 🎓",
+    "standardSection": "Paquets de classes",
+    "emptyState": "No hi ha paquets disponibles ara mateix. Torna aviat.",
+    "classCount_one": "{{count}} classe",
+    "classCount_other": "{{count}} classes",
     "title": "Paquets de classes",
     "headingPrefix": "Comprar",
     "headingItalic": "Classes",
@@ -442,7 +451,21 @@
     "paymentFailed": "Pagament fallit",
     "paymentFailedMessage": "El teu pagament no s'ha pogut processar. Si us plau, torna-ho a intentar.",
     "betaDisabled": "Les compres encara no estan disponibles.",
-    "stripeNote": "Pagament segur amb Stripe · Crèdits afegits immediatament després del pagament"
+    "stripeNote": "Pagament segur amb Stripe · Crèdits afegits immediatament després del pagament",
+    "typeReformer": "Reformer",
+    "typeYoga": "Ioga",
+    "typeBoth": "Totes les classes",
+    "unlimitedBadge": "IL·LIMITAT",
+    "sectionReformer": "Reformer Pilates",
+    "sectionYoga": "Ioga",
+    "sectionBoth": "Reformer + Ioga",
+    "specialBadge": "PACK ESPECIAL",
+    "unlimitedClasses": "Classes il·limitades / mes",
+    "classesPerMonth": "{{count}} classes / mes",
+    "sectionPersonal": "Classes Personals",
+    "personalBadge": "1 A 1",
+    "personalDescription": "Ooma ofereix la possibilitat de portar la teva pràctica al següent nivell treballant 1 a 1 amb els nostres coaches. T'interessa?",
+    "personalCTA": "COMENCEM"
   },
 
   "beta": {

@@ -40,6 +40,7 @@ type ClassItem = {
   userStretcherNumber: number | null
   instructor: string | null
   bookingId: string | null
+  classType: 'REFORMER' | 'YOGA'
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -89,6 +90,7 @@ function nextHour(): Date {
 type CreateClassForm = {
   title: string
   instructor: string
+  classType: 'REFORMER' | 'YOGA'
   date: Date
   startTime: Date
   durationMins: number
@@ -119,7 +121,7 @@ export default function ClassesScreen() {
   const [cancelling, setCancelling] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
   const [userCredits, setUserCredits] = useState(0)
-  const [buyTarget, setBuyTarget] = useState<string | null>(null)
+  const [buyTarget, setBuyTarget] = useState<{ classId: string; classType: 'REFORMER' | 'YOGA' } | null>(null)
 
   // Create Class modal state
   const [bookingSuccessData, setBookingSuccessData] = useState<{
@@ -141,7 +143,7 @@ export default function ClassesScreen() {
   // Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
-    title: '', instructor: '', date: today, startTime: nextHour(),
+    title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(),
     durationMins: 60, capacity: '6',
   })
   const [createErrors, setCreateErrors] = useState<CreateClassErrors>({})
@@ -197,12 +199,13 @@ export default function ClassesScreen() {
       await api.post('/api/admin/classes', {
         title: createForm.title.trim(),
         instructor: createForm.instructor.trim() || null,
+        classType: createForm.classType,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         capacity: parseInt(createForm.capacity),
       })
       setShowCreateModal(false)
-      setCreateForm({ title: '', instructor: '', date: today, startTime: today, durationMins: 60, capacity: '6' })
+      setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: today, durationMins: 60, capacity: '6' })
       setCreateErrors({})
       await fetchClasses()
       setToast({ visible: true, message: t('classes.createClass.successTitle') })
@@ -376,12 +379,11 @@ export default function ClassesScreen() {
         {/* Heading */}
         <View style={styles.headingRow}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <Text style={styles.headingRegular}>My </Text>
             <Text style={styles.headingItalic}>Calendar</Text>
           </View>
           {showCreateButton && (
             <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-              setCreateForm({ title: '', instructor: '', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+              setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
               setCreateErrors({})
               setShowCreateModal(true)
             }}>
@@ -485,6 +487,9 @@ export default function ClassesScreen() {
                   {item.instructor ? (
                     <Text style={styles.classMeta}>{item.instructor}</Text>
                   ) : null}
+                  <Text style={styles.classTypeMeta}>
+                    {item.classType === 'YOGA' ? t('classes.typeYoga') : t('classes.typeReformer')}
+                  </Text>
 
                   <View style={styles.cardActions}>
                     {isAdmin && !tenantUser ? (
@@ -525,7 +530,7 @@ export default function ClassesScreen() {
                       // Case 3: no balance → Buy More Classes
                       <TouchableOpacity
                         style={styles.buyMoreBtn}
-                        onPress={() => setBuyTarget(item.id)}
+                        onPress={() => setBuyTarget({ classId: item.id, classType: item.classType })}
                       >
                         <Text style={styles.buyMoreBtnText}>{t('profile.packages.buyMore')}</Text>
                       </TouchableOpacity>
@@ -550,17 +555,18 @@ export default function ClassesScreen() {
 
       <BuyClassesModal
         visible={buyTarget !== null}
-        pendingClassId={buyTarget}
+        pendingClassId={buyTarget?.classId ?? null}
+        classType={buyTarget?.classType ?? null}
         onClose={() => setBuyTarget(null)}
         onPurchaseAndBooked={() => {
           setBuyTarget(null)
           fetchClasses()
-          setToast({ visible: true, message: 'Payment successful — class booked!' })
+          setToast({ visible: true, message: t('packages.paymentSuccess') })
         }}
         onPurchaseOnly={() => {
           setBuyTarget(null)
           fetchClasses()
-          setToast({ visible: true, message: 'Payment successful — credits added!' })
+          setToast({ visible: true, message: t('packages.paymentSuccess') })
         }}
       />
 
@@ -686,6 +692,22 @@ export default function ClassesScreen() {
                 placeholder="e.g. Sofia M."
                 placeholderTextColor={C.lightGray}
               />
+
+              <Text style={styles.fieldLabel}>CLASS TYPE *</Text>
+              <View style={styles.classTypeToggle}>
+                {(['REFORMER', 'YOGA'] as const).map(type => (
+                  <TouchableOpacity
+                    key={type}
+                    style={[styles.classTypeBtn, createForm.classType === type && styles.classTypeBtnActive]}
+                    onPress={() => setCreateForm(f => ({ ...f, classType: type }))}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.classTypeBtnText, createForm.classType === type && styles.classTypeBtnTextActive]}>
+                      {type === 'REFORMER' ? 'Reformer Pilates' : 'Yoga'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
               <Text style={styles.fieldLabel}>DATE *</Text>
               <TouchableOpacity
@@ -971,6 +993,14 @@ const styles = StyleSheet.create({
     color: C.midGray,
     marginBottom: 2,
   },
+  classTypeMeta: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
+    color: C.burg,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 4,
+  },
   cardActions: {
     marginTop: 12,
   },
@@ -1090,6 +1120,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.red,
     marginTop: 4,
+  },
+  classTypeToggle: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 2,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  classTypeBtn: {
+    flex: 1,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.warmWhite,
+  },
+  classTypeBtnActive: {
+    backgroundColor: C.burg,
+  },
+  classTypeBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 12,
+    color: C.midGray,
+    letterSpacing: 0.5,
+  },
+  classTypeBtnTextActive: {
+    color: C.cream,
   },
   stepperRow: {
     flexDirection: 'row',

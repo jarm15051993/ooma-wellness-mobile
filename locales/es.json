@@ -234,8 +234,8 @@
   },
 
   "classes": {
-    "tabTitle": "Clases",
-    "title": "Clases",
+    "tabTitle": "Calendario",
+    "title": "Calendario",
     "loading": "Cargando clases...",
     "errorLoad": "Error al cargar las clases",
     "noClasses": "Sin clases programadas",
@@ -264,6 +264,8 @@
     "creditReturned": "Tu crédito ha sido devuelto.",
     "errorBook": "Error al reservar la clase. Por favor, inténtalo de nuevo.",
     "errorCancel": "Error al cancelar la reserva. Por favor, inténtalo de nuevo.",
+    "typeReformer": "Pilates en Reformer",
+    "typeYoga": "Yoga",
     "createClass": {
       "title": "Crear clase",
       "classTitle": "TÍTULO DE LA CLASE",
@@ -284,14 +286,14 @@
   },
 
   "bookings": {
-    "tabTitle": "Mis Reservas",
-    "title": "Mis Reservas",
+    "tabTitle": "Mis Clases",
+    "title": "Mis Clases",
     "upcoming": "PRÓXIMAS",
     "history": "HISTORIAL",
     "loading": "Cargando reservas...",
     "errorLoad": "Error al cargar las reservas",
     "noUpcoming": "Sin próximas reservas",
-    "noUpcomingMessage": "Ve a la pestaña Clases para reservar una clase.",
+    "noUpcomingMessage": "Ve a la pestaña Calendario para reservar una clase.",
     "noHistory": "Aún no hay reservas pasadas",
     "reformer": "Reformer #{{number}}",
     "cancelled": "Cancelada",
@@ -421,6 +423,13 @@
   },
 
   "packages": {
+    "tabTitle": "Paquetes",
+    "screenHeading": "Paquetes",
+    "studentSection": "Paquetes de estudiante 🎓",
+    "standardSection": "Paquetes de clases",
+    "emptyState": "No hay paquetes disponibles ahora mismo. Vuelve pronto.",
+    "classCount_one": "{{count}} clase",
+    "classCount_other": "{{count}} clases",
     "title": "Paquetes de clases",
     "headingPrefix": "Comprar",
     "headingItalic": "Clases",
@@ -442,7 +451,21 @@
     "paymentFailed": "Pago fallido",
     "paymentFailedMessage": "Tu pago no pudo procesarse. Por favor, inténtalo de nuevo.",
     "betaDisabled": "Las compras aún no están disponibles.",
-    "stripeNote": "Pago seguro con Stripe · Créditos añadidos inmediatamente tras el pago"
+    "stripeNote": "Pago seguro con Stripe · Créditos añadidos inmediatamente tras el pago",
+    "typeReformer": "Reformer",
+    "typeYoga": "Yoga",
+    "typeBoth": "Todas las clases",
+    "unlimitedBadge": "ILIMITADO",
+    "sectionReformer": "Reformer Pilates",
+    "sectionYoga": "Yoga",
+    "sectionBoth": "Reformer + Yoga",
+    "specialBadge": "PACK ESPECIAL",
+    "unlimitedClasses": "Clases ilimitadas / mes",
+    "classesPerMonth": "{{count}} clases / mes",
+    "sectionPersonal": "Clases Personales",
+    "personalBadge": "1 A 1",
+    "personalDescription": "Ooma ofrece la posibilidad de llevar tu práctica al siguiente nivel trabajando 1 a 1 con nuestros coaches. ¿Te interesa?",
+    "personalCTA": "EMPECEMOS"
   },
 
   "beta": {

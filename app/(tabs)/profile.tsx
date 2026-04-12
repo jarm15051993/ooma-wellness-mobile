@@ -775,6 +775,7 @@ export default function ProfileScreen() {
             </>
           )}
 
+          {/* TODO(owner): A dedicated Packages tab now exists. Consider whether this button is still needed. */}
           <TouchableOpacity
             style={[styles.buyBtn, isBeta && styles.buyBtnDisabled]}
             onPress={isBeta ? undefined : () => router.push('/packages')}

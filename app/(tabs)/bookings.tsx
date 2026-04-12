@@ -26,6 +26,7 @@ type ClassInfo = {
   startTime: string
   endTime: string
   instructor: string | null
+  classType?: 'REFORMER' | 'YOGA'
 }
 
 type Booking = {
@@ -126,6 +127,9 @@ export default function BookingsScreen() {
         {item.class.instructor ? (
           <Text style={styles.instructorText}>{item.class.instructor}</Text>
         ) : null}
+        {item.class.classType === 'YOGA' && (
+          <Text style={styles.classTypeLabel}>{t('classes.typeYoga')}</Text>
+        )}
         <View style={styles.divider} />
         <TouchableOpacity style={styles.cancelBtn} onPress={() => setCancelTarget(item)}>
           <Text style={styles.cancelBtnText}>{t('classes.cancelClass').toUpperCase()}</Text>
@@ -160,7 +164,6 @@ export default function BookingsScreen() {
   const header = (
     <>
       <View style={styles.headingRow}>
-        <Text style={styles.headingRegular}>My </Text>
         <Text style={styles.headingItalic}>{t('bookings.title')}</Text>
       </View>
       <View style={styles.toggle}>
@@ -338,6 +341,7 @@ const styles = StyleSheet.create({
   dateText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
   timeText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
   instructorText: { fontFamily: F.sansReg, fontSize: 12, color: C.lightGray },
+  classTypeLabel: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 4 },
   reformerText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, marginTop: 6 },
   divider: { height: 1, backgroundColor: C.rule, marginVertical: 14 },
   cancelBtn: {
