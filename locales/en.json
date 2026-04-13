@@ -290,6 +290,13 @@
     "errorCancel": "Failed to cancel booking. Please try again.",
     "typeReformer": "Reformer Pilates",
     "typeYoga": "Yoga",
+    "filterAll": "All",
+    "filterPilates": "Pilates",
+    "filterYoga": "Yoga",
+    "noFilteredClasses": "No {{classType}} classes on this day.",
+    "notInPlan": "Not in Your Plan",
+    "buyMoreCredits": "Buy More Credits",
+    "notInPlanMessage": "This is a {{classType}} class. Your current plan doesn't cover this class type. Visit the Packages tab to find the right plan.",
     "createClass": {
       "title": "Create Class",
       "classTitle": "CLASS TITLE",
