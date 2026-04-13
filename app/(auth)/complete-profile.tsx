@@ -204,6 +204,7 @@ function DisclaimerStep({
   loading: boolean
   error: string
 }) {
+  const { t } = useTranslation()
   const [scrolledToBottom, setScrolledToBottom] = useState(false)
   const [checked, setChecked] = useState(false)
   const scrollViewHeightRef = useRef<number>(0)
@@ -288,7 +289,7 @@ function DisclaimerStep({
       {/* Pinned top notice */}
       <View style={ds.notice}>
         <Text style={ds.noticeText}>
-          Por favor, lee los términos completos antes de continuar. Es obligatorio para crear tu cuenta.
+          {t('onboarding.disclaimer.notice')}
         </Text>
       </View>
 
@@ -326,7 +327,7 @@ function DisclaimerStep({
             {checked && <Text style={ds.checkmark}>✓</Text>}
           </View>
           <Text style={[ds.checkLabel, !canCheck && ds.checkLabelDisabled]}>
-            He leído y acepto los Términos y Condiciones del Servicio
+            {t('onboarding.disclaimer.checkboxLabel')}
           </Text>
         </TouchableOpacity>
 
@@ -334,7 +335,7 @@ function DisclaimerStep({
 
         <View style={ds.navRow}>
           <TouchableOpacity style={ds.backBtn} onPress={onBack} disabled={loading}>
-            <Text style={ds.backBtnText}>BACK</Text>
+            <Text style={ds.backBtnText}>{t('common.back')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[ds.acceptBtn, !canAccept && ds.btnDisabled]}
@@ -343,7 +344,7 @@ function DisclaimerStep({
           >
             {loading
               ? <ActivityIndicator size="small" color={C.cream} />
-              : <Text style={ds.acceptBtnText}>ACEPTO Y CONTINUAR</Text>
+              : <Text style={ds.acceptBtnText}>{t('onboarding.disclaimer.acceptButton')}</Text>
             }
           </TouchableOpacity>
         </View>

@@ -122,7 +122,18 @@
       "hint": "Selecciona entre 1 y 3 objetivos",
       "accomplishLabel": "¿QUÉ QUIERES CONSEGUIR?",
       "counter": "Selecciona entre 1 y 3 objetivos ({{count}} seleccionados)",
-      "errorEmpty": "Por favor, selecciona al menos un objetivo."
+      "errorEmpty": "Por favor, selecciona al menos un objetivo.",
+      "labels": {
+        "Better flexibility": "Más flexibilidad",
+        "Stronger core": "Core más fuerte",
+        "Toned muscles": "Músculos tonificados",
+        "Less stress": "Menos estrés",
+        "Injury recovery": "Recuperación de lesiones",
+        "Improved posture": "Mejor postura",
+        "Better balance": "Mejor equilibrio",
+        "Weight management": "Control de peso",
+        "Injury prevention": "Prevención de lesiones"
+      }
     },
     "picker": {
       "month": "Seleccionar mes",

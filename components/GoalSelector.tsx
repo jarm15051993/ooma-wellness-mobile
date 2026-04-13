@@ -49,7 +49,7 @@ export default function GoalSelector({ selectedIds, onChange }: Props) {
               activeOpacity={0.7}
             >
               <Text style={[s.pillText, selected && s.pillTextSelected, disabled && s.pillTextDisabled]}>
-                {goal.label}
+                {t(`onboarding.goals.labels.${goal.label}` as any, { defaultValue: goal.label })}
               </Text>
             </TouchableOpacity>
           )

@@ -122,7 +122,18 @@
       "hint": "Select 1 to 3 goals",
       "accomplishLabel": "WHAT DO YOU WANT TO ACCOMPLISH?",
       "counter": "Select at least 1 and up to 3 goals ({{count}} selected)",
-      "errorEmpty": "Please select at least one goal."
+      "errorEmpty": "Please select at least one goal.",
+      "labels": {
+        "Better flexibility": "Better flexibility",
+        "Stronger core": "Stronger core",
+        "Toned muscles": "Toned muscles",
+        "Less stress": "Less stress",
+        "Injury recovery": "Injury recovery",
+        "Improved posture": "Improved posture",
+        "Better balance": "Better balance",
+        "Weight management": "Weight management",
+        "Injury prevention": "Injury prevention"
+      }
     },
     "picker": {
       "month": "Select month",

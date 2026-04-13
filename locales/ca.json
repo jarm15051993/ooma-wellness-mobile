@@ -122,7 +122,18 @@
       "hint": "Selecciona entre 1 i 3 objectius",
       "accomplishLabel": "QUÈ VOLS ACONSEGUIR?",
       "counter": "Selecciona entre 1 i 3 objectius ({{count}} seleccionats)",
-      "errorEmpty": "Si us plau, selecciona almenys un objectiu."
+      "errorEmpty": "Si us plau, selecciona almenys un objectiu.",
+      "labels": {
+        "Better flexibility": "Més flexibilitat",
+        "Stronger core": "Core més fort",
+        "Toned muscles": "Músculs tonificats",
+        "Less stress": "Menys estrès",
+        "Injury recovery": "Recuperació de lesions",
+        "Improved posture": "Millor postura",
+        "Better balance": "Millor equilibri",
+        "Weight management": "Control de pes",
+        "Injury prevention": "Prevenció de lesions"
+      }
     },
     "picker": {
       "month": "Seleccionar mes",
