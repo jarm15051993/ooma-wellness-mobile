@@ -1005,9 +1005,9 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   langFlag: {
-    width: 48,
-    height: 32,
-    borderRadius: 4,
+    width: 32,
+    height: 21,
+    borderRadius: 2,
   },
   langLabel: {
     fontFamily: F.sansMed,
@@ -1073,7 +1073,7 @@ const styles = StyleSheet.create({
     fontFamily: F.sansReg,
     fontSize: 11,
     color: C.midGray,
-    marginTop: -10,
+    marginTop: 6,
     marginBottom: 16,
   },
   textArea: {

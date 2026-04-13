@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import * as Calendar from 'expo-calendar'
 import {
@@ -42,6 +42,15 @@ type ClassItem = {
   bookingId: string | null
   classType: 'REFORMER' | 'YOGA'
 }
+
+type ActiveCredit = {
+  id: string
+  creditsRemaining: number
+  packageType: 'REFORMER' | 'YOGA' | 'BOTH'
+  isUnlimited: boolean
+}
+
+type ClassTypeFilter = 'ALL' | 'REFORMER' | 'YOGA'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = [
@@ -120,7 +129,10 @@ export default function ClassesScreen() {
   const [cancelTarget, setCancelTarget] = useState<ClassItem | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
-  const [userCredits, setUserCredits] = useState(0)
+  const [activeCredits, setActiveCredits] = useState<ActiveCredit[]>([])
+  const [classTypeFilter, setClassTypeFilter] = useState<ClassTypeFilter>('ALL')
+  const [notInPlanClassId, setNotInPlanClassId] = useState<string | null>(null)
+  const notInPlanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [buyTarget, setBuyTarget] = useState<{ classId: string; classType: 'REFORMER' | 'YOGA' } | null>(null)
 
   // Create Class modal state
@@ -160,7 +172,7 @@ export default function ClassesScreen() {
         api.get('/api/mobile/credits'),
       ])
       setClasses(classesRes.data.classes)
-      setUserCredits(creditsRes.data.totalCredits ?? 0)
+      setActiveCredits(creditsRes.data.credits ?? [])
     } catch (err: any) {
       if (err.response?.status !== 401) {
         Alert.alert('Error', err.response?.data?.error ?? 'Failed to load classes')
@@ -174,6 +186,8 @@ export default function ClassesScreen() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true)
+      setClassTypeFilter('ALL')
+      setNotInPlanClassId(null)
       fetchClasses()
     }, [])
   )
@@ -353,6 +367,27 @@ export default function ClassesScreen() {
   while (cells.length % 7 !== 0) cells.push(null)
 
   const selectedClasses = grouped[selectedKey] ?? []
+  const filteredClasses = classTypeFilter === 'ALL'
+    ? selectedClasses
+    : selectedClasses.filter(c => c.classType === classTypeFilter)
+
+  function getBookButtonState(classType: 'REFORMER' | 'YOGA'): 'book' | 'buy' | 'noplan' {
+    // activeCredits only contains non-expired credits with remaining > 0 or unlimited
+    const matching = activeCredits.filter(c =>
+      c.packageType === classType || c.packageType === 'BOTH'
+    )
+    if (matching.length > 0) return 'book'
+    // Has credits but none cover this class type → wrong plan
+    if (activeCredits.length > 0) return 'noplan'
+    // No credits at all → send to buy
+    return 'buy'
+  }
+
+  function showNotInPlan(classId: string) {
+    if (notInPlanTimerRef.current) clearTimeout(notInPlanTimerRef.current)
+    setNotInPlanClassId(classId)
+    notInPlanTimerRef.current = setTimeout(() => setNotInPlanClassId(null), 4000)
+  }
 
   if (loading) {
     return (
@@ -368,6 +403,7 @@ export default function ClassesScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={() => setNotInPlanClassId(null)}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -460,16 +496,46 @@ export default function ClassesScreen() {
           </View>
         </View>
 
+        {/* Class type filter pills */}
+        {!isAdmin || tenantUser ? (
+          <View style={styles.filterRow}>
+            {(['ALL', 'REFORMER', 'YOGA'] as const).map(f => {
+              const label = f === 'ALL' ? t('classes.filterAll') : f === 'REFORMER' ? t('classes.filterPilates') : t('classes.filterYoga')
+              const active = classTypeFilter === f
+              return (
+                <TouchableOpacity
+                  key={f}
+                  style={[styles.filterPill, active && styles.filterPillActive]}
+                  onPress={() => { setClassTypeFilter(f); setNotInPlanClassId(null) }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>{label}</Text>
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+        ) : null}
+
         {/* Selected day classes */}
         <View style={styles.classesSection}>
           {selectedClasses.length === 0 ? (
             <View style={styles.emptyDay}>
-              <Text style={styles.emptyDayText}>No classes on this day.</Text>
+              <Text style={styles.emptyDayText}>{t('classes.noClasses')}</Text>
+            </View>
+          ) : filteredClasses.length === 0 ? (
+            <View style={styles.emptyDay}>
+              <Text style={styles.emptyDayText}>
+                {t('classes.noFilteredClasses', {
+                  classType: classTypeFilter === 'REFORMER' ? t('classes.filterPilates') : t('classes.filterYoga')
+                })}
+              </Text>
             </View>
           ) : (
-            selectedClasses.map(item => {
+            filteredClasses.map(item => {
               const isActing = actingClassId === item.id
               const badge = AvailabilityBadge(item, t)
+              const bookState = getBookButtonState(item.classType)
+              const showingNotInPlan = notInPlanClassId === item.id
               return (
                 <View key={item.id} style={styles.classCard}>
                   <View style={styles.classCardTop}>
@@ -501,7 +567,7 @@ export default function ClassesScreen() {
                         <Text style={styles.bookBtnText}>MANAGE CLASS</Text>
                       </TouchableOpacity>
                     ) : item.isBooked ? (
-                      // Case 2: already booked → Cancel Class
+                      // Booked → Cancel
                       <TouchableOpacity
                         style={[styles.cancelBtn, isActing && styles.btnDisabled]}
                         onPress={() => setCancelTarget(item)}
@@ -510,12 +576,38 @@ export default function ClassesScreen() {
                         <Text style={styles.cancelBtnText}>{t('classes.cancelClass').toUpperCase()}</Text>
                       </TouchableOpacity>
                     ) : item.isFull ? (
-                      // Class is full — disabled
+                      // Full — disabled
                       <TouchableOpacity style={[styles.bookBtn, styles.btnDisabled]} disabled>
                         <Text style={styles.bookBtnText}>{t('classes.classFull').toUpperCase()}</Text>
                       </TouchableOpacity>
-                    ) : userCredits > 0 ? (
-                      // Case 1: has balance → Book
+                    ) : bookState === 'noplan' ? (
+                      // Wrong plan type
+                      <>
+                        <TouchableOpacity
+                          style={styles.notInPlanBtn}
+                          onPress={() => showNotInPlan(item.id)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.notInPlanBtnText}>{t('classes.notInPlan')}</Text>
+                        </TouchableOpacity>
+                        {showingNotInPlan && (
+                          <Text style={styles.notInPlanMessage}>
+                            {t('classes.notInPlanMessage', {
+                              classType: item.classType === 'YOGA' ? t('classes.typeYoga') : t('classes.typeReformer')
+                            })}
+                          </Text>
+                        )}
+                      </>
+                    ) : bookState === 'buy' ? (
+                      // Right type but out of credits
+                      <TouchableOpacity
+                        style={styles.buyMoreBtn}
+                        onPress={() => router.push('/(tabs)/packages')}
+                      >
+                        <Text style={styles.buyMoreBtnText}>{t('classes.buyMoreCredits')}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      // Has valid credits — Book
                       <TouchableOpacity
                         style={[styles.bookBtn, isActing && styles.btnDisabled]}
                         onPress={() => handleBook(item.id)}
@@ -525,14 +617,6 @@ export default function ClassesScreen() {
                           ? <ActivityIndicator size="small" color={C.cream} />
                           : <Text style={styles.bookBtnText}>{t('classes.bookButton')}</Text>
                         }
-                      </TouchableOpacity>
-                    ) : (
-                      // Case 3: no balance → Buy More Classes
-                      <TouchableOpacity
-                        style={styles.buyMoreBtn}
-                        onPress={() => setBuyTarget({ classId: item.id, classType: item.classType })}
-                      >
-                        <Text style={styles.buyMoreBtnText}>{t('profile.packages.buyMore')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -1046,6 +1130,53 @@ const styles = StyleSheet.create({
     color: C.cream,
     letterSpacing: 2,
     textTransform: 'uppercase',
+  },
+  notInPlanBtn: {
+    height: 42,
+    borderWidth: 1,
+    borderColor: C.lightGray,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notInPlanBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.midGray,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  notInPlanMessage: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.midGray,
+    marginTop: 8,
+    lineHeight: 16,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterPill: {
+    borderWidth: 1,
+    borderColor: C.ink,
+    borderRadius: 100,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+  },
+  filterPillActive: {
+    backgroundColor: C.burg,
+    borderColor: C.burg,
+  },
+  filterPillText: {
+    fontFamily: F.sansMed,
+    fontSize: 12,
+    color: C.ink,
+    letterSpacing: 0.3,
+  },
+  filterPillTextActive: {
+    color: '#fff',
   },
   btnDisabled: {
     opacity: 0.5,

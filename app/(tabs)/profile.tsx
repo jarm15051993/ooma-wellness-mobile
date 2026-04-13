@@ -72,6 +72,8 @@ function serializeConditions(selected: string[], other: string): string | null {
 }
 
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
+  const { t } = useTranslation()
+
   let expiryLabel: string
   if (muted) {
     if (pkg.expiredReason === 'classes_used') {
@@ -88,10 +90,23 @@ function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
   }
   const progress = pkg.classesTotal > 0 ? pkg.classesRemaining / pkg.classesTotal : 0
 
+  const typeLabel = pkg.packageType === 'REFORMER'
+    ? t('classes.typeReformer')
+    : pkg.packageType === 'YOGA'
+    ? t('classes.typeYoga')
+    : pkg.packageType === 'BOTH'
+    ? `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`
+    : null
+
   return (
     <View style={[styles.packageCard, muted && styles.packageCardMuted]}>
       <View style={styles.packageCardTop}>
-        <Text style={[styles.packageName, muted && styles.mutedText]}>{pkg.name}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.packageName, muted && styles.mutedText]}>{pkg.name}</Text>
+          {typeLabel ? (
+            <Text style={[styles.packageTypeLabel, muted && styles.mutedText]}>{typeLabel}</Text>
+          ) : null}
+        </View>
         <Text style={[styles.packageCount, muted && styles.mutedText]}>
           {pkg.classesRemaining} of {pkg.classesTotal}
         </Text>
@@ -112,6 +127,7 @@ type UserPackage = {
   purchasedAt: string
   expiresAt: string | null
   expiredReason?: 'classes_used' | 'date_expired'
+  packageType?: 'REFORMER' | 'YOGA' | 'BOTH'
 }
 
 // Simple read-only info row
@@ -1303,8 +1319,9 @@ const styles = StyleSheet.create({
     borderRadius: 3, padding: 14, marginBottom: 10,
   },
   packageCardMuted: { opacity: 0.6 },
-  packageCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 },
-  packageName: { fontFamily: F.serifBold, fontSize: 16, color: C.ink, flex: 1 },
+  packageCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  packageName: { fontFamily: F.serifBold, fontSize: 16, color: C.ink },
+  packageTypeLabel: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 2 },
   packageCount: { fontFamily: F.sansMed, fontSize: 12, color: C.burg },
   progressBar: { height: 4, backgroundColor: C.rule, borderRadius: 2, marginBottom: 8, overflow: 'hidden' },
   progressFill: { height: 4, backgroundColor: C.burg, borderRadius: 2 },
@@ -1345,7 +1362,7 @@ const styles = StyleSheet.create({
   },
   langPickerRowActive: { backgroundColor: C.burgPale },
   langPickerEmoji: { fontSize: 28 },
-  langPickerFlag: { width: 40, height: 28, borderRadius: 3 },
+  langPickerFlag: { width: 28, height: 19, borderRadius: 2 },
   langPickerLabel: { flex: 1, fontFamily: F.sansMed, fontSize: 16, color: C.ink },
   langPickerLabelActive: { color: C.burg },
   langPickerCheck: { fontFamily: F.sansMed, fontSize: 16, color: C.burg },

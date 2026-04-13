@@ -290,6 +290,13 @@
     "errorCancel": "Error en cancel·lar la reserva. Si us plau, torna-ho a intentar.",
     "typeReformer": "Pilates al Reformer",
     "typeYoga": "Ioga",
+    "filterAll": "Tots",
+    "filterPilates": "Pilates",
+    "filterYoga": "Ioga",
+    "noFilteredClasses": "No hi ha classes de {{classType}} avui.",
+    "notInPlan": "No és al teu pla",
+    "buyMoreCredits": "Comprar més crèdits",
+    "notInPlanMessage": "Aquesta és una classe de {{classType}}. El teu pla actual no cobreix aquest tipus de classe. Visita la pestanya Paquets per trobar el pla adequat.",
     "createClass": {
       "title": "Crear classe",
       "classTitle": "TÍTOL DE LA CLASSE",
@@ -320,6 +327,7 @@
     "noUpcomingMessage": "Vés a la pestanya Calendari per reservar una classe.",
     "noHistory": "Encara no hi ha reserves passades",
     "reformer": "Reformer #{{number}}",
+    "mat": "Estora #{{number}}",
     "cancelled": "Cancel·lada",
     "attended": "Assistida",
     "creditLost": "Crèdit perdut"

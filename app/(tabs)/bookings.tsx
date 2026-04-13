@@ -44,6 +44,7 @@ type PastClass = {
     startsAt: string
     instructor: string | null
     durationMins: number
+    classType?: 'REFORMER' | 'YOGA'
   }
   stretcherNumber: number
   attendedAt: string | null
@@ -114,7 +115,11 @@ export default function BookingsScreen() {
         <View style={styles.cardTop}>
           <Text style={styles.classTitle}>{item.class.title}</Text>
           <View style={styles.reformerBadge}>
-            <Text style={styles.reformerBadgeText}>{t('bookings.reformer', { number: item.stretcherNumber })}</Text>
+            <Text style={styles.reformerBadgeText}>
+              {item.class.classType === 'YOGA'
+                ? t('bookings.mat', { number: item.stretcherNumber })
+                : t('bookings.reformer', { number: item.stretcherNumber })}
+            </Text>
           </View>
         </View>
         <Text style={styles.dateText}>
@@ -156,7 +161,11 @@ export default function BookingsScreen() {
         {item.class.instructor ? (
           <Text style={styles.instructorText}>{item.class.instructor}</Text>
         ) : null}
-        <Text style={styles.reformerText}>{t('bookings.reformer', { number: item.stretcherNumber })}</Text>
+        <Text style={styles.reformerText}>
+          {item.class.classType === 'YOGA'
+            ? t('bookings.mat', { number: item.stretcherNumber })
+            : t('bookings.reformer', { number: item.stretcherNumber })}
+        </Text>
       </View>
     )
   }
