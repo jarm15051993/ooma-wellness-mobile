@@ -620,7 +620,7 @@ export default function ProfileScreen() {
       >
         {/* Heading */}
         <View style={styles.headingRow}>
-          <Text style={styles.headingRegular}>My </Text>
+          <Text style={styles.headingRegular}>{t('profile.my')} </Text>
           <Text style={styles.headingItalic}>{t('profile.title')}</Text>
         </View>
 

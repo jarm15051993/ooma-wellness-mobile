@@ -328,6 +328,7 @@
   "profile": {
     "tabTitle": "Perfil",
     "title": "Perfil",
+    "my": "El meu",
     "signOut": "TANCAR SESSIÓ",
     "signOutConfirmTitle": "Tancar sessió",
     "signOutConfirmMessage": "Segur que vols tancar la sessió?",
