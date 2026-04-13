@@ -1362,7 +1362,7 @@ const styles = StyleSheet.create({
   },
   langPickerRowActive: { backgroundColor: C.burgPale },
   langPickerEmoji: { fontSize: 28 },
-  langPickerFlag: { width: 40, height: 28, borderRadius: 3 },
+  langPickerFlag: { width: 28, height: 19, borderRadius: 2 },
   langPickerLabel: { flex: 1, fontFamily: F.sansMed, fontSize: 16, color: C.ink },
   langPickerLabelActive: { color: C.burg },
   langPickerCheck: { fontFamily: F.sansMed, fontSize: 16, color: C.burg },
