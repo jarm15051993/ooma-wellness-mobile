@@ -327,6 +327,7 @@
     "noUpcomingMessage": "Ve a la pestaña Calendario para reservar una clase.",
     "noHistory": "Aún no hay reservas pasadas",
     "reformer": "Reformer #{{number}}",
+    "mat": "Tapete #{{number}}",
     "cancelled": "Cancelada",
     "attended": "Asistida",
     "creditLost": "Crédito perdido"

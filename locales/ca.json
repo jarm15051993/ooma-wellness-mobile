@@ -327,6 +327,7 @@
     "noUpcomingMessage": "Vés a la pestanya Calendari per reservar una classe.",
     "noHistory": "Encara no hi ha reserves passades",
     "reformer": "Reformer #{{number}}",
+    "mat": "Estora #{{number}}",
     "cancelled": "Cancel·lada",
     "attended": "Assistida",
     "creditLost": "Crèdit perdut"

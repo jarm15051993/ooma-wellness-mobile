@@ -327,6 +327,7 @@
     "noUpcomingMessage": "Head to the Calendar tab to book a class.",
     "noHistory": "No past bookings yet",
     "reformer": "Reformer #{{number}}",
+    "mat": "Mat #{{number}}",
     "cancelled": "Cancelled",
     "attended": "Attended",
     "creditLost": "Credit lost"

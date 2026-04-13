@@ -1073,7 +1073,7 @@ const styles = StyleSheet.create({
     fontFamily: F.sansReg,
     fontSize: 11,
     color: C.midGray,
-    marginTop: -10,
+    marginTop: 6,
     marginBottom: 16,
   },
   textArea: {
