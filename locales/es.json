@@ -114,11 +114,32 @@
       "errorEmpty": "Por favor, introduce tu número de teléfono.",
       "errorLength": "El teléfono debe tener exactamente {{min}} dígitos para {{code}}.",
       "errorRange": "El teléfono debe tener entre {{min}} y {{max}} dígitos para {{code}}.",
-      "errorTaken": "Ese número de teléfono ya está registrado."
+      "errorTaken": "Ese número de teléfono ya está registrado.",
+      "digitHintExact": "{{min}} dígitos requeridos",
+      "digitHintRange": "{{min}}–{{max}} dígitos requeridos"
     },
     "goals": {
       "hint": "Selecciona entre 1 y 3 objetivos",
-      "errorEmpty": "Por favor, selecciona al menos un objetivo."
+      "accomplishLabel": "¿QUÉ QUIERES CONSEGUIR?",
+      "counter": "Selecciona entre 1 y 3 objetivos ({{count}} seleccionados)",
+      "errorEmpty": "Por favor, selecciona al menos un objetivo.",
+      "labels": {
+        "Better flexibility": "Más flexibilidad",
+        "Stronger core": "Core más fuerte",
+        "Toned muscles": "Músculos tonificados",
+        "Less stress": "Menos estrés",
+        "Injury recovery": "Recuperación de lesiones",
+        "Improved posture": "Mejor postura",
+        "Better balance": "Mejor equilibrio",
+        "Weight management": "Control de peso",
+        "Injury prevention": "Prevención de lesiones"
+      }
+    },
+    "picker": {
+      "month": "Seleccionar mes",
+      "day": "Seleccionar día",
+      "year": "Seleccionar año",
+      "country": "Seleccionar código de país"
     },
     "disclaimer": {
       "notice": "Por favor, lee los términos completos antes de continuar. Es obligatorio para crear tu cuenta.",
@@ -219,7 +240,10 @@
         "Chronic Condition": "Condición crónica",
         "Other": "Otro"
       },
+      "selectAll": "SELECCIONA TODOS LOS QUE APLIQUEN",
+      "otherSpecify": "Otro (especificar)",
       "otherPlaceholder": "Por favor, describe tu condición",
+      "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
       "errorBirthday": "Por favor, introduce tu fecha de nacimiento.",
       "errorConditions": "Por favor, responde a la pregunta sobre condiciones de salud.",
       "errorConditionsSelect": "Por favor, selecciona al menos una condición.",
@@ -304,6 +328,7 @@
   "profile": {
     "tabTitle": "Perfil",
     "title": "Perfil",
+    "my": "Mi",
     "signOut": "CERRAR SESIÓN",
     "signOutConfirmTitle": "Cerrar sesión",
     "signOutConfirmMessage": "¿Seguro que quieres cerrar sesión?",

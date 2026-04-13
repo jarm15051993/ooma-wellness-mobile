@@ -620,7 +620,7 @@ export default function ProfileScreen() {
       >
         {/* Heading */}
         <View style={styles.headingRow}>
-          <Text style={styles.headingRegular}>My </Text>
+          <Text style={styles.headingRegular}>{t('profile.my')} </Text>
           <Text style={styles.headingItalic}>{t('profile.title')}</Text>
         </View>
 
@@ -680,7 +680,9 @@ export default function ProfileScreen() {
                     <View style={styles.goalsReadonlyRow}>
                       {extProfile.goals?.split(', ').map((label, i) => (
                         <View key={i} style={styles.goalPillReadonly}>
-                          <Text style={styles.goalPillReadonlyText}>{label}</Text>
+                          <Text style={styles.goalPillReadonlyText}>
+                            {t(`onboarding.goals.labels.${label}` as any, { defaultValue: label })}
+                          </Text>
                         </View>
                       ))}
                     </View>
@@ -690,7 +692,15 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <View style={styles.rowDivider} />
-              <InfoRow label={t('profile.info.conditions').toUpperCase()} value={extProfile.additionalInfo ?? '—'} />
+              <InfoRow
+                label={t('profile.info.conditions').toUpperCase()}
+                value={extProfile.additionalInfo
+                  ? extProfile.additionalInfo.split(', ').map(part => {
+                      if (part.startsWith('Other: ')) return `${t('onboarding.more.conditions.Other')}: ${part.slice(7)}`
+                      return t(`onboarding.more.conditions.${part}` as any, { defaultValue: part })
+                    }).join(', ')
+                  : '—'}
+              />
             </>
           )}
         </View>

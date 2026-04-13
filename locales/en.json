@@ -114,11 +114,32 @@
       "errorEmpty": "Please enter your phone number.",
       "errorLength": "Phone must be exactly {{min}} digits for {{code}}.",
       "errorRange": "Phone must be {{min}}–{{max}} digits for {{code}}.",
-      "errorTaken": "That phone number is already registered."
+      "errorTaken": "That phone number is already registered.",
+      "digitHintExact": "{{min}} digits required",
+      "digitHintRange": "{{min}}–{{max}} digits required"
     },
     "goals": {
       "hint": "Select 1 to 3 goals",
-      "errorEmpty": "Please select at least one goal."
+      "accomplishLabel": "WHAT DO YOU WANT TO ACCOMPLISH?",
+      "counter": "Select at least 1 and up to 3 goals ({{count}} selected)",
+      "errorEmpty": "Please select at least one goal.",
+      "labels": {
+        "Better flexibility": "Better flexibility",
+        "Stronger core": "Stronger core",
+        "Toned muscles": "Toned muscles",
+        "Less stress": "Less stress",
+        "Injury recovery": "Injury recovery",
+        "Improved posture": "Improved posture",
+        "Better balance": "Better balance",
+        "Weight management": "Weight management",
+        "Injury prevention": "Injury prevention"
+      }
+    },
+    "picker": {
+      "month": "Select month",
+      "day": "Select day",
+      "year": "Select year",
+      "country": "Select country code"
     },
     "disclaimer": {
       "notice": "Please read the full terms before continuing. This is required to create your account.",
@@ -219,7 +240,10 @@
         "Chronic Condition": "Chronic Condition",
         "Other": "Other"
       },
+      "selectAll": "SELECT ALL THAT APPLY",
+      "otherSpecify": "Other (specify)",
       "otherPlaceholder": "Please describe your condition",
+      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
       "errorBirthday": "Please enter your birthday.",
       "errorConditions": "Please answer the health conditions question.",
       "errorConditionsSelect": "Please select at least one condition.",
@@ -304,6 +328,7 @@
   "profile": {
     "tabTitle": "Profile",
     "title": "Profile",
+    "my": "My",
     "signOut": "SIGN OUT",
     "signOutConfirmTitle": "Sign out",
     "signOutConfirmMessage": "Are you sure you want to sign out?",

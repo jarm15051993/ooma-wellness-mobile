@@ -114,11 +114,32 @@
       "errorEmpty": "Si us plau, introdueix el teu número de telèfon.",
       "errorLength": "El telèfon ha de tenir exactament {{min}} dígits per a {{code}}.",
       "errorRange": "El telèfon ha de tenir entre {{min}} i {{max}} dígits per a {{code}}.",
-      "errorTaken": "Aquest número de telèfon ja està registrat."
+      "errorTaken": "Aquest número de telèfon ja està registrat.",
+      "digitHintExact": "{{min}} dígits requerits",
+      "digitHintRange": "{{min}}–{{max}} dígits requerits"
     },
     "goals": {
       "hint": "Selecciona entre 1 i 3 objectius",
-      "errorEmpty": "Si us plau, selecciona almenys un objectiu."
+      "accomplishLabel": "QUÈ VOLS ACONSEGUIR?",
+      "counter": "Selecciona entre 1 i 3 objectius ({{count}} seleccionats)",
+      "errorEmpty": "Si us plau, selecciona almenys un objectiu.",
+      "labels": {
+        "Better flexibility": "Més flexibilitat",
+        "Stronger core": "Core més fort",
+        "Toned muscles": "Músculs tonificats",
+        "Less stress": "Menys estrès",
+        "Injury recovery": "Recuperació de lesions",
+        "Improved posture": "Millor postura",
+        "Better balance": "Millor equilibri",
+        "Weight management": "Control de pes",
+        "Injury prevention": "Prevenció de lesions"
+      }
+    },
+    "picker": {
+      "month": "Seleccionar mes",
+      "day": "Seleccionar dia",
+      "year": "Seleccionar any",
+      "country": "Seleccionar codi de país"
     },
     "disclaimer": {
       "notice": "Si us plau, llegeix els termes complets abans de continuar. És obligatori per crear el teu compte.",
@@ -219,7 +240,10 @@
         "Chronic Condition": "Condició crònica",
         "Other": "Altre"
       },
+      "selectAll": "SELECCIONA TOTS ELS QUE APLIQUEN",
+      "otherSpecify": "Altre (especificar)",
       "otherPlaceholder": "Si us plau, descriu la teva condició",
+      "months": ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"],
       "errorBirthday": "Si us plau, introdueix la teva data de naixement.",
       "errorConditions": "Si us plau, respon a la pregunta sobre condicions de salut.",
       "errorConditionsSelect": "Si us plau, selecciona almenys una condició.",
@@ -304,6 +328,7 @@
   "profile": {
     "tabTitle": "Perfil",
     "title": "Perfil",
+    "my": "El meu",
     "signOut": "TANCAR SESSIÓ",
     "signOutConfirmTitle": "Tancar sessió",
     "signOutConfirmMessage": "Segur que vols tancar la sessió?",

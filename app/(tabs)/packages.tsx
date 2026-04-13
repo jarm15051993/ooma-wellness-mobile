@@ -35,10 +35,10 @@ type Package = {
 
 type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH' | 'PERSONAL'
 
-const SPECIAL_BG = '#F7F1E4'
-const SPECIAL_BORDER = '#C9A96A'
-const SPECIAL_BADGE_BG = '#EDD9A3'
-const SPECIAL_BADGE_TEXT = '#7A5C1E'
+const SPECIAL_BG = '#F0E8D8'
+const SPECIAL_BORDER = '#C8A96A'
+const SPECIAL_BADGE_BG = '#DFC9A8'
+const SPECIAL_BADGE_TEXT = '#8A6035'
 
 export default function PackagesScreen() {
   const { t } = useTranslation()
@@ -461,8 +461,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   cardStudent: {
-    backgroundColor: '#F0FAF4',
-    borderColor: '#A7D7B8',
+    backgroundColor: '#EBF0EA',
+    borderColor: '#9BAA96',
   },
   cardRow: {
     flexDirection: 'row',
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     color: C.burg,
   },
   packagePriceStudent: {
-    color: '#2D7A4F',
+    color: '#6E7B6A',
   },
 
   buyBtn: {
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buyBtnStudent: {
-    backgroundColor: '#2D7A4F',
+    backgroundColor: '#6E7B6A',
   },
   buyBtnDisabled: { opacity: 0.5 },
   buyBtnText: {
@@ -591,12 +591,12 @@ const styles = StyleSheet.create({
   studentDividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#A7D7B8',
+    backgroundColor: '#9BAA96',
   },
   studentDividerLabel: {
     fontFamily: F.sansMed,
     fontSize: 9,
-    color: '#2D7A4F',
+    color: '#6E7B6A',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
