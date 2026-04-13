@@ -114,11 +114,21 @@
       "errorEmpty": "Por favor, introduce tu número de teléfono.",
       "errorLength": "El teléfono debe tener exactamente {{min}} dígitos para {{code}}.",
       "errorRange": "El teléfono debe tener entre {{min}} y {{max}} dígitos para {{code}}.",
-      "errorTaken": "Ese número de teléfono ya está registrado."
+      "errorTaken": "Ese número de teléfono ya está registrado.",
+      "digitHintExact": "{{min}} dígitos requeridos",
+      "digitHintRange": "{{min}}–{{max}} dígitos requeridos"
     },
     "goals": {
       "hint": "Selecciona entre 1 y 3 objetivos",
+      "accomplishLabel": "¿QUÉ QUIERES CONSEGUIR?",
+      "counter": "Selecciona entre 1 y 3 objetivos ({{count}} seleccionados)",
       "errorEmpty": "Por favor, selecciona al menos un objetivo."
+    },
+    "picker": {
+      "month": "Seleccionar mes",
+      "day": "Seleccionar día",
+      "year": "Seleccionar año",
+      "country": "Seleccionar código de país"
     },
     "disclaimer": {
       "notice": "Por favor, lee los términos completos antes de continuar. Es obligatorio para crear tu cuenta.",
@@ -219,7 +229,10 @@
         "Chronic Condition": "Condición crónica",
         "Other": "Otro"
       },
+      "selectAll": "SELECCIONA TODOS LOS QUE APLIQUEN",
+      "otherSpecify": "Otro (especificar)",
       "otherPlaceholder": "Por favor, describe tu condición",
+      "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
       "errorBirthday": "Por favor, introduce tu fecha de nacimiento.",
       "errorConditions": "Por favor, responde a la pregunta sobre condiciones de salud.",
       "errorConditionsSelect": "Por favor, selecciona al menos una condición.",

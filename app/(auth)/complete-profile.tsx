@@ -428,40 +428,40 @@ export default function CompleteProfileScreen() {
 
   function validate(): string | null {
     if (step === 1) {
-      if (!password) return 'Please enter a password.'
-      if (password.length < 8) return 'Password must be at least 8 characters.'
-      if (!/[A-Z]/.test(password)) return 'Password must contain at least one capital letter.'
-      if (!/[^A-Za-z0-9]/.test(password)) return 'Password must contain at least one special character.'
-      if (password !== confirmPassword) return 'Passwords do not match.'
+      if (!password) return t('onboarding.password.errorEmpty')
+      if (password.length < 8) return t('onboarding.password.errorLength')
+      if (!/[A-Z]/.test(password)) return t('onboarding.password.errorCapital')
+      if (!/[^A-Za-z0-9]/.test(password)) return t('onboarding.password.errorSpecial')
+      if (password !== confirmPassword) return t('onboarding.password.errorMatch')
     }
     if (step === 2) {
-      if (!name.trim()) return 'Please enter your first name.'
-      if (!lastName.trim()) return 'Please enter your last name.'
-      if (!dni.trim()) return 'Please enter your DNI or NIE.'
-      if (!validateDNI(dni)) return 'Please enter a valid DNI or NIE.'
+      if (!name.trim()) return t('onboarding.about.errorFirstName')
+      if (!lastName.trim()) return t('onboarding.about.errorLastName')
+      if (!dni.trim()) return t('onboarding.about.errorDniEmpty')
+      if (!validateDNI(dni)) return t('onboarding.about.errorDniInvalid')
     }
     if (step === 3) {
-      if (!phone.trim()) return 'Please enter your phone number.'
+      if (!phone.trim()) return t('onboarding.contact.errorEmpty')
       const lengths = PHONE_LENGTHS[countryCode]
       if (lengths) {
         const digits = phone.replace(/\D/g, '')
         if (digits.length < lengths.min || digits.length > lengths.max) {
           return lengths.min === lengths.max
-            ? `Phone must be exactly ${lengths.min} digits for ${countryCode}.`
-            : `Phone must be ${lengths.min}–${lengths.max} digits for ${countryCode}.`
+            ? t('onboarding.contact.errorLength', { min: lengths.min, code: countryCode })
+            : t('onboarding.contact.errorRange', { min: lengths.min, max: lengths.max, code: countryCode })
         }
       }
     }
     if (step === 4) {
-      if (selectedGoalIds.length === 0) return 'Please select at least one goal.'
+      if (selectedGoalIds.length === 0) return t('onboarding.goals.errorEmpty')
     }
     // Step 5 is disclaimer — handled separately via handleDisclaimerAccept
     if (step === 6) {
-      if (!birthMonth || !birthDay || !birthYear) return 'Please enter your birthday.'
-      if (hasConditions === null) return 'Please answer the health conditions question.'
-      if (hasConditions && selectedConditions.length === 0) return 'Please select at least one condition.'
+      if (!birthMonth || !birthDay || !birthYear) return t('onboarding.more.errorBirthday')
+      if (hasConditions === null) return t('onboarding.more.errorConditions')
+      if (hasConditions && selectedConditions.length === 0) return t('onboarding.more.errorConditionsSelect')
       if (hasConditions && selectedConditions.includes('Other') && !conditionOther.trim()) {
-        return 'Please describe your other condition.'
+        return t('onboarding.more.errorOther')
       }
     }
     return null
@@ -481,9 +481,9 @@ export default function CompleteProfileScreen() {
       } catch (e: any) {
         if (e?.response?.status === 409) {
           setDni('')
-          setDniError('This DNI/NIE is already associated with an account. Please check and try again.')
+          setDniError(t('onboarding.about.errorDniTaken'))
         } else {
-          setDniError('Could not verify your DNI/NIE. Please try again.')
+          setDniError(t('onboarding.about.errorDniVerify'))
         }
         setLoading(false)
         return
@@ -500,7 +500,7 @@ export default function CompleteProfileScreen() {
           `/api/user/check-phone?phone=${encodeURIComponent(fullPhone)}&excludeUserId=${userId}`
         )
         if (data.taken) {
-          setError('That phone number is already registered.')
+          setError(t('onboarding.contact.errorTaken'))
           setLoading(false)
           return
         }
@@ -686,12 +686,12 @@ export default function CompleteProfileScreen() {
             {/* ─── Step 1: Password ─── */}
             {step === 1 && (
               <View>
-                <Text style={styles.fieldLabel}>PASSWORD</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.password.passwordLabel')}</Text>
                 <View style={styles.inputRow}>
                   <TextInput
                     style={[styles.input, styles.inputFlex]}
                     value={password}
-                    onChangeText={t => { setPassword(t); setError('') }}
+                    onChangeText={v => { setPassword(v); setError('') }}
                     secureTextEntry={!showPassword}
                     autoComplete="new-password"
                     placeholderTextColor={C.lightGray}
@@ -700,14 +700,14 @@ export default function CompleteProfileScreen() {
                     <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.hint}>8+ characters, one capital, one special character</Text>
+                <Text style={styles.hint}>{t('onboarding.password.rules')}</Text>
 
-                <Text style={styles.fieldLabel}>CONFIRM PASSWORD</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.password.confirmLabel')}</Text>
                 <View style={styles.inputRow}>
                   <TextInput
                     style={[styles.input, styles.inputFlex]}
                     value={confirmPassword}
-                    onChangeText={t => { setConfirmPassword(t); setError('') }}
+                    onChangeText={v => { setConfirmPassword(v); setError('') }}
                     secureTextEntry={!showConfirm}
                     autoComplete="new-password"
                     placeholderTextColor={C.lightGray}
@@ -722,28 +722,28 @@ export default function CompleteProfileScreen() {
             {/* ─── Step 2: Name + DNI/NIE ─── */}
             {step === 2 && (
               <View>
-                <Text style={styles.fieldLabel}>FIRST NAME</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.about.firstNameLabel')}</Text>
                 <TextInput
                   style={styles.input}
                   value={name}
-                  onChangeText={t => { setName(t); setError('') }}
+                  onChangeText={v => { setName(v); setError('') }}
                   autoCapitalize="words"
                   placeholderTextColor={C.lightGray}
                 />
-                <Text style={styles.fieldLabel}>LAST NAME</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.about.lastNameLabel')}</Text>
                 <TextInput
                   style={styles.input}
                   value={lastName}
-                  onChangeText={t => { setLastName(t); setError('') }}
+                  onChangeText={v => { setLastName(v); setError('') }}
                   autoCapitalize="words"
                   placeholderTextColor={C.lightGray}
                 />
-                <Text style={styles.fieldLabel}>DNI / NIE</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.about.dniLabel')}</Text>
                 <TextInput
                   style={[styles.input, dniError ? styles.inputError : null]}
                   value={dni}
-                  onChangeText={t => { setDni(t); setDniError(''); setError('') }}
-                  placeholder="e.g. 12345678Z or X1234567L"
+                  onChangeText={v => { setDni(v); setDniError(''); setError('') }}
+                  placeholder={t('onboarding.about.dniPlaceholder')}
                   autoCapitalize="characters"
                   autoCorrect={false}
                   placeholderTextColor={C.lightGray}
@@ -755,7 +755,7 @@ export default function CompleteProfileScreen() {
             {/* ─── Step 3: Phone ─── */}
             {step === 3 && (
               <View>
-                <Text style={styles.fieldLabel}>PHONE NUMBER</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.contact.phoneLabel')}</Text>
                 <View style={styles.phoneRow}>
                   <TouchableOpacity
                     style={styles.countryPicker}
@@ -769,7 +769,7 @@ export default function CompleteProfileScreen() {
                   <TextInput
                     style={[styles.input, styles.phoneInput]}
                     value={phone}
-                    onChangeText={t => { setPhone(t.replace(/\D/g, '')); setError('') }}
+                    onChangeText={v => { setPhone(v.replace(/\D/g, '')); setError('') }}
                     keyboardType="phone-pad"
                     placeholderTextColor={C.lightGray}
                   />
@@ -777,8 +777,8 @@ export default function CompleteProfileScreen() {
                 {PHONE_LENGTHS[countryCode] && (
                   <Text style={styles.hint}>
                     {PHONE_LENGTHS[countryCode].min === PHONE_LENGTHS[countryCode].max
-                      ? `${PHONE_LENGTHS[countryCode].min} digits required`
-                      : `${PHONE_LENGTHS[countryCode].min}–${PHONE_LENGTHS[countryCode].max} digits required`}
+                      ? t('onboarding.contact.digitHintExact', { min: PHONE_LENGTHS[countryCode].min })
+                      : t('onboarding.contact.digitHintRange', { min: PHONE_LENGTHS[countryCode].min, max: PHONE_LENGTHS[countryCode].max })}
                   </Text>
                 )}
               </View>
@@ -787,7 +787,7 @@ export default function CompleteProfileScreen() {
             {/* ─── Step 4: Goals ─── */}
             {step === 4 && (
               <View>
-                <Text style={styles.fieldLabel}>WHAT DO YOU WANT TO ACCOMPLISH?</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.goals.accomplishLabel')}</Text>
                 <GoalSelector
                   selectedIds={selectedGoalIds}
                   onChange={ids => { setSelectedGoalIds(ids); setError('') }}
@@ -796,46 +796,49 @@ export default function CompleteProfileScreen() {
             )}
 
             {/* ─── Step 6: Birthday + Conditions ─── */}
-            {step === 6 && (
+            {step === 6 && (() => {
+              const tMonths = t('onboarding.more.months', { returnObjects: true }) as string[]
+              const monthLabel = birthMonth ? tMonths[MONTHS.indexOf(birthMonth)] : t('onboarding.more.monthPlaceholder')
+              return (
               <View>
-                <Text style={styles.fieldLabel}>BIRTHDAY</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.more.birthdayLabel')}</Text>
                 <View style={styles.birthdayRow}>
                   <TouchableOpacity style={styles.dateBtn} onPress={() => setMonthPickerVisible(true)}>
                     <Text style={[styles.dateBtnText, !birthMonth && styles.datePlaceholder]}>
-                      {birthMonth || 'Month'}
+                      {monthLabel}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.dateBtn} onPress={() => setDayPickerVisible(true)}>
                     <Text style={[styles.dateBtnText, !birthDay && styles.datePlaceholder]}>
-                      {birthDay || 'Day'}
+                      {birthDay || t('onboarding.more.dayPlaceholder')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.dateBtn} onPress={() => setYearPickerVisible(true)}>
                     <Text style={[styles.dateBtnText, !birthYear && styles.datePlaceholder]}>
-                      {birthYear || 'Year'}
+                      {birthYear || t('onboarding.more.yearPlaceholder')}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.fieldLabel}>DO YOU HAVE ANY INJURIES OR SPECIAL CONDITIONS?</Text>
+                <Text style={styles.fieldLabel}>{t('onboarding.more.conditionsQuestion')}</Text>
                 <View style={styles.yesNoRow}>
                   <TouchableOpacity
                     style={[styles.yesNoBtn, hasConditions === false && styles.yesNoBtnActive]}
                     onPress={() => { setHasConditions(false); setSelectedConditions([]) }}
                   >
-                    <Text style={[styles.yesNoText, hasConditions === false && styles.yesNoTextActive]}>NO</Text>
+                    <Text style={[styles.yesNoText, hasConditions === false && styles.yesNoTextActive]}>{t('onboarding.more.conditionsNo')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.yesNoBtn, hasConditions === true && styles.yesNoBtnActive]}
                     onPress={() => setHasConditions(true)}
                   >
-                    <Text style={[styles.yesNoText, hasConditions === true && styles.yesNoTextActive]}>YES</Text>
+                    <Text style={[styles.yesNoText, hasConditions === true && styles.yesNoTextActive]}>{t('onboarding.more.conditionsYes')}</Text>
                   </TouchableOpacity>
                 </View>
 
                 {hasConditions === true && (
                   <View style={styles.conditionsGrid}>
-                    <Text style={styles.selectAllLabel}>SELECT ALL THAT APPLY</Text>
+                    <Text style={styles.selectAllLabel}>{t('onboarding.more.selectAll')}</Text>
                     <View style={styles.conditionsRow}>
                       {CONDITIONS.map(c => (
                         <TouchableOpacity
@@ -844,7 +847,7 @@ export default function CompleteProfileScreen() {
                           onPress={() => toggleCondition(c)}
                         >
                           <Text style={[styles.conditionText, selectedConditions.includes(c) && styles.conditionTextActive]}>
-                            {selectedConditions.includes(c) ? '☑ ' : '☐ '}{c}
+                            {selectedConditions.includes(c) ? '☑ ' : '☐ '}{t(`onboarding.more.conditions.${c}` as any)}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -853,7 +856,7 @@ export default function CompleteProfileScreen() {
                         onPress={() => toggleCondition('Other')}
                       >
                         <Text style={[styles.conditionText, selectedConditions.includes('Other') && styles.conditionTextActive]}>
-                          {selectedConditions.includes('Other') ? '☑ ' : '☐ '}Other (specify)
+                          {selectedConditions.includes('Other') ? '☑ ' : '☐ '}{t('onboarding.more.otherSpecify')}
                         </Text>
                       </TouchableOpacity>
                       {selectedConditions.includes('Other') && (
@@ -861,7 +864,7 @@ export default function CompleteProfileScreen() {
                           style={styles.otherInput}
                           value={conditionOther}
                           onChangeText={setConditionOther}
-                          placeholder="Please describe..."
+                          placeholder={t('onboarding.more.otherPlaceholder')}
                           placeholderTextColor={C.lightGray}
                         />
                       )}
@@ -869,7 +872,7 @@ export default function CompleteProfileScreen() {
                   </View>
                 )}
               </View>
-            )}
+            )})()}
 
             {step > 0 && error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -878,7 +881,7 @@ export default function CompleteProfileScreen() {
               <View style={styles.navRow}>
                 {step > 1 && (
                   <TouchableOpacity style={styles.backBtn} onPress={handleBack} disabled={loading}>
-                    <Text style={styles.backBtnText}>BACK</Text>
+                    <Text style={styles.backBtnText}>{t('common.back')}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -903,28 +906,28 @@ export default function CompleteProfileScreen() {
       <PickerModal
         visible={countryPickerVisible}
         onClose={() => setCountryPickerVisible(false)}
-        title="Select country code"
+        title={t('onboarding.picker.country')}
         items={COUNTRY_CODES.map(c => ({ key: c.code, label: `${c.flag} ${c.label}` }))}
         onSelect={key => { setCountryCode(key); setPhone('') }}
       />
       <PickerModal
         visible={monthPickerVisible}
         onClose={() => setMonthPickerVisible(false)}
-        title="Select month"
-        items={MONTHS.map(m => ({ key: m, label: m }))}
+        title={t('onboarding.picker.month')}
+        items={MONTHS.map((m, i) => ({ key: m, label: (t('onboarding.more.months', { returnObjects: true }) as string[])[i] }))}
         onSelect={key => setBirthMonth(key)}
       />
       <PickerModal
         visible={dayPickerVisible}
         onClose={() => setDayPickerVisible(false)}
-        title="Select day"
+        title={t('onboarding.picker.day')}
         items={days.map(d => ({ key: d, label: d }))}
         onSelect={key => setBirthDay(key)}
       />
       <PickerModal
         visible={yearPickerVisible}
         onClose={() => setYearPickerVisible(false)}
-        title="Select year"
+        title={t('onboarding.picker.year')}
         items={years.map(y => ({ key: y, label: y }))}
         onSelect={key => setBirthYear(key)}
       />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
 
@@ -11,6 +12,7 @@ type Props = {
 }
 
 export default function GoalSelector({ selectedIds, onChange }: Props) {
+  const { t } = useTranslation()
   const [goals, setGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -54,7 +56,7 @@ export default function GoalSelector({ selectedIds, onChange }: Props) {
         })}
       </View>
       <Text style={s.counter}>
-        Select at least 1 and up to 3 goals ({selectedIds.length} selected)
+        {t('onboarding.goals.counter', { count: selectedIds.length })}
       </Text>
     </View>
   )
