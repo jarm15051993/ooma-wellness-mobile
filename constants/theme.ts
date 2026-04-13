@@ -1,26 +1,28 @@
 export const C = {
   // Backgrounds
-  cream: '#F7F3EE',
-  warmWhite: '#FAFAF7',
-  bone: '#EDE5D8',
-  boneDark: '#DDD3C2',
+  cream: '#FAF7F2',       // brandbook: moon
+  warmWhite: '#F4F0E8',   // brandbook: cloud
+  bone: '#EBE5DA',        // brandbook: linen
+  boneDark: '#DAD3C8',    // brandbook: rule (used as deeper bg)
 
   // Text
-  ink: '#1A1512',
-  midGray: '#9A8F87',
-  lightGray: '#C8BEB6',
+  ink: '#1C1A14',         // brandbook: ink
+  midGray: '#8A8070',     // brandbook: mgray
+  lightGray: '#BDB3A8',   // brandbook: lgray
 
-  // Burgundy scale
-  burg: '#6B1D2E',
-  burgMid: '#8C2D40',
-  burgSoft: '#B05A6E',
-  burgPale: '#E8C5CE',
+  // Terracotta scale (primary accent — replaces burgundy)
+  burg: '#9C7A52',        // brandbook: terra
+  burgMid: '#B8956A',     // brandbook: terra-mid
+  burgSoft: '#C8A96A',    // brandbook: gold
+  burgPale: '#DFC9A8',    // brandbook: terra-pale
 
   // Borders
-  rule: '#E0D8D0',
+  rule: '#DAD3C8',        // brandbook: rule
 
-  // Status
-  green: '#22c55e',
+  // Sage (wellness accent — replaces generic green)
+  green: '#6E7B6A',       // brandbook: sage
+
+  // Functional status (unchanged)
   red: '#ef4444',
   yellow: '#FBBF24',
 }

@@ -71,7 +71,7 @@ function AvailabilityBadge(item: ClassItem, t: (key: string, opts?: any) => stri
   if (item.isBooked) return { label: t('classes.booked', { number: item.userStretcherNumber }), bg: C.burgPale, text: C.burg }
   if (item.isFull) return { label: t('classes.classFull'), bg: '#FEE2E2', text: C.red }
   if (item.availableSpots <= 3) return { label: t('classes.spotsLeft', { count: item.availableSpots }), bg: '#FEF9C3', text: '#92400E' }
-  return { label: t('classes.spotsLeft', { count: item.availableSpots }), bg: '#DCFCE7', text: '#15803D' }
+  return { label: t('classes.spotsLeft', { count: item.availableSpots }), bg: '#CBD6C7', text: '#6E7B6A' }
 }
 
 function formatDuration(mins: number): string {
