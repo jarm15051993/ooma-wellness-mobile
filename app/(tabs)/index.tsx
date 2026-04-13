@@ -372,12 +372,15 @@ export default function ClassesScreen() {
     : selectedClasses.filter(c => c.classType === classTypeFilter)
 
   function getBookButtonState(classType: 'REFORMER' | 'YOGA'): 'book' | 'buy' | 'noplan' {
+    // activeCredits only contains non-expired credits with remaining > 0 or unlimited
     const matching = activeCredits.filter(c =>
       c.packageType === classType || c.packageType === 'BOTH'
     )
-    if (matching.length === 0) return 'noplan'
-    const canBook = matching.some(c => c.isUnlimited || c.creditsRemaining > 0)
-    return canBook ? 'book' : 'buy'
+    if (matching.length > 0) return 'book'
+    // Has credits but none cover this class type → wrong plan
+    if (activeCredits.length > 0) return 'noplan'
+    // No credits at all → send to buy
+    return 'buy'
   }
 
   function showNotInPlan(classId: string) {
