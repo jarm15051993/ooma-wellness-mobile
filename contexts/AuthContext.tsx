@@ -124,6 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch {
         await SecureStore.deleteItemAsync('access_token')
+        setToken(null)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
