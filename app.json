@@ -10,12 +10,12 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FAF9F6"
+      "backgroundColor": "#1C1A14"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ooma.wellness",
-      "buildNumber": "3",
+      "buildNumber": "7",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan QR codes and update your profile photo.",
         "NSPhotoLibraryUsageDescription": "Used to select a profile photo.",
@@ -26,7 +26,7 @@
     "android": {
       "package": "com.ooma.wellness",
       "adaptiveIcon": {
-        "backgroundColor": "#FAF9F6",
+        "backgroundColor": "#1C1A14",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png"
       },
