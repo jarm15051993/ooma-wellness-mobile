@@ -172,8 +172,8 @@
         "04": {
           "title": "Reservas, cancelaciones y créditos",
           "p1": "Las clases podrán cancelarse o reprogramarse sin penalización hasta con 2 horas de antelación respecto a su inicio.",
-          "p2": "Las cancelaciones realizadas entre 1 hora y 1 hora 59 minutos antes del inicio de la actividad conllevarán la pérdida del crédito correspondiente.",
-          "p3": "Las cancelaciones efectuadas con menos de 1 hora de antelación, así como la no asistencia a la sesión reservada, implicarán la pérdida automática del crédito, sin derecho a recuperación ni reembolso."
+          "p2": "Las cancelaciones efectuadas con menos de 2 horas de antelación, así como la no asistencia a la sesión reservada, implicarán la pérdida automática del crédito, sin derecho a recuperación ni reembolso.",
+          "p3": ""
         },
         "05": {
           "title": "Puntualidad y acceso a clase",

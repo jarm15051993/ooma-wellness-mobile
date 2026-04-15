@@ -172,8 +172,8 @@
         "04": {
           "title": "Reserves, cancel·lacions i crèdits",
           "p1": "Les classes podran cancel·lar-se o reprogramar-se sense penalització fins a 2 hores d'antelació respecte al seu inici.",
-          "p2": "Les cancel·lacions realitzades entre 1 hora i 1 hora 59 minuts abans de l'inici de l'activitat comportaran la pèrdua del crèdit corresponent.",
-          "p3": "Les cancel·lacions efectuades amb menys d'1 hora d'antelació, així com la no assistència a la sessió reservada, implicaran la pèrdua automàtica del crèdit, sense dret a recuperació ni reemborsament."
+          "p2": "Les cancel·lacions efectuades amb menys de 2 hores d'antelació, així com la no assistència a la sessió reservada, implicaran la pèrdua automàtica del crèdit, sense dret a recuperació ni reemborsament.",
+          "p3": ""
         },
         "05": {
           "title": "Puntualitat i accés a classe",

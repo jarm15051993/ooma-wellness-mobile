@@ -90,8 +90,7 @@ const DISCLAIMER_SECTIONS: DisclaimerSection[] = [
     title: 'Reservas, cancelaciones y créditos',
     content: [
       { type: 'paragraph', text: 'Las clases podrán cancelarse o reprogramarse sin penalización hasta con 2 horas de antelación respecto a su inicio.' },
-      { type: 'paragraph', text: 'Las cancelaciones realizadas entre 1 hora y 1 hora 59 minutos antes del inicio de la actividad conllevarán la pérdida del crédito correspondiente.' },
-      { type: 'paragraph', text: 'Las cancelaciones efectuadas con menos de 1 hora de antelación, así como la no asistencia a la sesión reservada, implicarán la pérdida automática del crédito, sin derecho a recuperación ni reembolso.' },
+      { type: 'paragraph', text: 'Las cancelaciones efectuadas con menos de 2 horas de antelación, así como la no asistencia a la sesión reservada, implicarán la pérdida automática del crédito, sin derecho a recuperación ni reembolso.' },
     ],
   },
   {
