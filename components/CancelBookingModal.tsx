@@ -14,7 +14,7 @@ type Props = {
 export default function CancelBookingModal({ visible, classStartsAt, loading, onKeep, onConfirm }: Props) {
   const { t } = useTranslation()
   const minutesUntilClass = differenceInMinutes(new Date(classStartsAt), new Date())
-  const isLate = minutesUntilClass < 60
+  const isLate = minutesUntilClass < 120
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onKeep}>
@@ -25,7 +25,7 @@ export default function CancelBookingModal({ visible, classStartsAt, loading, on
 
           {isLate ? (
             <Text style={styles.body}>
-              {t('classes.cancelWarning', { hours: 1 })}
+              {t('classes.cancelWarningPlural', { hours: 2 })}
             </Text>
           ) : (
             <Text style={styles.body}>

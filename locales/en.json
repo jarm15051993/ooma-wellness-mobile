@@ -172,8 +172,8 @@
         "04": {
           "title": "Bookings, cancellations and credits",
           "p1": "Classes may be cancelled or rescheduled without penalty up to 2 hours before their start time.",
-          "p2": "Cancellations made between 1 hour and 1 hour 59 minutes before the start of the activity will result in the loss of the corresponding credit.",
-          "p3": "Cancellations made less than 1 hour before the start, as well as non-attendance at a booked session, will result in the automatic loss of the credit, with no right to recovery or refund."
+          "p2": "Cancellations made less than 2 hours before the start, as well as non-attendance at a booked session, will result in the automatic loss of the credit, with no right to recovery or refund.",
+          "p3": ""
         },
         "05": {
           "title": "Punctuality and class access",
