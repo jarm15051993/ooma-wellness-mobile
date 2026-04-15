@@ -57,6 +57,11 @@ const bgSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" 
 // Same as foreground (cream on transparent); app.json splash bg = #1C1A14
 const splashSvg = fgSvg
 
+// ── android-icon-monochrome.png  (white O on transparent, for Android 13+ themed icons) ─
+const monoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+  <path fill-rule="evenodd" fill="#FFFFFF" d="${crescentPath}"/>
+</svg>`
+
 async function run() {
   await sharp(Buffer.from(iconSvg)).resize(SIZE, SIZE).png().toFile('assets/icon.png')
   console.log('✓ icon.png')
@@ -69,6 +74,9 @@ async function run() {
 
   await sharp(Buffer.from(splashSvg)).resize(SIZE, SIZE).png().toFile('assets/splash-icon.png')
   console.log('✓ splash-icon.png')
+
+  await sharp(Buffer.from(monoSvg)).resize(SIZE, SIZE).png().toFile('assets/android-icon-monochrome.png')
+  console.log('✓ android-icon-monochrome.png')
 }
 
 run().catch(console.error)
