@@ -156,10 +156,6 @@ export default function ProfileScreen() {
   const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, isBeta, language, setLanguage } = useAuth()
   const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
-  const [activePackages, setActivePackages] = useState<UserPackage[]>([])
-  const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
-  const [loadingPackages, setLoadingPackages] = useState(true)
-  const [showExpired, setShowExpired] = useState(false)
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true)
   const [cancelTarget, setCancelTarget] = useState<Subscription | null>(null)
@@ -170,7 +166,6 @@ export default function ProfileScreen() {
   const [walletLoading, setWalletLoading] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
   const [showWalletSuccessModal, setShowWalletSuccessModal] = useState(false)
-  const [showActive, setShowActive] = useState(false)
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
     booking_confirmation: true,
     booking_cancellation: true,
@@ -224,25 +219,6 @@ export default function ProfileScreen() {
   const [showLanguageModal, setShowLanguageModal] = useState(false)
   const [savingLanguage, setSavingLanguage] = useState(false)
 
-  useFocusEffect(
-    useCallback(() => {
-      async function fetchPackages() {
-        setLoadingPackages(true)
-        try {
-          const { data } = await api.get('/api/user/packages')
-          setActivePackages(data.active)
-          setExpiredPackages(data.expired)
-        } catch (err: any) {
-          if (err.response?.status !== 401) {
-            Alert.alert('Error', err.response?.data?.error ?? 'Failed to load packages')
-          }
-        } finally {
-          setLoadingPackages(false)
-        }
-      }
-      fetchPackages()
-    }, [])
-  )
 
   useFocusEffect(
     useCallback(() => {
@@ -790,133 +766,86 @@ export default function ProfileScreen() {
           <View style={styles.packagesSection}>
             <Text style={styles.sectionLabel}>{t('profile.subscriptions.title')}</Text>
             <View style={styles.creditsDivider} />
+
             {loadingSubscriptions ? (
-              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 12 }} />
+              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
             ) : subscriptions.length === 0 ? (
               <Text style={styles.emptyPackagesText}>{t('profile.subscriptions.empty')}</Text>
             ) : (
-              subscriptions.map(sub => {
-                const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
-                const periodEnd = format(new Date(sub.currentPeriodEnd), 'MMM d, yyyy')
-                const credit = sub.credits?.[0]
-                const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? 0)
-                const total = credit?.isUnlimited ? '∞' : (credit?.creditsTotal ?? 0)
+              <>
+                {/* Total classes remaining across all active subscriptions */}
+                <View style={styles.totalClassesRow}>
+                  <Text style={styles.totalClassesNumber}>
+                    {subscriptions.reduce((sum, sub) => {
+                      const credit = sub.credits?.[0]
+                      if (credit?.isUnlimited) return sum
+                      // Fall back to package classCount when webhook hasn't created credit yet
+                      return sum + (credit?.creditsRemaining ?? sub.package.classCount)
+                    }, 0)}
+                  </Text>
+                  <Text style={styles.totalClassesLabel}>{t('profile.subscriptions.classesRemaining')}</Text>
+                </View>
 
-                return (
-                  <View key={sub.id} style={styles.subCard}>
-                    <View style={styles.subCardTop}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.subName}>{sub.package.name}</Text>
-                        <Text style={styles.subMeta}>
-                          {sub.package.packageType === 'REFORMER'
-                            ? t('classes.typeReformer')
-                            : sub.package.packageType === 'YOGA'
-                            ? t('classes.typeYoga')
-                            : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
-                        </Text>
+                {subscriptions.map(sub => {
+                  const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
+                  const periodEnd = format(new Date(sub.currentPeriodEnd), 'MMM d, yyyy')
+                  const credit = sub.credits?.[0]
+                  const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? sub.package.classCount)
+                  const total    = credit?.isUnlimited ? '∞' : (credit?.creditsTotal    ?? sub.package.classCount)
+
+                  return (
+                    <View key={sub.id} style={styles.subCard}>
+                      <View style={styles.subCardTop}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.subName}>{sub.package.name}</Text>
+                          <Text style={styles.subMeta}>
+                            {sub.package.packageType === 'REFORMER'
+                              ? t('classes.typeReformer')
+                              : sub.package.packageType === 'YOGA'
+                              ? t('classes.typeYoga')
+                              : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
+                          </Text>
+                        </View>
+                        <View style={styles.subStatusBadge}>
+                          <Text style={[
+                            styles.subStatusText,
+                            sub.status === 'PAST_DUE' && styles.subStatusPastDue,
+                            isCancelling && styles.subStatusCancelling,
+                          ]}>
+                            {sub.status === 'PAST_DUE'
+                              ? t('profile.subscriptions.statusPastDue')
+                              : isCancelling
+                              ? t('profile.subscriptions.statusCancelling')
+                              : t('profile.subscriptions.statusActive')}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.subStatusBadge}>
-                        <Text style={[
-                          styles.subStatusText,
-                          sub.status === 'PAST_DUE' && styles.subStatusPastDue,
-                          isCancelling && styles.subStatusCancelling,
-                        ]}>
-                          {sub.status === 'PAST_DUE'
-                            ? t('profile.subscriptions.statusPastDue')
-                            : isCancelling
-                            ? t('profile.subscriptions.statusCancelling')
-                            : t('profile.subscriptions.statusActive')}
-                        </Text>
-                      </View>
+                      <Text style={styles.subCredits}>
+                        {credit?.isUnlimited
+                          ? t('packages.unlimitedClasses')
+                          : t('profile.subscriptions.creditsLeft', { remaining, total })}
+                      </Text>
+                      <Text style={styles.subRenewal}>
+                        {isCancelling
+                          ? t('profile.subscriptions.expiresOn', { date: periodEnd })
+                          : t('profile.subscriptions.renewsOn', { date: periodEnd })}
+                      </Text>
+                      {!isCancelling && sub.status === 'ACTIVE' && (
+                        <TouchableOpacity
+                          style={styles.subCancelLink}
+                          onPress={() => setCancelTarget(sub)}
+                        >
+                          <Text style={styles.subCancelLinkText}>{t('profile.subscriptions.cancelAction')}</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
-                    <Text style={styles.subCredits}>
-                      {credit?.isUnlimited
-                        ? t('packages.unlimitedClasses')
-                        : t('profile.subscriptions.creditsLeft', { remaining, total })}
-                    </Text>
-                    <Text style={styles.subRenewal}>
-                      {isCancelling
-                        ? t('profile.subscriptions.expiresOn', { date: periodEnd })
-                        : t('profile.subscriptions.renewsOn', { date: periodEnd })}
-                    </Text>
-                    {!isCancelling && sub.status === 'ACTIVE' && (
-                      <TouchableOpacity
-                        style={styles.subCancelLink}
-                        onPress={() => setCancelTarget(sub)}
-                      >
-                        <Text style={styles.subCancelLinkText}>{t('profile.subscriptions.cancelAction')}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )
-              })
+                  )
+                })}
+              </>
             )}
           </View>
         )}
 
-        {/* My Packages — hidden for staff */}
-        {!isStaff && <View style={styles.packagesSection}>
-          <Text style={styles.sectionLabel}>{t('profile.packages.title')}</Text>
-          <View style={styles.creditsDivider} />
-
-          {!loadingPackages && (
-            <View style={styles.totalClassesRow}>
-              <Text style={styles.totalClassesNumber}>
-                {activePackages.reduce((sum, p) => sum + p.classesRemaining, 0)}
-              </Text>
-              <Text style={styles.totalClassesLabel}>classes remaining</Text>
-            </View>
-          )}
-
-          {loadingPackages ? (
-            <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
-          ) : activePackages.length === 0 && expiredPackages.length === 0 ? (
-            <Text style={styles.emptyPackagesText}>No packages yet.</Text>
-          ) : (
-            <>
-              {activePackages.length > 0 && (
-                <>
-                  <TouchableOpacity
-                    style={styles.showExpiredRow}
-                    onPress={() => setShowActive(v => !v)}
-                  >
-                    <Text style={styles.showExpiredText}>
-                      {showActive ? 'Hide active packages' : `Show active packages (${activePackages.length})`}
-                    </Text>
-                  </TouchableOpacity>
-                  {showActive && activePackages.map(pkg => (
-                    <PackageCard key={pkg.id} pkg={pkg} muted={false} />
-                  ))}
-                </>
-              )}
-
-              {expiredPackages.length > 0 && (
-                <>
-                  <TouchableOpacity
-                    style={styles.showExpiredRow}
-                    onPress={() => setShowExpired(v => !v)}
-                  >
-                    <Text style={styles.showExpiredText}>
-                      {showExpired ? 'Hide expired' : `Show expired (${expiredPackages.length})`}
-                    </Text>
-                  </TouchableOpacity>
-                  {showExpired && expiredPackages.map(pkg => (
-                    <PackageCard key={pkg.id} pkg={pkg} muted />
-                  ))}
-                </>
-              )}
-            </>
-          )}
-
-          {/* TODO(owner): A dedicated Packages tab now exists. Consider whether this button is still needed. */}
-          <TouchableOpacity
-            style={[styles.buyBtn, isBeta && styles.buyBtnDisabled]}
-            onPress={isBeta ? undefined : () => router.push('/packages')}
-            disabled={isBeta}
-          >
-            <Text style={styles.buyBtnText}>{t('profile.packages.buyMore')}</Text>
-          </TouchableOpacity>
-        </View>}
 
         {/* Class Pass / Wallet card */}
         {!tenantUser && <View style={styles.passCard}>

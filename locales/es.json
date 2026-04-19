@@ -492,7 +492,8 @@
       "cancelBody": "Tu suscripción seguirá activa hasta el {{date}}. No se realizarán más cobros.",
       "cancelConfirmBtn": "CANCELAR SUSCRIPCIÓN",
       "keepBtn": "MANTENER SUSCRIPCIÓN",
-      "cancelSuccess": "Suscripción cancelada"
+      "cancelSuccess": "Suscripción cancelada",
+      "classesRemaining": "clases restantes"
     }
   },
   "packages": {

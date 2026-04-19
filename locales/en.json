@@ -492,7 +492,8 @@
       "cancelBody": "Your subscription will remain active until {{date}}. You will not be charged again.",
       "cancelConfirmBtn": "CANCEL SUBSCRIPTION",
       "keepBtn": "KEEP SUBSCRIPTION",
-      "cancelSuccess": "Subscription cancelled"
+      "cancelSuccess": "Subscription cancelled",
+      "classesRemaining": "classes remaining"
     }
   },
   "packages": {
