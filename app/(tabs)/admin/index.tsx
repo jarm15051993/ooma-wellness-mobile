@@ -64,6 +64,10 @@ export default function AdminSearchScreen() {
       credits: 0,
       onboardingCompleted: selectedUser.onboardingCompleted,
       qrCode: null,
+      isBeta: false,
+      language: 'es' as const,
+      isClubMember: false,
+      createdAt: new Date().toISOString(),
     }
     setSelectedUser(null)
     startTenantSession(user)

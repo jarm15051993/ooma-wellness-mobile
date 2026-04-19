@@ -25,7 +25,8 @@ import * as Sharing from 'expo-sharing'
 import * as IntentLauncher from 'expo-intent-launcher'
 import QRCode from 'react-native-qrcode-svg'
 import { api } from '@/lib/api'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth, type Subscription } from '@/contexts/AuthContext'
+import { subscriptionsApi } from '@/lib/subscriptions'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
 import WalletModal from '@/components/WalletModal'
@@ -159,6 +160,10 @@ export default function ProfileScreen() {
   const [expiredPackages, setExpiredPackages] = useState<UserPackage[]>([])
   const [loadingPackages, setLoadingPackages] = useState(true)
   const [showExpired, setShowExpired] = useState(false)
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState(true)
+  const [cancelTarget, setCancelTarget] = useState<Subscription | null>(null)
+  const [cancelling, setCancelling] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [photoVersion, setPhotoVersion] = useState(Date.now())
   const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
@@ -242,6 +247,17 @@ export default function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       if (isStaff) return
+      setLoadingSubscriptions(true)
+      subscriptionsApi.list()
+        .then(({ data }) => setSubscriptions(data.subscriptions ?? []))
+        .catch(() => {})
+        .finally(() => setLoadingSubscriptions(false))
+    }, [isStaff])
+  )
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isStaff) return
       api.get('/api/user/profile')
         .then(({ data }) => {
           setExtProfile({
@@ -317,6 +333,24 @@ export default function ProfileScreen() {
       setNotifToast({ visible: true, message: 'Could not update student status. Please try again.', isError: true })
     } finally {
       setSavingStudent(false)
+    }
+  }
+
+  async function handleCancelSubscription() {
+    if (!cancelTarget) return
+    setCancelling(true)
+    try {
+      await subscriptionsApi.cancel(cancelTarget.id)
+      setCancelTarget(null)
+      // Refresh subscription list
+      const { data } = await subscriptionsApi.list()
+      setSubscriptions(data.subscriptions ?? [])
+      setNotifToast({ visible: true, message: t('profile.subscriptions.cancelSuccess'), isError: false })
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? t('common.somethingWentWrong')
+      Alert.alert(t('common.error'), msg)
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -529,8 +563,12 @@ export default function ProfileScreen() {
     try {
       const { data } = await api.get('/api/wallet/google')
       await Linking.openURL(data.saveUrl)
-    } catch {
-      Alert.alert('Error', 'Could not generate your pass. Please try again.')
+    } catch (e: any) {
+      const serverMsg = e?.response?.data?.error
+      const msg = serverMsg === 'Google Wallet not configured'
+        ? 'Google Wallet is not available yet. Check back soon.'
+        : (serverMsg ?? 'Could not generate your pass. Please try again.')
+      Alert.alert('Error', msg)
     } finally {
       setWalletLoading(false)
     }
@@ -747,6 +785,75 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* My Subscriptions — hidden for staff */}
+        {!isStaff && (
+          <View style={styles.packagesSection}>
+            <Text style={styles.sectionLabel}>{t('profile.subscriptions.title')}</Text>
+            <View style={styles.creditsDivider} />
+            {loadingSubscriptions ? (
+              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 12 }} />
+            ) : subscriptions.length === 0 ? (
+              <Text style={styles.emptyPackagesText}>{t('profile.subscriptions.empty')}</Text>
+            ) : (
+              subscriptions.map(sub => {
+                const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
+                const periodEnd = format(new Date(sub.currentPeriodEnd), 'MMM d, yyyy')
+                const credit = sub.credits?.[0]
+                const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? 0)
+                const total = credit?.isUnlimited ? '∞' : (credit?.creditsTotal ?? 0)
+
+                return (
+                  <View key={sub.id} style={styles.subCard}>
+                    <View style={styles.subCardTop}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.subName}>{sub.package.name}</Text>
+                        <Text style={styles.subMeta}>
+                          {sub.package.packageType === 'REFORMER'
+                            ? t('classes.typeReformer')
+                            : sub.package.packageType === 'YOGA'
+                            ? t('classes.typeYoga')
+                            : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
+                        </Text>
+                      </View>
+                      <View style={styles.subStatusBadge}>
+                        <Text style={[
+                          styles.subStatusText,
+                          sub.status === 'PAST_DUE' && styles.subStatusPastDue,
+                          isCancelling && styles.subStatusCancelling,
+                        ]}>
+                          {sub.status === 'PAST_DUE'
+                            ? t('profile.subscriptions.statusPastDue')
+                            : isCancelling
+                            ? t('profile.subscriptions.statusCancelling')
+                            : t('profile.subscriptions.statusActive')}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.subCredits}>
+                      {credit?.isUnlimited
+                        ? t('packages.unlimitedClasses')
+                        : t('profile.subscriptions.creditsLeft', { remaining, total })}
+                    </Text>
+                    <Text style={styles.subRenewal}>
+                      {isCancelling
+                        ? t('profile.subscriptions.expiresOn', { date: periodEnd })
+                        : t('profile.subscriptions.renewsOn', { date: periodEnd })}
+                    </Text>
+                    {!isCancelling && sub.status === 'ACTIVE' && (
+                      <TouchableOpacity
+                        style={styles.subCancelLink}
+                        onPress={() => setCancelTarget(sub)}
+                      >
+                        <Text style={styles.subCancelLinkText}>{t('profile.subscriptions.cancelAction')}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )
+              })
+            )}
+          </View>
+        )}
+
         {/* My Packages — hidden for staff */}
         {!isStaff && <View style={styles.packagesSection}>
           <Text style={styles.sectionLabel}>{t('profile.packages.title')}</Text>
@@ -914,6 +1021,33 @@ export default function ProfileScreen() {
         visible={notifToast.visible}
         onHide={() => setNotifToast(t => ({ ...t, visible: false }))}
       />
+
+      {/* Cancel subscription confirmation */}
+      <Modal visible={!!cancelTarget} transparent animationType="fade" onRequestClose={() => setCancelTarget(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t('profile.subscriptions.cancelTitle')}</Text>
+            <Text style={styles.modalBody}>
+              {t('profile.subscriptions.cancelBody', {
+                date: cancelTarget ? format(new Date(cancelTarget.currentPeriodEnd), 'MMM d, yyyy') : '',
+              })}
+            </Text>
+            <TouchableOpacity
+              style={[styles.modalBtn, cancelling && styles.btnDisabled]}
+              onPress={handleCancelSubscription}
+              disabled={cancelling}
+            >
+              {cancelling
+                ? <ActivityIndicator size="small" color={C.cream} />
+                : <Text style={styles.modalBtnText}>{t('profile.subscriptions.cancelConfirmBtn')}</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.noThanksBtn} onPress={() => setCancelTarget(null)} disabled={cancelling}>
+              <Text style={styles.noThanksBtnText}>{t('profile.subscriptions.keepBtn')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <WelcomeGiftModal
         visible={showGiftModal}
@@ -1506,6 +1640,21 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginTop: 24,
   },
   sheetSaveBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
+  subCard: {
+    backgroundColor: C.cream, borderWidth: 1, borderColor: C.rule,
+    borderRadius: 3, padding: 14, marginBottom: 10,
+  },
+  subCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
+  subName: { fontFamily: F.serifBold, fontSize: 15, color: C.ink },
+  subMeta: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 2 },
+  subStatusBadge: { paddingLeft: 8 },
+  subStatusText: { fontFamily: F.sansMed, fontSize: 10, color: C.green, letterSpacing: 0.5, textTransform: 'uppercase' },
+  subStatusPastDue: { color: C.red },
+  subStatusCancelling: { color: C.midGray },
+  subCredits: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
+  subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  subCancelLink: { marginTop: 10, alignSelf: 'flex-start' },
+  subCancelLinkText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
   studentToggleRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,

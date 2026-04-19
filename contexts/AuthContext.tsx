@@ -17,6 +17,39 @@ export type User = {
   qrCode: string | null
   isBeta: boolean
   language: AppLanguage
+  isClubMember: boolean
+  createdAt: string
+}
+
+export type AppSettings = {
+  subscriptionPaymentRequired: boolean
+  subscriptionPrice: number
+  membershipRequiredSince: string | null
+}
+
+export type Subscription = {
+  id: string
+  packageId: string
+  stripeSubscriptionId: string
+  status: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'EXPIRED'
+  currentPeriodStart: string
+  currentPeriodEnd: string
+  cancelledAt: string | null
+  createdAt: string
+  package: {
+    name: string
+    packageType: 'REFORMER' | 'YOGA' | 'BOTH'
+    isUnlimited: boolean
+    classCount: number
+    price: number
+  }
+  credits: Array<{
+    id: string
+    creditsRemaining: number
+    creditsTotal: number
+    isUnlimited: boolean
+    expiresAt: string | null
+  }>
 }
 
 type AuthContextType = {
@@ -34,11 +67,13 @@ type AuthContextType = {
   isLoading: boolean
   tenantUser: User | null
   lastActivityAt: React.MutableRefObject<number>
+  settings: AppSettings | null
   startTenantSession: (user: User) => void
   exitTenantSession: (fromInactivity?: boolean) => void
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
+  refreshSettings: () => Promise<void>
   setLanguage: (lang: AppLanguage) => void
 }
 
@@ -89,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<AppLanguage>('es')
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
+  const [settings, setSettings] = useState<AppSettings | null>(null)
   const lastActivityAt = useRef<number>(Date.now())
   const router = useRouter()
 
@@ -115,10 +151,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (stored) {
           setToken(stored)
           applyPermissions(stored)
-          const { data } = await api.get('/api/mobile/me')
-          setUser(data.user)
-          setIsBeta(data.user.isBeta ?? false)
-          const lang: AppLanguage = data.user.language ?? 'es'
+          const [meRes, settingsRes] = await Promise.all([
+            api.get('/api/mobile/me'),
+            api.get('/api/mobile/settings'),
+          ])
+          setUser(meRes.data.user)
+          setIsBeta(meRes.data.user.isBeta ?? false)
+          setSettings(settingsRes.data)
+          const lang: AppLanguage = meRes.data.user.language ?? 'es'
           setLanguageState(lang)
           i18n.changeLanguage(lang)
         }
@@ -203,14 +243,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     i18n.changeLanguage(lang)
   }
 
+  async function refreshSettings() {
+    const { data } = await api.get('/api/mobile/settings')
+    setSettings(data)
+  }
+
   return (
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
       canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent, isBeta,
       language,
       isLoading, tenantUser, lastActivityAt,
+      settings,
       startTenantSession, exitTenantSession,
-      signIn, signOut, refreshUser, setLanguage,
+      signIn, signOut, refreshUser, refreshSettings, setLanguage,
     }}>
       {children}
     </AuthContext.Provider>
