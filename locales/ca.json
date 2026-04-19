@@ -16,7 +16,6 @@
     "edit": "EDITAR",
     "done": "Fet"
   },
-
   "auth": {
     "login": {
       "title": "BENVINGUT/DA",
@@ -68,7 +67,6 @@
       "enterEmail": "Si us plau, introdueix la teva adreça de correu electrònic."
     }
   },
-
   "onboarding": {
     "languageStep": {
       "title": "Choose your language / Elige tu idioma / Tria el teu idioma"
@@ -149,6 +147,40 @@
       "title": "TERMES I CONDICIONS DEL SERVEI\nOOMA WELLNESS CLUB",
       "footer": "OOMA Wellness Club · 47829719T · admin@oomawellness.shop · +34 744 43 2128",
       "sections": {
+        "10": {
+          "title": "Modificacions del servei",
+          "p1": "OOMA Wellness Club es reserva el dret de modificar, en qualsevol moment i quan resulti necessari per al correcte funcionament del servei:",
+          "items": [
+            "horaris",
+            "instructors",
+            "activitats",
+            "serveis oferts"
+          ]
+        },
+        "11": {
+          "title": "Reglament intern de l'estudi",
+          "p1": "L'alumne/a es compromet a respectar el Reglament Intern de l'Estudi, disponible tant a la web com a les instal·lacions.",
+          "p2": "L'incompliment del mateix podrà donar lloc a la suspensió temporal o definitiva de l'accés a l'estudi."
+        },
+        "12": {
+          "title": "Protecció de dades personals (RGPD)",
+          "p1": "De conformitat amb el Reglament (UE) 2016/679 (RGPD) i la Llei Orgànica 3/2018 (LOPDGDD), s'informa que les dades personals facilitades seran tractades per OOMA Wellness Club amb les finalitats següents:",
+          "items": [
+            "gestió de reserves",
+            "gestió de pagaments",
+            "organització d'activitats",
+            "manteniment de la relació contractual",
+            "enviament de comunicacions relacionades amb el servei"
+          ],
+          "p2": "Les dades no seran cedides a tercers, excepte obligació legal o quan resulti necessari per a la correcta prestació del servei.",
+          "p3": "L'usuari podrà exercir els seus drets d'accés, rectificació, supressió, limitació del tractament, oposició i portabilitat mitjançant sol·licitud adreçada a:",
+          "p4": "L'usuari declara haver estat informat del tractament de les seves dades personals i accepta el seu ús en els termes indicats."
+        },
+        "13": {
+          "title": "Acceptació dels termes i condicions",
+          "p1": "El registre a la plataforma web o app implica la lectura, comprensió i acceptació íntegra dels presents Termes i Condicions.",
+          "p2": "OOMA Wellness Club es reserva el dret de modificar el present document en qualsevol moment, amb la finalitat d'adaptar-lo a millores del servei o a canvis normatius."
+        },
         "01": {
           "title": "Objecte",
           "p1": "Els presents Termes i Condicions regulen l'accés, la reserva i la participació en les activitats ofertes per OOMA Wellness Club, així com l'ús de les seves instal·lacions i serveis associats.",
@@ -159,7 +191,13 @@
           "p1": "La participació en les activitats es realitza sota l'exclusiva responsabilitat de l'alumne/a.",
           "p2": "L'usuari declara trobar-se en condicions físiques adequades per a la pràctica d'exercici físic.",
           "p3": "Així mateix, l'alumne/a es compromet a informar prèviament l'estudi sobre qualsevol circumstància rellevant per a la seva salut, incloent, entre d'altres:",
-          "items": ["lesions prèvies", "patologies", "limitacions físiques", "embaràs", "qualsevol altra condició mèdica rellevant"],
+          "items": [
+            "lesions prèvies",
+            "patologies",
+            "limitacions físiques",
+            "embaràs",
+            "qualsevol altra condició mèdica rellevant"
+          ],
           "p4": "En cas d'embaràs, l'alumne/a declara disposar d'autorització mèdica per a la pràctica d'exercici físic.",
           "p5": "OOMA Wellness Club no té la consideració de centre mèdic ni de rehabilitació, de manera que les activitats ofertes no substitueixen en cap cas tractaments mèdics, diagnòstics ni processos clínics.",
           "p6": "L'instructor podrà adaptar els exercicis, limitar o impedir la participació de l'alumne/a quan ho consideri necessari per motius de seguretat, tant individual com col·lectiva."
@@ -199,29 +237,6 @@
           "p1": "Els productes disponibles al coffee corner i a l'espai de marxandatge no estan inclosos en el preu de les classes ni en les membresies.",
           "p2": "Tots els productes s'hauran d'abonar prèviament al seu consum o retirada.",
           "p3": "OOMA Wellness Club es reserva el dret de reclamar l'import corresponent en cas de consum o retirada sense pagament previ."
-        },
-        "10": {
-          "title": "Modificacions del servei",
-          "p1": "OOMA Wellness Club es reserva el dret de modificar, en qualsevol moment i quan resulti necessari per al correcte funcionament del servei:",
-          "items": ["horaris", "instructors", "activitats", "serveis oferts"]
-        },
-        "11": {
-          "title": "Reglament intern de l'estudi",
-          "p1": "L'alumne/a es compromet a respectar el Reglament Intern de l'Estudi, disponible tant a la web com a les instal·lacions.",
-          "p2": "L'incompliment del mateix podrà donar lloc a la suspensió temporal o definitiva de l'accés a l'estudi."
-        },
-        "12": {
-          "title": "Protecció de dades personals (RGPD)",
-          "p1": "De conformitat amb el Reglament (UE) 2016/679 (RGPD) i la Llei Orgànica 3/2018 (LOPDGDD), s'informa que les dades personals facilitades seran tractades per OOMA Wellness Club amb les finalitats següents:",
-          "items": ["gestió de reserves", "gestió de pagaments", "organització d'activitats", "manteniment de la relació contractual", "enviament de comunicacions relacionades amb el servei"],
-          "p2": "Les dades no seran cedides a tercers, excepte obligació legal o quan resulti necessari per a la correcta prestació del servei.",
-          "p3": "L'usuari podrà exercir els seus drets d'accés, rectificació, supressió, limitació del tractament, oposició i portabilitat mitjançant sol·licitud adreçada a:",
-          "p4": "L'usuari declara haver estat informat del tractament de les seves dades personals i accepta el seu ús en els termes indicats."
-        },
-        "13": {
-          "title": "Acceptació dels termes i condicions",
-          "p1": "El registre a la plataforma web o app implica la lectura, comprensió i acceptació íntegra dels presents Termes i Condicions.",
-          "p2": "OOMA Wellness Club es reserva el dret de modificar el present document en qualsevol moment, amb la finalitat d'adaptar-lo a millores del servei o a canvis normatius."
         }
       }
     },
@@ -243,7 +258,20 @@
       "selectAll": "SELECCIONA TOTS ELS QUE APLIQUEN",
       "otherSpecify": "Altre (especificar)",
       "otherPlaceholder": "Si us plau, descriu la teva condició",
-      "months": ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"],
+      "months": [
+        "Gener",
+        "Febrer",
+        "Març",
+        "Abril",
+        "Maig",
+        "Juny",
+        "Juliol",
+        "Agost",
+        "Setembre",
+        "Octubre",
+        "Novembre",
+        "Desembre"
+      ],
       "errorBirthday": "Si us plau, introdueix la teva data de naixement.",
       "errorConditions": "Si us plau, respon a la pregunta sobre condicions de salut.",
       "errorConditionsSelect": "Si us plau, selecciona almenys una condició.",
@@ -256,7 +284,6 @@
       "letsGo": "ANEM!"
     }
   },
-
   "classes": {
     "tabTitle": "Calendari",
     "title": "Calendari",
@@ -315,7 +342,6 @@
       "successMessage": "La classe ha estat afegida a l'horari."
     }
   },
-
   "bookings": {
     "tabTitle": "Les meves classes",
     "title": "Les meves classes",
@@ -332,7 +358,6 @@
     "attended": "Assistida",
     "creditLost": "Crèdit perdut"
   },
-
   "profile": {
     "tabTitle": "Perfil",
     "title": "Perfil",
@@ -452,9 +477,25 @@
       "marked": "Marcat com a estudiant",
       "removed": "Ja no és estudiant",
       "onlyRegularUsers": "L'estat d'estudiant només es pot assignar a usuaris regulars."
+    },
+    "subscriptions": {
+      "title": "LES MEVES SUBSCRIPCIONS",
+      "empty": "No tens subscripcions actives.",
+      "statusActive": "ACTIVA",
+      "statusCancelling": "EN CANCEL·LACIÓ",
+      "statusPastDue": "PAGAMENT PENDENT",
+      "renewsOn": "Es renova el {{date}}",
+      "expiresOn": "Venç el {{date}}",
+      "creditsLeft": "{{remaining}} de {{total}} classes restants",
+      "cancelAction": "Cancel·lar subscripció",
+      "cancelTitle": "Cancel·lar subscripció",
+      "cancelBody": "La teva subscripció seguirà activa fins al {{date}}. No se't cobrarà res més.",
+      "cancelConfirmBtn": "CANCEL·LAR SUBSCRIPCIÓ",
+      "keepBtn": "MANTENIR SUBSCRIPCIÓ",
+      "cancelSuccess": "Subscripció cancel·lada",
+      "classesRemaining": "classes restants"
     }
   },
-
   "packages": {
     "tabTitle": "Paquets",
     "screenHeading": "Paquets",
@@ -498,14 +539,19 @@
     "sectionPersonal": "Classes Personals",
     "personalBadge": "1 A 1",
     "personalDescription": "Ooma ofereix la possibilitat de portar la teva pràctica al següent nivell treballant 1 a 1 amb els nostres coaches. T'interessa?",
-    "personalCTA": "COMENCEM"
+    "personalCTA": "COMENCEM",
+    "subscribeButton": "SUBSCRIURE-ME",
+    "perMonth": "mes",
+    "subscribeSuccess": "Subscripció activada",
+    "joinClubSuccess": "Ara ets membre del club",
+    "joinClubButton": "UNIR-ME AL CLUB",
+    "membershipBannerTitle": "Fes-te membre del club",
+    "membershipBannerBody": "Per subscriure-t a un pla de classes has de ser membre del club OOMA. L'accés és per una quota única de {{price}}."
   },
-
   "beta": {
     "comingSoon": "Pròximament",
     "message": "Estem donant els últims retocs a quelcom especial. Aviat tindràs notícies!"
   },
-
   "admin": {
     "tenantBanner": "Sessió com {{name}} · {{email}}",
     "exitSession": "Sortir",
@@ -516,7 +562,6 @@
     "sessionExpired": "Sessió expirada",
     "sessionExpiredMessage": "La teva sessió de {{name}} ha expirat per inactivitat."
   },
-
   "errors": {
     "networkError": "Error de xarxa. Si us plau, comprova la teva connexió.",
     "serverError": "Error del servidor. Si us plau, torna-ho a intentar més tard.",

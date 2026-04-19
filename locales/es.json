@@ -16,7 +16,6 @@
     "edit": "EDITAR",
     "done": "Listo"
   },
-
   "auth": {
     "login": {
       "title": "BIENVENIDO/A",
@@ -68,7 +67,6 @@
       "enterEmail": "Por favor, introduce tu dirección de email."
     }
   },
-
   "onboarding": {
     "languageStep": {
       "title": "Choose your language / Elige tu idioma / Tria el teu idioma"
@@ -149,6 +147,40 @@
       "title": "TÉRMINOS Y CONDICIONES DEL SERVICIO\nOOMA WELLNESS CLUB",
       "footer": "OOMA Wellness Club · 47829719T · admin@oomawellness.shop · +34 744 43 2128",
       "sections": {
+        "10": {
+          "title": "Modificaciones del servicio",
+          "p1": "OOMA Wellness Club se reserva el derecho de modificar, en cualquier momento y cuando resulte necesario para el correcto funcionamiento del servicio:",
+          "items": [
+            "horarios",
+            "instructores",
+            "actividades",
+            "servicios ofrecidos"
+          ]
+        },
+        "11": {
+          "title": "Reglamento interno del estudio",
+          "p1": "El alumno/a se compromete a respetar el Reglamento Interno del Estudio, disponible tanto en la web como en las instalaciones.",
+          "p2": "El incumplimiento del mismo podrá dar lugar a la suspensión temporal o definitiva del acceso al estudio."
+        },
+        "12": {
+          "title": "Protección de datos personales (RGPD)",
+          "p1": "De conformidad con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), se informa de que los datos personales facilitados serán tratados por OOMA Wellness Club con las siguientes finalidades:",
+          "items": [
+            "gestión de reservas",
+            "gestión de pagos",
+            "organización de actividades",
+            "mantenimiento de la relación contractual",
+            "envío de comunicaciones relacionadas con el servicio"
+          ],
+          "p2": "Los datos no serán cedidos a terceros, salvo obligación legal o cuando resulte necesario para la correcta prestación del servicio.",
+          "p3": "El usuario podrá ejercer sus derechos de acceso, rectificación, supresión, limitación del tratamiento, oposición y portabilidad mediante solicitud dirigida a:",
+          "p4": "El usuario declara haber sido informado del tratamiento de sus datos personales y acepta su uso en los términos indicados."
+        },
+        "13": {
+          "title": "Aceptación de los términos y condiciones",
+          "p1": "El registro en la plataforma web o app implica la lectura, comprensión y aceptación íntegra de los presentes Términos y Condiciones.",
+          "p2": "OOMA Wellness Club se reserva el derecho de modificar el presente documento en cualquier momento, con el fin de adaptarlo a mejoras del servicio o a cambios normativos."
+        },
         "01": {
           "title": "Objeto",
           "p1": "Los presentes Términos y Condiciones regulan el acceso, la reserva y la participación en las actividades ofrecidas por OOMA Wellness Club, así como el uso de sus instalaciones y servicios asociados.",
@@ -159,7 +191,13 @@
           "p1": "La participación en las actividades se realiza bajo la exclusiva responsabilidad del alumno/a.",
           "p2": "El usuario declara encontrarse en condiciones físicas adecuadas para la práctica de ejercicio físico.",
           "p3": "Asimismo, el alumno/a se compromete a informar previamente al estudio sobre cualquier circunstancia relevante para su salud, incluyendo, entre otras:",
-          "items": ["lesiones previas", "patologías", "limitaciones físicas", "embarazo", "cualquier otra condición médica relevante"],
+          "items": [
+            "lesiones previas",
+            "patologías",
+            "limitaciones físicas",
+            "embarazo",
+            "cualquier otra condición médica relevante"
+          ],
           "p4": "En caso de embarazo, el alumno/a declara disponer de autorización médica para la práctica de ejercicio físico.",
           "p5": "OOMA Wellness Club no tiene la consideración de centro médico ni de rehabilitación, por lo que las actividades ofrecidas no sustituyen en ningún caso tratamientos médicos, diagnósticos ni procesos clínicos.",
           "p6": "El instructor podrá adaptar los ejercicios, limitar o impedir la participación del alumno/a cuando lo considere necesario por motivos de seguridad, tanto individual como colectiva."
@@ -199,29 +237,6 @@
           "p1": "Los productos disponibles en el coffee corner y en el espacio de merchandising no están incluidos en el precio de las clases ni en las membresías.",
           "p2": "Todos los productos deberán abonarse con carácter previo a su consumo o retirada.",
           "p3": "OOMA Wellness Club se reserva el derecho de reclamar el importe correspondiente en caso de consumo o retirada sin previo pago."
-        },
-        "10": {
-          "title": "Modificaciones del servicio",
-          "p1": "OOMA Wellness Club se reserva el derecho de modificar, en cualquier momento y cuando resulte necesario para el correcto funcionamiento del servicio:",
-          "items": ["horarios", "instructores", "actividades", "servicios ofrecidos"]
-        },
-        "11": {
-          "title": "Reglamento interno del estudio",
-          "p1": "El alumno/a se compromete a respetar el Reglamento Interno del Estudio, disponible tanto en la web como en las instalaciones.",
-          "p2": "El incumplimiento del mismo podrá dar lugar a la suspensión temporal o definitiva del acceso al estudio."
-        },
-        "12": {
-          "title": "Protección de datos personales (RGPD)",
-          "p1": "De conformidad con el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), se informa de que los datos personales facilitados serán tratados por OOMA Wellness Club con las siguientes finalidades:",
-          "items": ["gestión de reservas", "gestión de pagos", "organización de actividades", "mantenimiento de la relación contractual", "envío de comunicaciones relacionadas con el servicio"],
-          "p2": "Los datos no serán cedidos a terceros, salvo obligación legal o cuando resulte necesario para la correcta prestación del servicio.",
-          "p3": "El usuario podrá ejercer sus derechos de acceso, rectificación, supresión, limitación del tratamiento, oposición y portabilidad mediante solicitud dirigida a:",
-          "p4": "El usuario declara haber sido informado del tratamiento de sus datos personales y acepta su uso en los términos indicados."
-        },
-        "13": {
-          "title": "Aceptación de los términos y condiciones",
-          "p1": "El registro en la plataforma web o app implica la lectura, comprensión y aceptación íntegra de los presentes Términos y Condiciones.",
-          "p2": "OOMA Wellness Club se reserva el derecho de modificar el presente documento en cualquier momento, con el fin de adaptarlo a mejoras del servicio o a cambios normativos."
         }
       }
     },
@@ -243,7 +258,20 @@
       "selectAll": "SELECCIONA TODOS LOS QUE APLIQUEN",
       "otherSpecify": "Otro (especificar)",
       "otherPlaceholder": "Por favor, describe tu condición",
-      "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+      "months": [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre"
+      ],
       "errorBirthday": "Por favor, introduce tu fecha de nacimiento.",
       "errorConditions": "Por favor, responde a la pregunta sobre condiciones de salud.",
       "errorConditionsSelect": "Por favor, selecciona al menos una condición.",
@@ -256,7 +284,6 @@
       "letsGo": "¡VAMOS!"
     }
   },
-
   "classes": {
     "tabTitle": "Calendario",
     "title": "Calendario",
@@ -315,7 +342,6 @@
       "successMessage": "La clase ha sido añadida al horario."
     }
   },
-
   "bookings": {
     "tabTitle": "Mis Clases",
     "title": "Mis Clases",
@@ -332,7 +358,6 @@
     "attended": "Asistida",
     "creditLost": "Crédito perdido"
   },
-
   "profile": {
     "tabTitle": "Perfil",
     "title": "Perfil",
@@ -452,9 +477,25 @@
       "marked": "Marcado como estudiante",
       "removed": "Ya no es estudiante",
       "onlyRegularUsers": "El estado de estudiante solo se puede asignar a usuarios regulares."
+    },
+    "subscriptions": {
+      "title": "MIS SUSCRIPCIONES",
+      "empty": "No tienes suscripciones activas.",
+      "statusActive": "ACTIVA",
+      "statusCancelling": "CANCELADA",
+      "statusPastDue": "PAGO PENDIENTE",
+      "renewsOn": "Se renueva el {{date}}",
+      "expiresOn": "Vence el {{date}}",
+      "creditsLeft": "{{remaining}} de {{total}} clases restantes",
+      "cancelAction": "Cancelar suscripción",
+      "cancelTitle": "Cancelar suscripción",
+      "cancelBody": "Tu suscripción seguirá activa hasta el {{date}}. No se realizarán más cobros.",
+      "cancelConfirmBtn": "CANCELAR SUSCRIPCIÓN",
+      "keepBtn": "MANTENER SUSCRIPCIÓN",
+      "cancelSuccess": "Suscripción cancelada",
+      "classesRemaining": "clases restantes"
     }
   },
-
   "packages": {
     "tabTitle": "Paquetes",
     "screenHeading": "Paquetes",
@@ -498,14 +539,19 @@
     "sectionPersonal": "Clases Personales",
     "personalBadge": "1 A 1",
     "personalDescription": "Ooma ofrece la posibilidad de llevar tu práctica al siguiente nivel trabajando 1 a 1 con nuestros coaches. ¿Te interesa?",
-    "personalCTA": "EMPECEMOS"
+    "personalCTA": "EMPECEMOS",
+    "subscribeButton": "SUSCRIBIRME",
+    "perMonth": "mes",
+    "subscribeSuccess": "Suscripción activada",
+    "joinClubSuccess": "Ya eres miembro del club",
+    "joinClubButton": "UNIRME AL CLUB",
+    "membershipBannerTitle": "Hazte miembro del club",
+    "membershipBannerBody": "Para suscribirte a un plan de clases necesitas ser miembro del club OOMA. El acceso es por una única cuota de {{price}}."
   },
-
   "beta": {
     "comingSoon": "Próximamente",
     "message": "Estamos dando los últimos retoques a algo especial. ¡Pronto tendrás noticias!"
   },
-
   "admin": {
     "tenantBanner": "Sesión como {{name}} · {{email}}",
     "exitSession": "Salir",
@@ -516,7 +562,6 @@
     "sessionExpired": "Sesión expirada",
     "sessionExpiredMessage": "Tu sesión de {{name}} ha expirado por inactividad."
   },
-
   "errors": {
     "networkError": "Error de red. Por favor, comprueba tu conexión.",
     "serverError": "Error del servidor. Por favor, inténtalo más tarde.",

@@ -16,6 +16,7 @@ import { useStripe } from '@stripe/stripe-react-native'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { subscriptionsApi, isGrandfathered, pollForSubscriptionCredit } from '@/lib/subscriptions'
 import { C, F } from '@/constants/theme'
 import Toast from '@/components/Toast'
 import BetaOverlay from '@/components/BetaOverlay'
@@ -42,12 +43,13 @@ const SPECIAL_BADGE_TEXT = '#8A6035'
 
 export default function PackagesScreen() {
   const { t } = useTranslation()
-  const { refreshUser, isBeta } = useAuth()
+  const { user, settings, refreshUser, isBeta } = useAuth()
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [joiningClub, setJoiningClub] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
     REFORMER: false,
@@ -55,6 +57,11 @@ export default function PackagesScreen() {
     BOTH: false,
     PERSONAL: false,
   })
+
+  const showMembershipGate =
+    settings?.subscriptionPaymentRequired === true &&
+    !user?.isClubMember &&
+    !isGrandfathered(user?.createdAt, settings?.membershipRequiredSince)
 
   async function fetchPackages() {
     try {
@@ -77,10 +84,42 @@ export default function PackagesScreen() {
     }, [])
   )
 
-  async function handlePurchase(pkg: Package) {
+  async function handleSubscribe(pkg: Package) {
     setLoadingId(pkg.id)
     try {
-      const { data } = await api.post('/api/mobile/checkout', { packageId: pkg.id })
+      const { data } = await subscriptionsApi.subscribe(pkg.id)
+
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: data.clientSecret,
+        merchantDisplayName: 'OOMA Wellness',
+        style: 'alwaysLight',
+      })
+      if (initError) throw new Error(initError.message)
+
+      const { error: presentError } = await presentPaymentSheet()
+      if (presentError) {
+        if (presentError.code !== 'Canceled') {
+          Alert.alert(t('packages.paymentFailed'), presentError.message)
+        }
+        return
+      }
+
+      // Poll until the webhook fires and the first credit is created
+      await pollForSubscriptionCredit(data.subscription.id)
+      await refreshUser()
+      setToast({ visible: true, message: t('packages.subscribeSuccess') })
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? t('common.somethingWentWrong')
+      Alert.alert(t('common.error'), msg)
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  async function handleJoinClub() {
+    setJoiningClub(true)
+    try {
+      const { data } = await subscriptionsApi.joinClub()
 
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
@@ -98,15 +137,14 @@ export default function PackagesScreen() {
       }
 
       const paymentIntentId = data.clientSecret.split('_secret_')[0]
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      await api.post('/api/mobile/payment-confirm', { paymentIntentId })
+      await subscriptionsApi.confirmJoinClub(paymentIntentId)
       await refreshUser()
-      setToast({ visible: true, message: t('packages.paymentSuccess') })
+      setToast({ visible: true, message: t('packages.joinClubSuccess') })
     } catch (err: any) {
       const msg = err?.response?.data?.error ?? err?.message ?? t('common.somethingWentWrong')
       Alert.alert(t('common.error'), msg)
     } finally {
-      setLoadingId(null)
+      setJoiningClub(false)
     }
   }
 
@@ -144,6 +182,15 @@ export default function PackagesScreen() {
           <Text style={styles.headingItalic}>{t('packages.screenHeading')}</Text>
         </View>
 
+        {showMembershipGate && (
+          <MembershipBanner
+            price={settings?.subscriptionPrice ?? 0}
+            loading={joiningClub}
+            onJoin={handleJoinClub}
+            t={t}
+          />
+        )}
+
         <Section
           title={t('packages.sectionReformer')}
           expanded={expanded.REFORMER}
@@ -154,7 +201,8 @@ export default function PackagesScreen() {
               key={pkg.id}
               pkg={pkg}
               loadingId={loadingId}
-              onPress={() => handlePurchase(pkg)}
+              gated={showMembershipGate}
+              onPress={() => handleSubscribe(pkg)}
               t={t}
             />
           ))}
@@ -170,7 +218,8 @@ export default function PackagesScreen() {
               key={pkg.id}
               pkg={pkg}
               loadingId={loadingId}
-              onPress={() => handlePurchase(pkg)}
+              gated={showMembershipGate}
+              onPress={() => handleSubscribe(pkg)}
               t={t}
             />
           ))}
@@ -187,7 +236,8 @@ export default function PackagesScreen() {
               key={pkg.id}
               pkg={pkg}
               loadingId={loadingId}
-              onPress={() => handlePurchase(pkg)}
+              gated={showMembershipGate}
+              onPress={() => handleSubscribe(pkg)}
               t={t}
             />
           ))}
@@ -203,7 +253,8 @@ export default function PackagesScreen() {
                   key={pkg.id}
                   pkg={pkg}
                   loadingId={loadingId}
-                  onPress={() => handlePurchase(pkg)}
+                  gated={showMembershipGate}
+                  onPress={() => handleSubscribe(pkg)}
                   t={t}
                   student
                 />
@@ -226,6 +277,38 @@ export default function PackagesScreen() {
 
       {isBeta && <BetaOverlay />}
     </SafeAreaView>
+  )
+}
+
+function MembershipBanner({
+  price,
+  loading,
+  onJoin,
+  t,
+}: {
+  price: number
+  loading: boolean
+  onJoin: () => void
+  t: (key: string, opts?: any) => string
+}) {
+  return (
+    <View style={styles.banner}>
+      <Text style={styles.bannerTitle}>{t('packages.membershipBannerTitle')}</Text>
+      <Text style={styles.bannerBody}>
+        {t('packages.membershipBannerBody', { price: `€${price}` })}
+      </Text>
+      <TouchableOpacity
+        style={[styles.bannerBtn, loading && styles.buyBtnDisabled]}
+        onPress={onJoin}
+        disabled={loading}
+        activeOpacity={0.8}
+      >
+        {loading
+          ? <ActivityIndicator size="small" color={C.cream} />
+          : <Text style={styles.bannerBtnText}>{t('packages.joinClubButton')}</Text>
+        }
+      </TouchableOpacity>
+    </View>
   )
 }
 
@@ -331,18 +414,20 @@ function PersonalSection({
 function PackageCard({
   pkg,
   loadingId,
+  gated,
   onPress,
   t,
   student = false,
 }: {
   pkg: Package
   loadingId: string | null
+  gated: boolean
   onPress: () => void
   t: (key: string, opts?: any) => string
   student?: boolean
 }) {
   const isLoading = loadingId === pkg.id
-  const isDisabled = loadingId !== null
+  const isDisabled = loadingId !== null || gated
   const perClass = pkg.isUnlimited ? null : (pkg.price / pkg.classCount).toFixed(0)
 
   return (
@@ -363,9 +448,14 @@ function PackageCard({
             </Text>
           )}
         </View>
-        <Text style={[styles.packagePrice, student && styles.packagePriceStudent]}>
-          €{pkg.price}
-        </Text>
+        <View style={styles.priceBlock}>
+          <Text style={[styles.packagePrice, student && styles.packagePriceStudent]}>
+            €{pkg.price}
+          </Text>
+          <Text style={[styles.perMonth, student && styles.perMonthStudent]}>
+            / {t('packages.perMonth')}
+          </Text>
+        </View>
       </View>
 
       <TouchableOpacity
@@ -375,7 +465,7 @@ function PackageCard({
       >
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.buyBtnText}>{t('packages.buyButton')}</Text>
+          : <Text style={styles.buyBtnText}>{t('packages.subscribeButton')}</Text>
         }
       </TouchableOpacity>
     </View>
@@ -389,6 +479,42 @@ const styles = StyleSheet.create({
 
   headingRow: { marginBottom: 24, marginTop: 8 },
   headingItalic: { fontFamily: F.serif, fontSize: 32, color: C.burg },
+
+  // ── Membership banner ─────────────────────────────────────────────────────
+  banner: {
+    backgroundColor: C.ink,
+    borderRadius: 4,
+    padding: 18,
+    marginBottom: 20,
+  },
+  bannerTitle: {
+    fontFamily: F.serifBold,
+    fontSize: 18,
+    color: C.cream,
+    marginBottom: 8,
+  },
+  bannerBody: {
+    fontFamily: F.sansReg,
+    fontSize: 13,
+    color: C.cream,
+    lineHeight: 19,
+    marginBottom: 16,
+    opacity: 0.85,
+  },
+  bannerBtn: {
+    height: 42,
+    backgroundColor: C.burg,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
 
   // ── Sections ──────────────────────────────────────────────────────────────
   section: {
@@ -498,12 +624,24 @@ const styles = StyleSheet.create({
     color: C.burg,
     lineHeight: 24,
   },
+  priceBlock: {
+    alignItems: 'flex-end',
+  },
   packagePrice: {
     fontFamily: F.serifBold,
     fontSize: 26,
     color: C.burg,
   },
   packagePriceStudent: {
+    color: '#6E7B6A',
+  },
+  perMonth: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.midGray,
+    marginTop: -2,
+  },
+  perMonthStudent: {
     color: '#6E7B6A',
   },
 
