@@ -92,6 +92,7 @@ export default function PackagesScreen() {
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: 'OOMA Wellness',
+        returnURL: 'ooma://stripe-redirect',
         style: 'alwaysLight',
       })
       if (initError) throw new Error(initError.message)
@@ -119,16 +120,23 @@ export default function PackagesScreen() {
   async function handleJoinClub() {
     setJoiningClub(true)
     try {
+      console.log('[JoinClub] 1. Calling joinClub API...')
       const { data } = await subscriptionsApi.joinClub()
+      console.log('[JoinClub] 2. Got clientSecret:', data.clientSecret?.slice(0, 20), '...')
 
+      console.log('[JoinClub] 3. Calling initPaymentSheet...')
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: 'OOMA Wellness',
+        returnURL: 'ooma://stripe-redirect',
         style: 'alwaysLight',
       })
+      console.log('[JoinClub] 4. initPaymentSheet done, error:', initError)
       if (initError) throw new Error(initError.message)
 
+      console.log('[JoinClub] 5. Calling presentPaymentSheet...')
       const { error: presentError } = await presentPaymentSheet()
+      console.log('[JoinClub] 6. presentPaymentSheet done, error:', presentError)
       if (presentError) {
         if (presentError.code !== 'Canceled') {
           Alert.alert(t('packages.paymentFailed'), presentError.message)
@@ -137,10 +145,12 @@ export default function PackagesScreen() {
       }
 
       const paymentIntentId = data.clientSecret.split('_secret_')[0]
+      console.log('[JoinClub] 7. Confirming join club, PI:', paymentIntentId)
       await subscriptionsApi.confirmJoinClub(paymentIntentId)
       await refreshUser()
       setToast({ visible: true, message: t('packages.joinClubSuccess') })
     } catch (err: any) {
+      console.log('[JoinClub] ERROR:', err?.response?.status, err?.response?.data, err?.message)
       const msg = err?.response?.data?.error ?? err?.message ?? t('common.somethingWentWrong')
       Alert.alert(t('common.error'), msg)
     } finally {
@@ -165,6 +175,24 @@ export default function PackagesScreen() {
     )
   }
 
+  if (showMembershipGate) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.headingRow}>
+          <Text style={styles.headingItalic}>{t('packages.screenHeading')}</Text>
+        </View>
+        <View style={styles.membershipGateContainer}>
+          <MembershipCard
+            price={settings?.subscriptionPrice ?? 0}
+            loading={joiningClub}
+            onJoin={handleJoinClub}
+            t={t}
+          />
+        </View>
+      </SafeAreaView>
+    )
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -182,15 +210,6 @@ export default function PackagesScreen() {
           <Text style={styles.headingItalic}>{t('packages.screenHeading')}</Text>
         </View>
 
-        {showMembershipGate && (
-          <MembershipBanner
-            price={settings?.subscriptionPrice ?? 0}
-            loading={joiningClub}
-            onJoin={handleJoinClub}
-            t={t}
-          />
-        )}
-
         <Section
           title={t('packages.sectionReformer')}
           expanded={expanded.REFORMER}
@@ -201,7 +220,7 @@ export default function PackagesScreen() {
               key={pkg.id}
               pkg={pkg}
               loadingId={loadingId}
-              gated={showMembershipGate}
+              gated={false}
               onPress={() => handleSubscribe(pkg)}
               t={t}
             />
@@ -218,7 +237,7 @@ export default function PackagesScreen() {
               key={pkg.id}
               pkg={pkg}
               loadingId={loadingId}
-              gated={showMembershipGate}
+              gated={false}
               onPress={() => handleSubscribe(pkg)}
               t={t}
             />
@@ -236,7 +255,7 @@ export default function PackagesScreen() {
               key={pkg.id}
               pkg={pkg}
               loadingId={loadingId}
-              gated={showMembershipGate}
+              gated={false}
               onPress={() => handleSubscribe(pkg)}
               t={t}
             />
@@ -253,7 +272,7 @@ export default function PackagesScreen() {
                   key={pkg.id}
                   pkg={pkg}
                   loadingId={loadingId}
-                  gated={showMembershipGate}
+                  gated={false}
                   onPress={() => handleSubscribe(pkg)}
                   t={t}
                   student
@@ -280,7 +299,7 @@ export default function PackagesScreen() {
   )
 }
 
-function MembershipBanner({
+function MembershipCard({
   price,
   loading,
   onJoin,
@@ -292,20 +311,23 @@ function MembershipBanner({
   t: (key: string, opts?: any) => string
 }) {
   return (
-    <View style={styles.banner}>
-      <Text style={styles.bannerTitle}>{t('packages.membershipBannerTitle')}</Text>
-      <Text style={styles.bannerBody}>
+    <View style={styles.membershipCard}>
+      <Text style={styles.membershipCardLogo}>OOMA</Text>
+      <Text style={styles.membershipCardClub}>WELLNESS CLUB</Text>
+      <View style={styles.membershipCardDivider} />
+      <Text style={styles.membershipCardTitle}>{t('packages.membershipBannerTitle')}</Text>
+      <Text style={styles.membershipCardBody}>
         {t('packages.membershipBannerBody', { price: `€${price}` })}
       </Text>
       <TouchableOpacity
-        style={[styles.bannerBtn, loading && styles.buyBtnDisabled]}
+        style={[styles.membershipCardBtn, loading && styles.buyBtnDisabled]}
         onPress={onJoin}
         disabled={loading}
         activeOpacity={0.8}
       >
         {loading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.bannerBtnText}>{t('packages.joinClubButton')}</Text>
+          : <Text style={styles.membershipCardBtnText}>{t('packages.joinClubButton')}</Text>
         }
       </TouchableOpacity>
     </View>
@@ -477,42 +499,77 @@ const styles = StyleSheet.create({
   centered: { flex: 1, backgroundColor: C.cream, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 20, paddingBottom: 48, paddingTop: 8 },
 
-  headingRow: { marginBottom: 24, marginTop: 8 },
+  headingRow: { marginBottom: 24, marginTop: 8, paddingHorizontal: 20 },
   headingItalic: { fontFamily: F.serif, fontSize: 32, color: C.burg },
 
-  // ── Membership banner ─────────────────────────────────────────────────────
-  banner: {
+  // ── Membership gate (full-screen card) ───────────────────────────────────
+  membershipGateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    paddingBottom: 48,
+  },
+  membershipCard: {
     backgroundColor: C.ink,
-    borderRadius: 4,
-    padding: 18,
-    marginBottom: 20,
+    borderRadius: 6,
+    paddingHorizontal: 32,
+    paddingVertical: 40,
+    alignItems: 'center',
+    width: '100%',
   },
-  bannerTitle: {
+  membershipCardLogo: {
     fontFamily: F.serifBold,
-    fontSize: 18,
+    fontSize: 36,
     color: C.cream,
-    marginBottom: 8,
+    letterSpacing: 8,
+    marginBottom: 4,
   },
-  bannerBody: {
-    fontFamily: F.sansReg,
-    fontSize: 13,
+  membershipCardClub: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
     color: C.cream,
-    lineHeight: 19,
+    letterSpacing: 4,
+    opacity: 0.6,
+    marginBottom: 24,
+  },
+  membershipCardDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: C.cream,
+    opacity: 0.15,
+    marginBottom: 28,
+  },
+  membershipCardTitle: {
+    fontFamily: F.serifBold,
+    fontSize: 22,
+    color: C.cream,
+    textAlign: 'center',
     marginBottom: 16,
-    opacity: 0.85,
+    lineHeight: 30,
   },
-  bannerBtn: {
-    height: 42,
+  membershipCardBody: {
+    fontFamily: F.sansReg,
+    fontSize: 14,
+    color: C.cream,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+    opacity: 0.8,
+  },
+  membershipCardBtn: {
+    height: 50,
     backgroundColor: C.burg,
     borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'stretch',
   },
-  bannerBtnText: {
+  membershipCardBtnText: {
     fontFamily: F.sansMed,
     fontSize: 11,
     color: C.cream,
-    letterSpacing: 2,
+    letterSpacing: 3,
     textTransform: 'uppercase',
   },
 

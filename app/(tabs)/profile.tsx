@@ -25,7 +25,7 @@ import * as Sharing from 'expo-sharing'
 import * as IntentLauncher from 'expo-intent-launcher'
 import QRCode from 'react-native-qrcode-svg'
 import { api } from '@/lib/api'
-import { useAuth, type Subscription } from '@/contexts/AuthContext'
+import { useAuth, type Subscription, type StandaloneCredit } from '@/contexts/AuthContext'
 import { subscriptionsApi } from '@/lib/subscriptions'
 import { C, F } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/api'
@@ -157,6 +157,7 @@ export default function ProfileScreen() {
   const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [standaloneCredits, setStandaloneCredits] = useState<StandaloneCredit[]>([])
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true)
   const [cancelTarget, setCancelTarget] = useState<Subscription | null>(null)
   const [cancelling, setCancelling] = useState(false)
@@ -225,7 +226,10 @@ export default function ProfileScreen() {
       if (isStaff) return
       setLoadingSubscriptions(true)
       subscriptionsApi.list()
-        .then(({ data }) => setSubscriptions(data.subscriptions ?? []))
+        .then(({ data }) => {
+          setSubscriptions(data.subscriptions ?? [])
+          setStandaloneCredits(data.standaloneCredits ?? [])
+        })
         .catch(() => {})
         .finally(() => setLoadingSubscriptions(false))
     }, [isStaff])
@@ -318,9 +322,9 @@ export default function ProfileScreen() {
     try {
       await subscriptionsApi.cancel(cancelTarget.id)
       setCancelTarget(null)
-      // Refresh subscription list
       const { data } = await subscriptionsApi.list()
       setSubscriptions(data.subscriptions ?? [])
+      setStandaloneCredits(data.standaloneCredits ?? [])
       setNotifToast({ visible: true, message: t('profile.subscriptions.cancelSuccess'), isError: false })
     } catch (err: any) {
       const msg = err?.response?.data?.error ?? t('common.somethingWentWrong')
@@ -337,17 +341,19 @@ export default function ProfileScreen() {
       await api.post('/api/mobile/claim-welcome-gift')
       await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
       setShowGiftModal(false)
-      // Refresh packages to show the new credit
-      const { data } = await api.get('/api/user/packages')
-      setActivePackages(data.active)
-      setExpiredPackages(data.expired)
+      const { data } = await subscriptionsApi.list()
+      setSubscriptions(data.subscriptions ?? [])
+      setStandaloneCredits(data.standaloneCredits ?? [])
     } catch (err: any) {
+      console.log('[ClaimGift] ERROR status:', err?.response?.status)
+      console.log('[ClaimGift] ERROR data:', JSON.stringify(err?.response?.data))
+      console.log('[ClaimGift] ERROR message:', err?.message)
       if (err.response?.status === 409) {
         // Already claimed server-side — mark locally and close
         await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
         setShowGiftModal(false)
       } else {
-        Alert.alert('Error', 'Could not claim the gift. Please try again later.')
+        Alert.alert('Error', `Could not claim the gift. Status: ${err?.response?.status} — ${err?.response?.data?.error ?? err?.message}`)
       }
     } finally {
       setClaimingGift(false)
@@ -769,19 +775,18 @@ export default function ProfileScreen() {
 
             {loadingSubscriptions ? (
               <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
-            ) : subscriptions.length === 0 ? (
+            ) : subscriptions.length === 0 && standaloneCredits.length === 0 ? (
               <Text style={styles.emptyPackagesText}>{t('profile.subscriptions.empty')}</Text>
             ) : (
               <>
-                {/* Total classes remaining across all active subscriptions */}
+                {/* Total classes remaining across subscriptions + standalone credits */}
                 <View style={styles.totalClassesRow}>
                   <Text style={styles.totalClassesNumber}>
                     {subscriptions.reduce((sum, sub) => {
                       const credit = sub.credits?.[0]
                       if (credit?.isUnlimited) return sum
-                      // Fall back to package classCount when webhook hasn't created credit yet
                       return sum + (credit?.creditsRemaining ?? sub.package.classCount)
-                    }, 0)}
+                    }, 0) + standaloneCredits.reduce((sum, c) => sum + (c.isUnlimited ? 0 : c.creditsRemaining), 0)}
                   </Text>
                   <Text style={styles.totalClassesLabel}>{t('profile.subscriptions.classesRemaining')}</Text>
                 </View>
@@ -841,6 +846,34 @@ export default function ProfileScreen() {
                     </View>
                   )
                 })}
+
+                {standaloneCredits.map(credit => (
+                  <View key={credit.id} style={styles.subCard}>
+                    <View style={styles.subCardTop}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.subName}>{credit.package?.name ?? t('profile.subscriptions.giftClass')}</Text>
+                        <Text style={styles.subMeta}>
+                          {credit.package?.packageType === 'REFORMER'
+                            ? t('classes.typeReformer')
+                            : credit.package?.packageType === 'YOGA'
+                            ? t('classes.typeYoga')
+                            : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
+                        </Text>
+                      </View>
+                      <View style={styles.subStatusBadge}>
+                        <Text style={styles.subStatusText}>{t('profile.subscriptions.statusActive')}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.subCredits}>
+                      {t('profile.subscriptions.creditsLeft', { remaining: credit.creditsRemaining, total: credit.creditsRemaining })}
+                    </Text>
+                    {credit.expiresAt && (
+                      <Text style={styles.subRenewal}>
+                        {t('profile.subscriptions.expiresOn', { date: format(new Date(credit.expiresAt), 'MMM d, yyyy') })}
+                      </Text>
+                    )}
+                  </View>
+                ))}
               </>
             )}
           </View>

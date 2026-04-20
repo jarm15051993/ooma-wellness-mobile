@@ -8,7 +8,7 @@ function TabIcon({ label, color }: { label: string; color: string }) {
   const icons: Record<string, string> = {
     Classes: '◈',
     Bookings: '◉',
-    Packages: '◫',
+    Subscriptions: '◫',
     Profile: '◎',
     Students: '⊕',
   }
@@ -66,7 +66,7 @@ export default function TabLayout() {
         name="packages"
         options={{
           title: t('packages.tabTitle'),
-          tabBarIcon: ({ color }) => <TabIcon label="Packages" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon label="Subscriptions" color={color} />,
           tabBarItemStyle: showPackages ? undefined : { display: 'none' },
           tabBarButton: showPackages ? undefined : () => null,
         }}

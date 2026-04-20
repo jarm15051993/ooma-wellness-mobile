@@ -394,7 +394,7 @@
       "push": "PUSH",
       "classBooked": "Clase reservada",
       "bookingCancelled": "Reserva cancelada",
-      "packagePurchase": "Compra de paquete",
+      "packagePurchase": "Compra de suscripción",
       "comingSoon": "Próximamente"
     },
     "info": {
@@ -497,8 +497,8 @@
     }
   },
   "packages": {
-    "tabTitle": "Paquetes",
-    "screenHeading": "Paquetes",
+    "tabTitle": "Suscripciones",
+    "screenHeading": "Suscripciones",
     "studentSection": "Paquetes de estudiante 🎓",
     "standardSection": "Paquetes de clases",
     "emptyState": "No hay paquetes disponibles ahora mismo. Vuelve pronto.",

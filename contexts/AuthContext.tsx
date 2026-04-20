@@ -27,6 +27,14 @@ export type AppSettings = {
   membershipRequiredSince: string | null
 }
 
+export type StandaloneCredit = {
+  id: string
+  creditsRemaining: number
+  isUnlimited: boolean
+  expiresAt: string | null
+  package: { name: string; packageType: 'REFORMER' | 'YOGA' | 'BOTH' } | null
+}
+
 export type Subscription = {
   id: string
   packageId: string

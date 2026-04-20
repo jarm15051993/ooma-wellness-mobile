@@ -323,7 +323,7 @@
     "noFilteredClasses": "No {{classType}} classes on this day.",
     "notInPlan": "Not in Your Plan",
     "buyMoreCredits": "Buy More Credits",
-    "notInPlanMessage": "This is a {{classType}} class. Your current plan doesn't cover this class type. Visit the Packages tab to find the right plan.",
+    "notInPlanMessage": "This is a {{classType}} class. Your current plan doesn't cover this class type. Visit the Subscriptions tab to find the right plan.",
     "createClass": {
       "title": "Create Class",
       "classTitle": "CLASS TITLE",
@@ -394,7 +394,7 @@
       "push": "PUSH",
       "classBooked": "Class Booked",
       "bookingCancelled": "Booking Cancelled",
-      "packagePurchase": "Package Purchase",
+      "packagePurchase": "Subscription Purchase",
       "comingSoon": "Coming soon"
     },
     "info": {
@@ -497,8 +497,8 @@
     }
   },
   "packages": {
-    "tabTitle": "Packages",
-    "screenHeading": "Packages",
+    "tabTitle": "Subscriptions",
+    "screenHeading": "Subscriptions",
     "studentSection": "Student Packages 🎓",
     "standardSection": "Class Packages",
     "emptyState": "No packages available right now. Check back soon.",
