@@ -571,5 +571,14 @@
     "noMailApp": "No mail app found",
     "noMailAppMessage": "Please open your email app manually and check your inbox.",
     "accountExists": "An account with this email already exists. Try signing in."
+  },
+  "ipad": {
+    "validateButton": "Validate Attendance",
+    "clubLabel": "Ooma Wellness Club",
+    "errors": {
+      "QR_NOT_FOUND": "QR code not recognised",
+      "NO_BOOKING_TODAY": "No class booked for today",
+      "UNKNOWN": "Something went wrong. Please try again."
+    }
   }
 }

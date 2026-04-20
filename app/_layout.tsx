@@ -98,7 +98,7 @@ function InactivityModal() {
 }
 
 function RootLayoutNav() {
-  const { user, isLoading, refreshUser } = useAuth()
+  const { user, isLoading, refreshUser, canValidateAttendance } = useAuth()
   const segments = useSegments()
   const router = useRouter()
   // Handle deep links — ooma://wallet-added, ooma://email-updated
@@ -124,16 +124,19 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return
     const inAuthGroup = segments[0] === '(auth)'
+    const inIpadGroup = segments[0] === '(ipad)'
     const onCompleteProfile = segments[1 as number] === 'complete-profile'
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && inAuthGroup) {
+    } else if (user && user.onboardingCompleted && canValidateAttendance && !inIpadGroup) {
+      router.replace('/(ipad)/validate')
+    } else if (user && user.onboardingCompleted && !canValidateAttendance && inAuthGroup) {
       router.replace('/(tabs)')
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)
     }
-  }, [user, isLoading, segments])
+  }, [user, isLoading, segments, canValidateAttendance])
 
   if (isLoading) {
     return (
@@ -150,6 +153,7 @@ function RootLayoutNav() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(ipad)" />
         <Stack.Screen name="packages" options={{ presentation: 'modal' }} />
         <Stack.Screen name="admin/search" />
       </Stack>

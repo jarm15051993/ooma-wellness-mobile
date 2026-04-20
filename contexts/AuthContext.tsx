@@ -155,7 +155,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function restore() {
       try {
-        const stored = await SecureStore.getItemAsync('access_token')
+        let stored = await SecureStore.getItemAsync('access_token')
+
+        if (!stored) {
+          const ipadEmail = process.env.EXPO_PUBLIC_IPAD_EMAIL
+          const ipadPassword = process.env.EXPO_PUBLIC_IPAD_PASSWORD
+          if (ipadEmail && ipadPassword) {
+            const { data } = await api.post('/api/mobile/auth/signin', { email: ipadEmail, password: ipadPassword })
+            await SecureStore.setItemAsync('access_token', data.token)
+            stored = data.token
+          }
+        }
+
         if (stored) {
           setToken(stored)
           applyPermissions(stored)
