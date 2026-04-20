@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ooma.wellness",
-      "buildNumber": "3",
+      "buildNumber": "7",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan QR codes and update your profile photo.",
         "NSPhotoLibraryUsageDescription": "Used to select a profile photo.",
