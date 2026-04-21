@@ -522,6 +522,7 @@
     "buyAndBook": "COMPRAR I RESERVAR",
     "paymentSuccess": "Pagament exitós",
     "paymentSuccessMessage": "Els teus crèdits han estat afegits al teu compte.",
+    "processingPayment": "Processant el teu pagament...",
     "paymentFailed": "Pagament fallit",
     "paymentFailedMessage": "El teu pagament no s'ha pogut processar. Si us plau, torna-ho a intentar.",
     "betaDisabled": "Les compres encara no estan disponibles.",
@@ -575,7 +576,8 @@
   "ipad": {
     "validateButton": "Validar Assistència",
     "clubLabel": "Ooma Wellness Club",
-    "stretcherLabel": "Reformer / Mat #{{number}}",
+    "stretcherPilates": "Reformer #{{number}}",
+    "stretcherYoga": "Esterilla #{{number}}",
     "errors": {
       "QR_NOT_FOUND": "Codi QR no reconegut",
       "NO_BOOKING_TODAY": "Sense classe reservada avui",

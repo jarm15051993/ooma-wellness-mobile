@@ -522,6 +522,7 @@
     "buyAndBook": "BUY & BOOK CLASS",
     "paymentSuccess": "Payment successful",
     "paymentSuccessMessage": "Your credits have been added to your account.",
+    "processingPayment": "Processing your payment...",
     "paymentFailed": "Payment failed",
     "paymentFailedMessage": "Your payment could not be processed. Please try again.",
     "betaDisabled": "Purchases are not available yet.",
@@ -575,7 +576,8 @@
   "ipad": {
     "validateButton": "Validate Attendance",
     "clubLabel": "Ooma Wellness Club",
-    "stretcherLabel": "Reformer / Mat #{{number}}",
+    "stretcherPilates": "Reformer #{{number}}",
+    "stretcherYoga": "Esterilla #{{number}}",
     "errors": {
       "QR_NOT_FOUND": "QR code not recognised",
       "NO_BOOKING_TODAY": "No class booked for today",
