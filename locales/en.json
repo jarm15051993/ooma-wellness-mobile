@@ -323,6 +323,7 @@
     "noFilteredClasses": "No {{classType}} classes on this day.",
     "notInPlan": "Not in Your Plan",
     "buyMoreCredits": "Buy More Credits",
+    "processingPayment": "Processing payment...",
     "notInPlanMessage": "This is a {{classType}} class. Your current plan doesn't cover this class type. Visit the Subscriptions tab to find the right plan.",
     "createClass": {
       "title": "Create Class",

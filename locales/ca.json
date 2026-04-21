@@ -323,6 +323,7 @@
     "noFilteredClasses": "No hi ha classes de {{classType}} avui.",
     "notInPlan": "No és al teu pla",
     "buyMoreCredits": "Comprar més crèdits",
+    "processingPayment": "Processant pagament...",
     "notInPlanMessage": "Aquesta és una classe de {{classType}}. El teu pla actual no cobreix aquest tipus de classe. Visita la pestanya Paquets per trobar el pla adequat.",
     "createClass": {
       "title": "Crear classe",
