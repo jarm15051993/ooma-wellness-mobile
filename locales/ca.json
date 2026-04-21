@@ -571,5 +571,15 @@
     "noMailApp": "App de correu no trobada",
     "noMailAppMessage": "Si us plau, obre la teva app de correu manualment i comprova la teva safata d'entrada.",
     "accountExists": "Ja existeix un compte amb aquest correu. Intenta iniciar sessió."
+  },
+  "ipad": {
+    "validateButton": "Validar Assistència",
+    "clubLabel": "Ooma Wellness Club",
+    "stretcherLabel": "Reformer / Mat #{{number}}",
+    "errors": {
+      "QR_NOT_FOUND": "Codi QR no reconegut",
+      "NO_BOOKING_TODAY": "Sense classe reservada avui",
+      "UNKNOWN": "Alguna cosa ha anat malament. Torna-ho a provar."
+    }
   }
 }
