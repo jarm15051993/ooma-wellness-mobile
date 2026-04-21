@@ -523,6 +523,7 @@
     "buyAndBook": "COMPRAR Y RESERVAR",
     "paymentSuccess": "Pago exitoso",
     "paymentSuccessMessage": "Tus créditos han sido añadidos a tu cuenta.",
+    "processingPayment": "Procesando tu pago...",
     "paymentFailed": "Pago fallido",
     "paymentFailedMessage": "Tu pago no pudo procesarse. Por favor, inténtalo de nuevo.",
     "betaDisabled": "Las compras aún no están disponibles.",

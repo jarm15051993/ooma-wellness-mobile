@@ -9,6 +9,7 @@ import {
   Alert,
   RefreshControl,
   Linking,
+  Modal,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -295,6 +296,15 @@ export default function PackagesScreen() {
       />
 
       {isBeta && <BetaOverlay />}
+
+      <Modal visible={!!(loadingId || joiningClub)} transparent animationType="fade">
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingBox}>
+            <ActivityIndicator size="large" color={C.burg} />
+            <Text style={styles.processingText}>{t('packages.processingPayment')}</Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -495,6 +505,26 @@ function PackageCard({
 }
 
 const styles = StyleSheet.create({
+  processingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  processingBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    gap: 16,
+  },
+  processingText: {
+    fontFamily: F.sansMed,
+    fontSize: 16,
+    color: C.dark,
+  },
+
   safe: { flex: 1, backgroundColor: C.cream },
   centered: { flex: 1, backgroundColor: C.cream, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 20, paddingBottom: 48, paddingTop: 8 },

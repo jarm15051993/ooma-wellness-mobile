@@ -523,6 +523,7 @@
     "buyAndBook": "BUY & BOOK CLASS",
     "paymentSuccess": "Payment successful",
     "paymentSuccessMessage": "Your credits have been added to your account.",
+    "processingPayment": "Processing your payment...",
     "paymentFailed": "Payment failed",
     "paymentFailedMessage": "Your payment could not be processed. Please try again.",
     "betaDisabled": "Purchases are not available yet.",
