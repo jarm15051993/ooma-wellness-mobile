@@ -9,7 +9,7 @@ import { C, F } from '@/constants/theme'
 type ScreenState = 'idle' | 'scanning' | 'success' | 'error'
 type ErrorKey = 'QR_NOT_FOUND' | 'NO_BOOKING_TODAY' | 'UNKNOWN'
 
-type SuccessData = { memberName: string; className: string; stretcherNumber: number | null }
+type SuccessData = { memberName: string; className: string; classType: 'REFORMER' | 'YOGA'; stretcherNumber: number | null }
 
 export default function ValidateScreen() {
   const { t } = useTranslation()
@@ -56,7 +56,11 @@ export default function ValidateScreen() {
         <Text style={s.resultName}>{successData.memberName}</Text>
         <Text style={s.resultClass}>{successData.className}</Text>
         {successData.stretcherNumber != null && (
-          <Text style={s.resultStretcher}>{t('ipad.stretcherLabel', { number: successData.stretcherNumber })}</Text>
+          <Text style={s.resultStretcher}>
+            {successData.classType === 'YOGA'
+              ? t('ipad.stretcherYoga', { number: successData.stretcherNumber })
+              : t('ipad.stretcherPilates', { number: successData.stretcherNumber })}
+          </Text>
         )}
       </View>
     )
@@ -140,24 +144,24 @@ const s = StyleSheet.create({
     paddingHorizontal: 40,
   },
   resultIcon: {
-    fontSize: 80,
+    fontSize: 120,
     color: '#fff',
   },
   resultName: {
     fontFamily: F.serifBold,
-    fontSize: 36,
+    fontSize: 56,
     color: '#fff',
     textAlign: 'center',
   },
   resultClass: {
     fontFamily: F.sans,
-    fontSize: 18,
+    fontSize: 28,
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
   },
   resultStretcher: {
     fontFamily: F.sansMed,
-    fontSize: 22,
+    fontSize: 32,
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
     marginTop: 8,

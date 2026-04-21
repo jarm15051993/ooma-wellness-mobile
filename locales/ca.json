@@ -576,7 +576,8 @@
   "ipad": {
     "validateButton": "Validar Assistència",
     "clubLabel": "Ooma Wellness Club",
-    "stretcherLabel": "Reformer / Mat #{{number}}",
+    "stretcherPilates": "Reformer #{{number}}",
+    "stretcherYoga": "Esterilla #{{number}}",
     "errors": {
       "QR_NOT_FOUND": "Codi QR no reconegut",
       "NO_BOOKING_TODAY": "Sense classe reservada avui",
