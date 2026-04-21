@@ -323,7 +323,6 @@
     "noFilteredClasses": "No hay clases de {{classType}} este día.",
     "notInPlan": "No está en tu plan",
     "buyMoreCredits": "Comprar más créditos",
-    "processingPayment": "Procesando pago...",
     "notInPlanMessage": "Esta es una clase de {{classType}}. Tu plan actual no cubre este tipo de clase. Visita la pestaña Paquetes para encontrar el plan adecuado.",
     "createClass": {
       "title": "Crear clase",

@@ -130,7 +130,6 @@ export default function ClassesScreen() {
   const [cancelling, setCancelling] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
   const [activeCredits, setActiveCredits] = useState<ActiveCredit[]>([])
-  const [pendingSubTypes, setPendingSubTypes] = useState<Set<string>>(new Set())
   const [classTypeFilter, setClassTypeFilter] = useState<ClassTypeFilter>('ALL')
   const [notInPlanClassId, setNotInPlanClassId] = useState<string | null>(null)
   const notInPlanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -168,26 +167,12 @@ export default function ClassesScreen() {
 
   async function fetchClasses() {
     try {
-      const [classesRes, creditsRes, subsRes] = await Promise.all([
+      const [classesRes, creditsRes] = await Promise.all([
         api.get('/api/mobile/classes'),
         api.get('/api/mobile/credits'),
-        api.get('/api/mobile/subscriptions'),
       ])
-      const credits: ActiveCredit[] = creditsRes.data.credits ?? []
       setClasses(classesRes.data.classes)
-      setActiveCredits(credits)
-
-      // Detect active subscriptions that have no credits yet (webhook still pending)
-      const subs: any[] = subsRes.data.subscriptions ?? []
-      const pending = new Set<string>()
-      for (const sub of subs) {
-        if (sub.status !== 'ACTIVE') continue
-        if ((sub.credits?.length ?? 0) > 0) continue
-        const pt: string = sub.package?.packageType ?? ''
-        pending.add(pt)
-        if (pt === 'BOTH') { pending.add('REFORMER'); pending.add('YOGA') }
-      }
-      setPendingSubTypes(pending)
+      setActiveCredits(creditsRes.data.credits ?? [])
     } catch (err: any) {
       if (err.response?.status !== 401) {
         Alert.alert('Error', err.response?.data?.error ?? 'Failed to load classes')
@@ -386,14 +371,12 @@ export default function ClassesScreen() {
     ? selectedClasses
     : selectedClasses.filter(c => c.classType === classTypeFilter)
 
-  function getBookButtonState(classType: 'REFORMER' | 'YOGA'): 'book' | 'buy' | 'noplan' | 'pending' {
+  function getBookButtonState(classType: 'REFORMER' | 'YOGA'): 'book' | 'buy' | 'noplan' {
     // activeCredits only contains non-expired credits with remaining > 0 or unlimited
     const matching = activeCredits.filter(c =>
       c.packageType === classType || c.packageType === 'BOTH'
     )
     if (matching.length > 0) return 'book'
-    // Has an active subscription awaiting the first credit (webhook not yet fired)
-    if (pendingSubTypes.has(classType) || pendingSubTypes.has('BOTH')) return 'pending'
     // Has credits but none cover this class type → wrong plan
     if (activeCredits.length > 0) return 'noplan'
     // No credits at all → send to buy
@@ -615,11 +598,6 @@ export default function ClassesScreen() {
                           </Text>
                         )}
                       </>
-                    ) : bookState === 'pending' ? (
-                      <View style={[styles.buyMoreBtn, { opacity: 0.6, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' }]}>
-                        <ActivityIndicator size="small" color={C.burg} />
-                        <Text style={styles.buyMoreBtnText}>{t('classes.processingPayment')}</Text>
-                      </View>
                     ) : bookState === 'buy' ? (
                       // Right type but out of credits
                       <TouchableOpacity
