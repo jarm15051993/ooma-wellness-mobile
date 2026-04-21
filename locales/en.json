@@ -575,6 +575,7 @@
   "ipad": {
     "validateButton": "Validate Attendance",
     "clubLabel": "Ooma Wellness Club",
+    "stretcherLabel": "Reformer / Mat #{{number}}",
     "errors": {
       "QR_NOT_FOUND": "QR code not recognised",
       "NO_BOOKING_TODAY": "No class booked for today",

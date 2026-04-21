@@ -9,7 +9,7 @@ import { C, F } from '@/constants/theme'
 type ScreenState = 'idle' | 'scanning' | 'success' | 'error'
 type ErrorKey = 'QR_NOT_FOUND' | 'NO_BOOKING_TODAY' | 'UNKNOWN'
 
-type SuccessData = { memberName: string; className: string }
+type SuccessData = { memberName: string; className: string; stretcherNumber: number | null }
 
 export default function ValidateScreen() {
   const { t } = useTranslation()
@@ -46,7 +46,7 @@ export default function ValidateScreen() {
     setTimeout(() => {
       setScreenState('idle')
       setSuccessData(null)
-    }, 3000)
+    }, 7000)
   }
 
   if (screenState === 'success' && successData) {
@@ -55,6 +55,9 @@ export default function ValidateScreen() {
         <Text style={s.resultIcon}>✓</Text>
         <Text style={s.resultName}>{successData.memberName}</Text>
         <Text style={s.resultClass}>{successData.className}</Text>
+        {successData.stretcherNumber != null && (
+          <Text style={s.resultStretcher}>{t('ipad.stretcherLabel', { number: successData.stretcherNumber })}</Text>
+        )}
       </View>
     )
   }
@@ -151,6 +154,13 @@ const s = StyleSheet.create({
     fontSize: 18,
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
+  },
+  resultStretcher: {
+    fontFamily: F.sansMed,
+    fontSize: 22,
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    marginTop: 8,
   },
   resultErrorMsg: {
     fontFamily: F.sansMed,
