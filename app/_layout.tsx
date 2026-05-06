@@ -134,7 +134,6 @@ function RootLayoutNav() {
     } else if (user && user.onboardingCompleted && canValidateAttendance && isIpad && !inIpadGroup) {
       router.replace('/(ipad)/validate')
     } else if (user && user.onboardingCompleted && inIpadGroup && !isIpad) {
-      // iPad-permission user on a non-iPad device — push to normal app
       router.replace('/(tabs)')
     } else if (user && user.onboardingCompleted && (!canValidateAttendance || !isIpad) && inAuthGroup) {
       router.replace('/(tabs)')
