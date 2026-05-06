@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { View, ActivityIndicator, TouchableOpacity, Text, Modal, StyleSheet, Linking } from 'react-native'
+import { View, ActivityIndicator, TouchableOpacity, Text, Modal, StyleSheet, Linking, Platform } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { setPendingWalletToast } from '@/lib/pendingToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -129,7 +129,7 @@ function RootLayoutNav() {
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && canValidateAttendance && !inIpadGroup) {
+    } else if (user && user.onboardingCompleted && canValidateAttendance && Platform.isPad && !inIpadGroup) {
       router.replace('/(ipad)/validate')
     } else if (user && user.onboardingCompleted && !canValidateAttendance && inAuthGroup) {
       router.replace('/(tabs)')
