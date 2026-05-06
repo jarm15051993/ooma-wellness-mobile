@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { View, ActivityIndicator, TouchableOpacity, Text, Modal, StyleSheet, Linking } from 'react-native'
+import { View, ActivityIndicator, TouchableOpacity, Text, Modal, StyleSheet, Linking, Platform } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { setPendingWalletToast } from '@/lib/pendingToast'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -127,11 +127,15 @@ function RootLayoutNav() {
     const inIpadGroup = segments[0] === '(ipad)'
     const onCompleteProfile = segments[1 as number] === 'complete-profile'
 
+    const isIpad = Platform.isPad === true
+
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && canValidateAttendance && !inIpadGroup) {
+    } else if (user && user.onboardingCompleted && canValidateAttendance && isIpad && !inIpadGroup) {
       router.replace('/(ipad)/validate')
-    } else if (user && user.onboardingCompleted && !canValidateAttendance && inAuthGroup) {
+    } else if (user && user.onboardingCompleted && inIpadGroup && !isIpad) {
+      router.replace('/(tabs)')
+    } else if (user && user.onboardingCompleted && (!canValidateAttendance || !isIpad) && inAuthGroup) {
       router.replace('/(tabs)')
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)

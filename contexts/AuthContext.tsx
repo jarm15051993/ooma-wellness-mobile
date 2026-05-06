@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import * as SecureStore from 'expo-secure-store'
-import { AppState } from 'react-native'
+import { AppState, Platform } from 'react-native'
 import { useRouter } from 'expo-router'
 import { api, setTenantUserId } from '@/lib/api'
 import i18n, { type AppLanguage } from '@/lib/i18n'
@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!stored) {
           const ipadEmail = process.env.EXPO_PUBLIC_IPAD_EMAIL
           const ipadPassword = process.env.EXPO_PUBLIC_IPAD_PASSWORD
-          if (ipadEmail && ipadPassword) {
+          if (ipadEmail && ipadPassword && Platform.isPad) {
             const { data } = await api.post('/api/mobile/auth/signin', { email: ipadEmail, password: ipadPassword })
             await SecureStore.setItemAsync('access_token', data.token)
             stored = data.token
