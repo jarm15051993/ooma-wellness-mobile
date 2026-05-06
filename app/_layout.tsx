@@ -127,11 +127,16 @@ function RootLayoutNav() {
     const inIpadGroup = segments[0] === '(ipad)'
     const onCompleteProfile = segments[1 as number] === 'complete-profile'
 
+    const isIpad = Platform.isPad === true
+
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && canValidateAttendance && Platform.isPad && !inIpadGroup) {
+    } else if (user && user.onboardingCompleted && canValidateAttendance && isIpad && !inIpadGroup) {
       router.replace('/(ipad)/validate')
-    } else if (user && user.onboardingCompleted && (!canValidateAttendance || !Platform.isPad) && inAuthGroup) {
+    } else if (user && user.onboardingCompleted && inIpadGroup && !isIpad) {
+      // iPad-permission user on a non-iPad device — push to normal app
+      router.replace('/(tabs)')
+    } else if (user && user.onboardingCompleted && (!canValidateAttendance || !isIpad) && inAuthGroup) {
       router.replace('/(tabs)')
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)
