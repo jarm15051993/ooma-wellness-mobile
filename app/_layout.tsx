@@ -131,7 +131,7 @@ function RootLayoutNav() {
       router.replace('/(auth)/login')
     } else if (user && user.onboardingCompleted && canValidateAttendance && Platform.isPad && !inIpadGroup) {
       router.replace('/(ipad)/validate')
-    } else if (user && user.onboardingCompleted && !canValidateAttendance && inAuthGroup) {
+    } else if (user && user.onboardingCompleted && (!canValidateAttendance || !Platform.isPad) && inAuthGroup) {
       router.replace('/(tabs)')
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)
