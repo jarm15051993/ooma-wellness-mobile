@@ -220,6 +220,18 @@ export default function ProfileScreen() {
   const [showLanguageModal, setShowLanguageModal] = useState(false)
   const [savingLanguage, setSavingLanguage] = useState(false)
 
+  // Account deletion
+  const [deletionPreview, setDeletionPreview] = useState<{
+    activeSubscriptions: { id: string; name: string }[]
+    upcomingBookingsCount: number
+    totalCreditsRemaining: number
+    hasUnlimited: boolean
+  } | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [loadingDeletePreview, setLoadingDeletePreview] = useState(false)
+
 
   useFocusEffect(
     useCallback(() => {
@@ -647,6 +659,34 @@ export default function ProfileScreen() {
     ])
   }
 
+  async function handleDeleteAccountPress() {
+    setLoadingDeletePreview(true)
+    try {
+      const { data } = await api.get('/api/mobile/account')
+      setDeletionPreview(data)
+      setDeleteConfirmText('')
+      setShowDeleteModal(true)
+    } catch {
+      Alert.alert('Error', 'Could not load account details. Please try again.')
+    } finally {
+      setLoadingDeletePreview(false)
+    }
+  }
+
+  async function confirmDeleteAccount() {
+    if (deleteConfirmText !== 'DELETE') return
+    setDeletingAccount(true)
+    try {
+      await api.delete('/api/mobile/account')
+      setShowDeleteModal(false)
+      await signOut()
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.error ?? 'Something went wrong. Please try again.')
+    } finally {
+      setDeletingAccount(false)
+    }
+  }
+
   async function handleLanguageSelect(lang: AppLanguage) {
     if (lang === language) { setShowLanguageModal(false); return }
     setSavingLanguage(true)
@@ -998,6 +1038,26 @@ export default function ProfileScreen() {
             <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
           </TouchableOpacity>
         )}
+
+        {/* Danger Zone — hidden in tenant/admin mode */}
+        {!isStaff && !tenantUser && (
+          <View style={styles.dangerZone}>
+            <Text style={styles.dangerZoneTitle}>DANGER ZONE</Text>
+            <Text style={styles.dangerZoneDesc}>
+              Deleting your account is permanent. Your active subscriptions will be cancelled immediately and all remaining credits will be lost.
+            </Text>
+            <TouchableOpacity
+              style={[styles.deleteAccountBtn, loadingDeletePreview && styles.btnDisabled]}
+              onPress={handleDeleteAccountPress}
+              disabled={loadingDeletePreview}
+            >
+              {loadingDeletePreview
+                ? <ActivityIndicator size="small" color={C.red} />
+                : <Text style={styles.deleteAccountBtnText}>DELETE ACCOUNT</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
 
       <Toast
@@ -1083,6 +1143,89 @@ export default function ProfileScreen() {
             {savingLanguage && <ActivityIndicator size="small" color={C.burg} style={{ marginTop: 12 }} />}
             <TouchableOpacity style={styles.langPickerCancel} onPress={() => setShowLanguageModal(false)} disabled={savingLanguage}>
               <Text style={styles.langPickerCancelText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── Delete account confirmation modal ─── */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => { if (!deletingAccount) setShowDeleteModal(false) }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModalCard}>
+            <Text style={styles.deleteModalTitle}>Delete Account</Text>
+
+            {deletionPreview && (
+              <>
+                {deletionPreview.activeSubscriptions.length > 0 && (
+                  <View style={styles.deletePreviewItem}>
+                    <Text style={styles.deletePreviewLabel}>SUBSCRIPTIONS TO BE CANCELLED</Text>
+                    {deletionPreview.activeSubscriptions.map(s => (
+                      <Text key={s.id} style={styles.deletePreviewValue}>• {s.name}</Text>
+                    ))}
+                  </View>
+                )}
+                {deletionPreview.upcomingBookingsCount > 0 && (
+                  <View style={styles.deletePreviewItem}>
+                    <Text style={styles.deletePreviewLabel}>UPCOMING BOOKINGS TO BE CANCELLED</Text>
+                    <Text style={styles.deletePreviewValue}>
+                      {deletionPreview.upcomingBookingsCount} booking{deletionPreview.upcomingBookingsCount !== 1 ? 's' : ''} — credits will not be refunded
+                    </Text>
+                  </View>
+                )}
+                {(deletionPreview.totalCreditsRemaining > 0 || deletionPreview.hasUnlimited) && (
+                  <View style={styles.deletePreviewItem}>
+                    <Text style={styles.deletePreviewLabel}>CREDITS THAT WILL BE LOST</Text>
+                    <Text style={styles.deletePreviewValue}>
+                      {deletionPreview.hasUnlimited
+                        ? 'Unlimited access'
+                        : `${deletionPreview.totalCreditsRemaining} class credit${deletionPreview.totalCreditsRemaining !== 1 ? 's' : ''}`}
+                    </Text>
+                  </View>
+                )}
+                {deletionPreview.activeSubscriptions.length === 0 &&
+                  deletionPreview.upcomingBookingsCount === 0 &&
+                  deletionPreview.totalCreditsRemaining === 0 &&
+                  !deletionPreview.hasUnlimited && (
+                  <View style={styles.deletePreviewItem}>
+                    <Text style={styles.deletePreviewValue}>You have no active subscriptions, upcoming bookings, or remaining credits.</Text>
+                  </View>
+                )}
+              </>
+            )}
+
+            <Text style={styles.deleteConfirmPrompt}>Type DELETE to confirm:</Text>
+            <TextInput
+              style={styles.deleteConfirmInput}
+              value={deleteConfirmText}
+              onChangeText={setDeleteConfirmText}
+              placeholder="DELETE"
+              placeholderTextColor={C.lightGray}
+              autoCapitalize="characters"
+              editable={!deletingAccount}
+            />
+
+            <TouchableOpacity
+              style={[styles.deleteConfirmBtn, (deleteConfirmText !== 'DELETE' || deletingAccount) && styles.btnDisabled]}
+              onPress={confirmDeleteAccount}
+              disabled={deleteConfirmText !== 'DELETE' || deletingAccount}
+            >
+              {deletingAccount
+                ? <ActivityIndicator size="small" color={C.cream} />
+                : <Text style={styles.deleteConfirmBtnText}>DELETE MY ACCOUNT</Text>
+              }
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.noThanksBtn}
+              onPress={() => setShowDeleteModal(false)}
+              disabled={deletingAccount}
+            >
+              <Text style={styles.noThanksBtnText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1646,4 +1789,51 @@ const styles = StyleSheet.create({
   },
   studentToggleLabel: { fontFamily: F.sansMed, fontSize: 13, color: C.ink, letterSpacing: 0.3 },
   studentToggleSub: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 2 },
+  // ─── Danger Zone ───────────────────────────────────────────────────────────
+  dangerZone: {
+    marginTop: 32, borderWidth: 1, borderColor: `${C.red}40`,
+    borderRadius: 4, padding: 16,
+  },
+  dangerZoneTitle: {
+    fontFamily: F.sansMed, fontSize: 10, color: C.red,
+    letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6,
+  },
+  dangerZoneDesc: {
+    fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 14, lineHeight: 18,
+  },
+  deleteAccountBtn: {
+    height: 44, borderWidth: 1, borderColor: C.red,
+    borderRadius: 2, alignItems: 'center', justifyContent: 'center',
+  },
+  deleteAccountBtnText: {
+    fontFamily: F.sansMed, fontSize: 11, color: C.red, letterSpacing: 2, textTransform: 'uppercase',
+  },
+  // ─── Delete confirmation modal ─────────────────────────────────────────────
+  deleteModalCard: {
+    backgroundColor: C.cream, borderRadius: 6, padding: 24, width: '90%', maxWidth: 380,
+  },
+  deleteModalTitle: {
+    fontFamily: F.serifBold, fontSize: 20, color: C.ink, marginBottom: 16,
+  },
+  deletePreviewItem: { marginBottom: 12 },
+  deletePreviewLabel: {
+    fontFamily: F.sansMed, fontSize: 9, color: C.midGray,
+    letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4,
+  },
+  deletePreviewValue: { fontFamily: F.sansReg, fontSize: 13, color: C.ink, lineHeight: 20 },
+  deleteConfirmPrompt: {
+    fontFamily: F.sansMed, fontSize: 11, color: C.ink, letterSpacing: 0.5, marginTop: 16, marginBottom: 8,
+  },
+  deleteConfirmInput: {
+    height: 44, borderWidth: 1, borderColor: C.rule, borderRadius: 2,
+    paddingHorizontal: 12, fontFamily: F.sansReg, fontSize: 14,
+    color: C.ink, backgroundColor: C.warmWhite, marginBottom: 16,
+  },
+  deleteConfirmBtn: {
+    height: 48, backgroundColor: C.red, borderRadius: 2,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+  },
+  deleteConfirmBtnText: {
+    fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase',
+  },
 })
