@@ -1007,7 +1007,8 @@ export default function ProfileScreen() {
               </View>
             ))}
 
-            <View style={[styles.creditsDivider, { marginTop: 16 }]} />
+            {/* Push notifications — not implemented in MVP */}
+            {/* <View style={[styles.creditsDivider, { marginTop: 16 }]} />
             <Text style={styles.notifGroupLabel}>{t('profile.notifications.push')}</Text>
             {[0, 1, 2].map(i => (
               <View key={i} style={styles.notifRow}>
@@ -1015,7 +1016,7 @@ export default function ProfileScreen() {
                 <Switch value={false} disabled trackColor={{ false: C.rule, true: C.rule }} thumbColor={C.lightGray} />
               </View>
             ))}
-            <Text style={styles.notifComingSoon}>Push notifications coming in a future update.</Text>
+            <Text style={styles.notifComingSoon}>Push notifications coming in a future update.</Text> */}
           </View>
         )}
 
