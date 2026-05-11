@@ -340,17 +340,18 @@ export default function ProfileScreen() {
     try {
       await api.post('/api/mobile/claim-welcome-gift')
       await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
-      setShowGiftModal(false)
       const { data } = await subscriptionsApi.list()
       setSubscriptions(data.subscriptions ?? [])
       setStandaloneCredits(data.standaloneCredits ?? [])
+      setShowGiftModal(false)
     } catch (err: any) {
-      console.log('[ClaimGift] ERROR status:', err?.response?.status)
-      console.log('[ClaimGift] ERROR data:', JSON.stringify(err?.response?.data))
-      console.log('[ClaimGift] ERROR message:', err?.message)
       if (err.response?.status === 409) {
-        // Already claimed server-side — mark locally and close
         await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
+        try {
+          const { data } = await subscriptionsApi.list()
+          setSubscriptions(data.subscriptions ?? [])
+          setStandaloneCredits(data.standaloneCredits ?? [])
+        } catch { /* ignore */ }
         setShowGiftModal(false)
       } else {
         Alert.alert('Error', `Could not claim the gift. Status: ${err?.response?.status} — ${err?.response?.data?.error ?? err?.message}`)
