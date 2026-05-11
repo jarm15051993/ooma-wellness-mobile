@@ -306,8 +306,10 @@ export default function PackagesScreen() {
         </View>
       </Modal>
 
-      <Modal visible={!!isBeta} transparent animationType="fade">
-        <BetaOverlay />
+      <Modal visible={!!isBeta} transparent animationType="none">
+        <View style={{ flex: 1 }}>
+          <BetaOverlay />
+        </View>
       </Modal>
     </SafeAreaView>
   )
