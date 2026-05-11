@@ -103,6 +103,8 @@ export default function PackagesScreen() {
         if (presentError.code !== 'Canceled') {
           Alert.alert(t('packages.paymentFailed'), presentError.message)
         }
+        // Remove the pending subscription so the user can retry
+        api.delete(`/api/mobile/subscriptions/${data.subscription.id}`).catch(() => {})
         return
       }
 
