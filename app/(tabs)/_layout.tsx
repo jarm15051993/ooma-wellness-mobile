@@ -21,12 +21,12 @@ function TabIcon({ label, color }: { label: string; color: string }) {
 
 export default function TabLayout() {
   const { t } = useTranslation()
-  const { isAdmin, isOwner, canViewStudents, tenantUser, isBeta } = useAuth()
+  const { isAdmin, isOwner, canViewStudents, tenantUser } = useAuth()
 
   const isStaff = isAdmin || isOwner
   const showStudents = (canViewStudents || isOwner) && !tenantUser
   const showBookings = !isStaff || !!tenantUser
-  const showPackages = (!isStaff || !!tenantUser) && !isBeta
+  const showPackages = !isStaff || !!tenantUser
 
   return (
     <Tabs
