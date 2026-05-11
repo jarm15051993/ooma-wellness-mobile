@@ -192,6 +192,7 @@ export default function PackagesScreen() {
             t={t}
           />
         </View>
+        {isBeta && <BetaOverlay />}
       </SafeAreaView>
     )
   }
@@ -307,6 +308,8 @@ export default function PackagesScreen() {
           </View>
         </View>
       </Modal>
+
+      {isBeta && <BetaOverlay />}
     </SafeAreaView>
   )
 }
