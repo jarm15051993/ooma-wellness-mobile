@@ -9,6 +9,9 @@ export const subscriptionsApi = {
   cancel: (id: string) =>
     api.patch(`/api/mobile/subscriptions/${id}`),
 
+  cancelPending: (id: string) =>
+    api.delete(`/api/mobile/subscriptions/${id}`),
+
   subscribe: (packageId: string) =>
     api.post('/api/mobile/subscribe', { packageId }),
 
