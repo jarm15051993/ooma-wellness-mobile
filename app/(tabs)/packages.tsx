@@ -297,8 +297,6 @@ export default function PackagesScreen() {
         onHide={() => setToast(prev => ({ ...prev, visible: false }))}
       />
 
-      {isBeta && <BetaOverlay />}
-
       <Modal visible={!!(loadingId || joiningClub)} transparent animationType="fade">
         <View style={styles.processingOverlay}>
           <View style={styles.processingBox}>
@@ -306,6 +304,10 @@ export default function PackagesScreen() {
             <Text style={styles.processingText}>{t('packages.processingPayment')}</Text>
           </View>
         </View>
+      </Modal>
+
+      <Modal visible={!!isBeta} transparent animationType="fade">
+        <BetaOverlay />
       </Modal>
     </SafeAreaView>
   )
