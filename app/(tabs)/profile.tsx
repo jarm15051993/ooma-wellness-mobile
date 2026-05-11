@@ -338,21 +338,42 @@ export default function ProfileScreen() {
     if (!user?.id) return
     setClaimingGift(true)
     try {
-      await api.post('/api/mobile/claim-welcome-gift')
+      const { data: claimData } = await api.post('/api/mobile/claim-welcome-gift')
       await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
-      const { data } = await subscriptionsApi.list()
-      setSubscriptions(data.subscriptions ?? [])
-      setStandaloneCredits(data.standaloneCredits ?? [])
+      // Immediately inject the new credit into state so the profile updates
+      // without waiting for a full list refresh
+      if (claimData?.userCredit) {
+        const uc = claimData.userCredit
+        setStandaloneCredits(prev => [
+          ...prev,
+          {
+            id: uc.id,
+            creditsRemaining: uc.creditsRemaining,
+            isUnlimited: uc.isUnlimited,
+            expiresAt: uc.expiresAt,
+            package: uc.package ?? null,
+          },
+        ])
+      }
       setShowGiftModal(false)
-    } catch (err: any) {
-      if (err.response?.status === 409) {
-        await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
-        try {
-          const { data } = await subscriptionsApi.list()
+      // Background refresh to sync full state
+      subscriptionsApi.list()
+        .then(({ data }) => {
           setSubscriptions(data.subscriptions ?? [])
           setStandaloneCredits(data.standaloneCredits ?? [])
-        } catch { /* ignore */ }
+        })
+        .catch(() => {})
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        // Already claimed — mark locally and refresh to show the existing credit
+        await SecureStore.setItemAsync(`gift_claimed_${user.id}`, 'true')
         setShowGiftModal(false)
+        subscriptionsApi.list()
+          .then(({ data }) => {
+            setSubscriptions(data.subscriptions ?? [])
+            setStandaloneCredits(data.standaloneCredits ?? [])
+          })
+          .catch(() => {})
       } else {
         Alert.alert('Error', `Could not claim the gift. Status: ${err?.response?.status} — ${err?.response?.data?.error ?? err?.message}`)
       }
