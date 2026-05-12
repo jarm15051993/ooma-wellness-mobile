@@ -962,7 +962,7 @@ export default function ProfileScreen() {
 
           <View style={[styles.creditsDivider, { marginTop: 16, alignSelf: 'stretch' }]} />
 
-          {Platform.OS === 'ios' ? (
+          {Platform.OS === 'ios' && (
             <TouchableOpacity
               style={[styles.walletBtn, walletLoading && styles.btnDisabled]}
               onPress={handleAddToAppleWallet}
@@ -973,7 +973,8 @@ export default function ProfileScreen() {
                 : <Text style={styles.walletBtnText}>{t('profile.wallet.addApple')}</Text>
               }
             </TouchableOpacity>
-          ) : (
+          )}
+          {Platform.OS === 'android' && (
             <TouchableOpacity
               style={[styles.walletBtn, walletLoading && styles.btnDisabled]}
               onPress={handleAddToGoogleWallet}

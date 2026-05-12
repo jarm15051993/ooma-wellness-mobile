@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ooma.wellness",
-      "buildNumber": "12",
+      "buildNumber": "15",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan QR codes and update your profile photo.",
         "NSPhotoLibraryUsageDescription": "Used to select a profile photo.",
@@ -25,6 +25,7 @@
     },
     "android": {
       "package": "com.ooma.wellness",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FAF9F6",
         "foregroundImage": "./assets/android-icon-foreground.png",
