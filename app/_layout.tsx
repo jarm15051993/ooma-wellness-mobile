@@ -128,14 +128,15 @@ function RootLayoutNav() {
     const onCompleteProfile = segments[1 as number] === 'complete-profile'
 
     const isIpad = Platform.isPad === true
+    const isIpadAccount = user?.email === process.env.EXPO_PUBLIC_IPAD_EMAIL
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && canValidateAttendance && isIpad && isIpadSession && !inIpadGroup) {
+    } else if (user && user.onboardingCompleted && isIpad && isIpadAccount && !inIpadGroup) {
       router.replace('/(ipad)/validate')
-    } else if (user && user.onboardingCompleted && inIpadGroup && !isIpad) {
+    } else if (user && user.onboardingCompleted && inIpadGroup && !isIpadAccount) {
       router.replace('/(tabs)')
-    } else if (user && user.onboardingCompleted && (!canValidateAttendance || !isIpad) && inAuthGroup) {
+    } else if (user && user.onboardingCompleted && (!isIpad || !isIpadAccount) && inAuthGroup) {
       router.replace('/(tabs)')
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)
