@@ -98,7 +98,7 @@ function InactivityModal() {
 }
 
 function RootLayoutNav() {
-  const { user, isLoading, refreshUser, canValidateAttendance } = useAuth()
+  const { user, isLoading, refreshUser, canValidateAttendance, isIpadSession } = useAuth()
   const segments = useSegments()
   const router = useRouter()
   // Handle deep links — ooma://wallet-added, ooma://email-updated
@@ -131,7 +131,7 @@ function RootLayoutNav() {
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && canValidateAttendance && isIpad && !inIpadGroup) {
+    } else if (user && user.onboardingCompleted && canValidateAttendance && isIpad && isIpadSession && !inIpadGroup) {
       router.replace('/(ipad)/validate')
     } else if (user && user.onboardingCompleted && inIpadGroup && !isIpad) {
       router.replace('/(tabs)')
@@ -140,7 +140,7 @@ function RootLayoutNav() {
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)
     }
-  }, [user, isLoading, segments, canValidateAttendance])
+  }, [user, isLoading, segments, canValidateAttendance, isIpadSession])
 
   if (isLoading) {
     return (

@@ -78,6 +78,7 @@ type AuthContextType = {
   settings: AppSettings | null
   startTenantSession: (user: User) => void
   exitTenantSession: (fromInactivity?: boolean) => void
+  isIpadSession: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -133,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const [settings, setSettings] = useState<AppSettings | null>(null)
+  const [isIpadSession, setIsIpadSession] = useState(false)
   const lastActivityAt = useRef<number>(Date.now())
   const router = useRouter()
 
@@ -164,6 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { data } = await api.post('/api/mobile/auth/signin', { email: ipadEmail, password: ipadPassword })
             await SecureStore.setItemAsync('access_token', data.token)
             stored = data.token
+            setIsIpadSession(true)
           }
         }
 
@@ -226,6 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signIn(email: string, password: string) {
     const { data } = await api.post('/api/mobile/auth/signin', { email, password })
     await SecureStore.setItemAsync('access_token', data.token)
+    setIsIpadSession(false)
     setToken(data.token)
     applyPermissions(data.token)
     setUser(data.user)
@@ -236,6 +240,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
+    setIsIpadSession(false)
     await SecureStore.deleteItemAsync('access_token')
     setToken(null)
     setIsAdmin(false)
@@ -271,6 +276,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
       canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent, isBeta,
+      isIpadSession,
       language,
       isLoading, tenantUser, lastActivityAt,
       settings,

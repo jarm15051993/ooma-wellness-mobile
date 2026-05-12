@@ -5,6 +5,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { C, F } from '@/constants/theme'
+import { useAuth } from '@/contexts/AuthContext'
 
 type ScreenState = 'idle' | 'scanning' | 'success' | 'error'
 type ErrorKey = 'QR_NOT_FOUND' | 'NO_BOOKING_TODAY' | 'UNKNOWN'
@@ -13,6 +14,7 @@ type SuccessData = { memberName: string; className: string; classType: 'REFORMER
 
 export default function ValidateScreen() {
   const { t } = useTranslation()
+  const { signOut } = useAuth()
   const [permission, requestPermission] = useCameraPermissions()
   const [screenState, setScreenState] = useState<ScreenState>('idle')
   const [successData, setSuccessData] = useState<SuccessData | null>(null)
@@ -77,6 +79,9 @@ export default function ValidateScreen() {
 
   return (
     <SafeAreaView style={s.fill}>
+      <TouchableOpacity style={s.logoutBtn} onLongPress={signOut} delayLongPress={2000}>
+        <Text style={s.logoutBtnText}>⏻</Text>
+      </TouchableOpacity>
       <View style={s.container}>
         <Image source={require('@/assets/icon.png')} style={s.logo} resizeMode="contain" />
         <TouchableOpacity style={s.btn} onPress={handleScanPress} activeOpacity={0.85}>
@@ -188,5 +193,17 @@ const s = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontFamily: F.sansMed,
+  },
+  logoutBtn: {
+    position: 'absolute',
+    top: 116,
+    right: 16,
+    zIndex: 10,
+    padding: 12,
+    opacity: 0.25,
+  },
+  logoutBtnText: {
+    fontSize: 22,
+    color: C.midGray,
   },
 })
