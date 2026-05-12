@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Firebase config — not secret but kept out of repo to avoid scanner noise
+google-services.json
+
+# Firebase — keep out of version control, use EAS secrets for builds
+google-services.json
