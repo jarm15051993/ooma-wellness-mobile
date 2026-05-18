@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView,
-  Platform, ScrollView,
+  Platform, ScrollView, Linking,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
@@ -90,6 +90,10 @@ export default function RegisterScreen() {
               {t('auth.register.alreadyHaveAccount')}{' '}
               <Text style={styles.loginLink}>{t('auth.register.signIn')}</Text>
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => Linking.openURL('https://oomawellness.shop/privacy')}>
+            <Text style={styles.privacyLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -182,4 +186,12 @@ const styles = StyleSheet.create({
   loginRow: { alignItems: 'center', paddingVertical: 4 },
   loginText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray },
   loginLink: { fontFamily: F.sansMed, color: C.burg },
+  privacyLink: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.midGray,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    marginTop: 12,
+  },
 })
