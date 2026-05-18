@@ -50,7 +50,7 @@ export default function WalletModal({ visible, userId, initialQrCode, onDismiss 
   }
 
   async function handleAddToAppleWallet() {
-    if (!qrCode) return
+    if (Platform.OS !== 'ios' || !qrCode) return
     setWalletLoading(true)
     setError('')
     try {
