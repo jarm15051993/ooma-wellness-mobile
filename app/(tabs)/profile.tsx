@@ -1030,6 +1030,10 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
+        <TouchableOpacity style={styles.privacyPolicyBtn} onPress={() => Linking.openURL('https://oomawellness.shop/privacy')}>
+          <Text style={styles.privacyPolicyText}>Privacy Policy</Text>
+        </TouchableOpacity>
+
         {/* Danger Zone — hidden in tenant/admin mode */}
         {!isStaff && !tenantUser && (
           <View style={styles.dangerZone}>
@@ -1550,6 +1554,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
   editProfileBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.ink, letterSpacing: 2 },
+  privacyPolicyBtn: { alignItems: 'center', paddingVertical: 12, marginBottom: 4 },
+  privacyPolicyText: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, textDecorationLine: 'underline' },
   packagesSection: {
     backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
     borderRadius: 4, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 18, marginBottom: 16,
