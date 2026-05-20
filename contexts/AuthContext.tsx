@@ -219,7 +219,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signIn(email: string, password: string) {
     const { data } = await api.post('/api/mobile/auth/signin', { email, password })
     await SecureStore.setItemAsync('access_token', data.token)
-    setIsIpadSession(false)
     setToken(data.token)
     applyPermissions(data.token)
     setUser(data.user)
@@ -230,7 +229,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
-    setIsIpadSession(false)
     await SecureStore.deleteItemAsync('access_token')
     setToken(null)
     setIsAdmin(false)
