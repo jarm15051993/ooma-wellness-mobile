@@ -98,7 +98,7 @@ function InactivityModal() {
 }
 
 function RootLayoutNav() {
-  const { user, isLoading, refreshUser, canValidateAttendance, isIpadSession } = useAuth()
+  const { user, isLoading, refreshUser, canValidateAttendance } = useAuth()
   const segments = useSegments()
   const router = useRouter()
   // Handle deep links — ooma://wallet-added, ooma://email-updated
@@ -127,21 +127,20 @@ function RootLayoutNav() {
     const inIpadGroup = segments[0] === '(ipad)'
     const onCompleteProfile = segments[1 as number] === 'complete-profile'
 
-    const isIpad = Platform.isPad === true
-    const isIpadAccount = user?.email === process.env.EXPO_PUBLIC_IPAD_EMAIL
+    const isKiosk = user?.isKiosk === true
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login')
-    } else if (user && user.onboardingCompleted && isIpad && isIpadAccount && !inIpadGroup) {
+    } else if (user && user.onboardingCompleted && isKiosk && !inIpadGroup) {
       router.replace('/(ipad)/validate')
-    } else if (user && user.onboardingCompleted && inIpadGroup && !isIpadAccount) {
+    } else if (user && user.onboardingCompleted && inIpadGroup && !isKiosk) {
       router.replace('/(tabs)')
-    } else if (user && user.onboardingCompleted && (!isIpad || !isIpadAccount) && inAuthGroup) {
+    } else if (user && user.onboardingCompleted && !isKiosk && inAuthGroup) {
       router.replace('/(tabs)')
     } else if (user && !user.onboardingCompleted && !onCompleteProfile) {
       router.replace(`/(auth)/complete-profile?userId=${user.id}&email=${encodeURIComponent(user.email)}`)
     }
-  }, [user, isLoading, segments, canValidateAttendance, isIpadSession])
+  }, [user, isLoading, segments, canValidateAttendance])
 
   if (isLoading) {
     return (
