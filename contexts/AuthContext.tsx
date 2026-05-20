@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import * as SecureStore from 'expo-secure-store'
-import { AppState, Platform } from 'react-native'
+import { AppState } from 'react-native'
 import { useRouter } from 'expo-router'
 import { api, setTenantUserId } from '@/lib/api'
 import i18n, { type AppLanguage } from '@/lib/i18n'
@@ -16,6 +16,7 @@ export type User = {
   onboardingCompleted: boolean
   qrCode: string | null
   isBeta: boolean
+  isKiosk: boolean
   language: AppLanguage
   isClubMember: boolean
   createdAt: string
@@ -78,7 +79,6 @@ type AuthContextType = {
   settings: AppSettings | null
   startTenantSession: (user: User) => void
   exitTenantSession: (fromInactivity?: boolean) => void
-  isIpadSession: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const [settings, setSettings] = useState<AppSettings | null>(null)
-  const [isIpadSession, setIsIpadSession] = useState(false)
+
   const lastActivityAt = useRef<number>(Date.now())
   const router = useRouter()
 
@@ -159,16 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         let stored = await SecureStore.getItemAsync('access_token')
 
-        if (!stored) {
-          const ipadEmail = process.env.EXPO_PUBLIC_IPAD_EMAIL
-          const ipadPassword = process.env.EXPO_PUBLIC_IPAD_PASSWORD
-          if (ipadEmail && ipadPassword && Platform.isPad) {
-            const { data } = await api.post('/api/mobile/auth/signin', { email: ipadEmail, password: ipadPassword })
-            await SecureStore.setItemAsync('access_token', data.token)
-            stored = data.token
-            setIsIpadSession(true)
-          }
-        }
 
         if (stored) {
           setToken(stored)
@@ -276,7 +266,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
       canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent, isBeta,
-      isIpadSession,
       language,
       isLoading, tenantUser, lastActivityAt,
       settings,

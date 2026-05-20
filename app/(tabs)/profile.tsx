@@ -653,10 +653,7 @@ export default function ProfileScreen() {
   }
 
   async function handleSignOut() {
-    Alert.alert(t('profile.signOutConfirmTitle'), t('profile.signOutConfirmMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('profile.signOut'), style: 'destructive', onPress: signOut },
-    ])
+    await signOut()
   }
 
   async function handleDeleteAccountPress() {
@@ -1596,8 +1593,8 @@ const styles = StyleSheet.create({
     backgroundColor: C.lightGray,
   },
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
-  signOutBtn: { height: 48, borderWidth: 1, borderColor: C.burg, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
-  signOutText: { fontFamily: F.sansMed, fontSize: 11, color: C.burg, letterSpacing: 2, textTransform: 'uppercase' },
+  signOutBtn: { height: 48, backgroundColor: C.burg, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
+  signOutText: { fontFamily: F.sansMed, fontSize: 11, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' },
   // Language row
   languageRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

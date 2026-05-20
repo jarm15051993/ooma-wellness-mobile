@@ -79,8 +79,8 @@ export default function ValidateScreen() {
 
   return (
     <SafeAreaView style={s.fill}>
-      <TouchableOpacity style={s.logoutBtn} onLongPress={signOut} delayLongPress={2000}>
-        <Text style={s.logoutBtnText}>⏻</Text>
+      <TouchableOpacity style={s.logoutBtn} onPress={signOut}>
+        <Text style={s.logoutBtnText}>LOG OUT</Text>
       </TouchableOpacity>
       <View style={s.container}>
         <Image source={require('@/assets/icon.png')} style={s.logo} resizeMode="contain" />
@@ -196,14 +196,18 @@ const s = StyleSheet.create({
   },
   logoutBtn: {
     position: 'absolute',
-    top: 116,
+    top: 56,
     right: 16,
     zIndex: 10,
-    padding: 12,
-    opacity: 0.25,
+    backgroundColor: C.burg,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 2,
   },
   logoutBtnText: {
-    fontSize: 22,
-    color: C.midGray,
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: '#fff',
+    letterSpacing: 2,
   },
 })
