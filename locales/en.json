@@ -493,7 +493,16 @@
       "cancelConfirmBtn": "CANCEL SUBSCRIPTION",
       "keepBtn": "KEEP SUBSCRIPTION",
       "cancelSuccess": "Subscription cancelled",
-      "classesRemaining": "classes remaining"
+      "classesRemaining": "classes remaining",
+      "nextCharge": "Next charge {{amount}}",
+      "paymentMethod": "PAYMENT METHOD",
+      "cardEnding": "{{brand}} ending in {{last4}}",
+      "cardExpires": "Expires {{month}}/{{year}}",
+      "cardExpiringSoon": "Card expiring soon",
+      "updateCard": "Update card",
+      "updateCardSuccess": "Card updated successfully",
+      "pastDueNotice": "Payment failed. Update your card to restore access.",
+      "giftClass": "Gift class"
     }
   },
   "packages": {

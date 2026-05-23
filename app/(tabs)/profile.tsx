@@ -24,6 +24,7 @@ import * as SecureStore from 'expo-secure-store'
 import * as Sharing from 'expo-sharing'
 import * as IntentLauncher from 'expo-intent-launcher'
 import QRCode from 'react-native-qrcode-svg'
+import { useStripe } from '@stripe/stripe-react-native'
 import { api } from '@/lib/api'
 import { useAuth, type Subscription, type StandaloneCredit } from '@/contexts/AuthContext'
 import { subscriptionsApi } from '@/lib/subscriptions'
@@ -154,6 +155,7 @@ export default function ProfileScreen() {
   }
   const router = useRouter()
   const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, isBeta, language, setLanguage } = useAuth()
+  const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -161,6 +163,13 @@ export default function ProfileScreen() {
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true)
   const [cancelTarget, setCancelTarget] = useState<Subscription | null>(null)
   const [cancelling, setCancelling] = useState(false)
+
+  type PaymentMethodInfo = { brand: string; last4: string; expMonth: number; expYear: number } | null
+  type NextInvoices = Record<string, { amount: number; currency: string } | null>
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodInfo>(null)
+  const [nextInvoices, setNextInvoices] = useState<NextInvoices>({})
+  const [loadingPaymentMethod, setLoadingPaymentMethod] = useState(false)
+  const [updatingCard, setUpdatingCard] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [photoVersion, setPhotoVersion] = useState(Date.now())
   const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
@@ -237,10 +246,15 @@ export default function ProfileScreen() {
     useCallback(() => {
       if (isStaff) return
       setLoadingSubscriptions(true)
-      subscriptionsApi.list()
-        .then(({ data }) => {
-          setSubscriptions(data.subscriptions ?? [])
-          setStandaloneCredits(data.standaloneCredits ?? [])
+      Promise.all([
+        subscriptionsApi.list(),
+        api.get('/api/mobile/payment-method'),
+      ])
+        .then(([subsRes, pmRes]) => {
+          setSubscriptions(subsRes.data.subscriptions ?? [])
+          setStandaloneCredits(subsRes.data.standaloneCredits ?? [])
+          setPaymentMethod(pmRes.data.card ?? null)
+          setNextInvoices(pmRes.data.nextInvoices ?? {})
         })
         .catch(() => {})
         .finally(() => setLoadingSubscriptions(false))
@@ -343,6 +357,38 @@ export default function ProfileScreen() {
       Alert.alert(t('common.error'), msg)
     } finally {
       setCancelling(false)
+    }
+  }
+
+  async function handleUpdateCard() {
+    setUpdatingCard(true)
+    try {
+      const { data } = await api.post('/api/mobile/payment-method/setup')
+      const { setupIntentClientSecret, setupIntentId } = data
+
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName:     'OOMA Wellness',
+        setupIntentClientSecret,
+        returnURL:               'ooma://stripe-redirect',
+      })
+      if (initError) throw new Error(initError.message)
+
+      const { error: presentError } = await presentPaymentSheet()
+      if (presentError) {
+        if (presentError.code !== 'Canceled') throw new Error(presentError.message)
+        return
+      }
+
+      await api.post('/api/mobile/payment-method/confirm', { setupIntentId })
+
+      const { data: pmData } = await api.get('/api/mobile/payment-method')
+      setPaymentMethod(pmData.card ?? null)
+      setNextInvoices(pmData.nextInvoices ?? {})
+      setNotifToast({ visible: true, message: t('profile.subscriptions.updateCardSuccess'), isError: false })
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err?.message ?? t('common.somethingWentWrong'))
+    } finally {
+      setUpdatingCard(false)
     }
   }
 
@@ -894,6 +940,16 @@ export default function ProfileScreen() {
                           ? t('profile.subscriptions.expiresOn', { date: periodEnd })
                           : t('profile.subscriptions.renewsOn', { date: periodEnd })}
                       </Text>
+                      {!isCancelling && nextInvoices[sub.id] && (
+                        <Text style={styles.subNextCharge}>
+                          {t('profile.subscriptions.nextCharge', {
+                            amount: `€${(nextInvoices[sub.id]!.amount / 100).toFixed(2)}`,
+                          })}
+                        </Text>
+                      )}
+                      {sub.status === 'PAST_DUE' && (
+                        <Text style={styles.subPastDueNotice}>{t('profile.subscriptions.pastDueNotice')}</Text>
+                      )}
                       {!isCancelling && sub.status === 'ACTIVE' && (
                         <TouchableOpacity
                           style={styles.subCancelLink}
@@ -933,6 +989,44 @@ export default function ProfileScreen() {
                     )}
                   </View>
                 ))}
+
+                {/* Payment method section — only shown when user has active subscriptions */}
+                {subscriptions.some(s => s.status === 'ACTIVE' || s.status === 'PAST_DUE') && (
+                  <View style={styles.pmCard}>
+                    <Text style={styles.pmTitle}>{t('profile.subscriptions.paymentMethod')}</Text>
+                    {paymentMethod ? (
+                      <>
+                        <View style={styles.pmRow}>
+                          <Text style={styles.pmCardText}>
+                            {t('profile.subscriptions.cardEnding', {
+                              brand: paymentMethod.brand.charAt(0).toUpperCase() + paymentMethod.brand.slice(1),
+                              last4: paymentMethod.last4,
+                            })}
+                          </Text>
+                          {paymentMethod.expYear * 100 + paymentMethod.expMonth <=
+                            new Date().getFullYear() * 100 + new Date().getMonth() + 2 && (
+                            <Text style={styles.pmExpiringSoon}>{t('profile.subscriptions.cardExpiringSoon')}</Text>
+                          )}
+                        </View>
+                        <Text style={styles.pmExpiry}>
+                          {t('profile.subscriptions.cardExpires', {
+                            month: String(paymentMethod.expMonth).padStart(2, '0'),
+                            year:  String(paymentMethod.expYear).slice(-2),
+                          })}
+                        </Text>
+                      </>
+                    ) : null}
+                    <TouchableOpacity
+                      style={[styles.pmUpdateBtn, updatingCard && styles.btnDisabled]}
+                      onPress={handleUpdateCard}
+                      disabled={updatingCard}
+                    >
+                      {updatingCard
+                        ? <ActivityIndicator size="small" color="#fff" />
+                        : <Text style={styles.pmUpdateBtnText}>{t('profile.subscriptions.updateCard')}</Text>}
+                    </TouchableOpacity>
+                  </View>
+                )}
               </>
             )}
           </View>
@@ -1776,6 +1870,22 @@ const styles = StyleSheet.create({
   subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
   subCancelLink: { marginTop: 10, alignSelf: 'flex-start' },
   subCancelLinkText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
+  subNextCharge: { fontFamily: F.sansMed, fontSize: 12, color: C.ink, marginTop: 4 },
+  subPastDueNotice: { fontFamily: F.sansMed, fontSize: 12, color: C.red, marginTop: 6, lineHeight: 18 },
+  pmCard: {
+    marginTop: 16, borderWidth: 1, borderColor: C.rule,
+    borderRadius: 2, padding: 16,
+  },
+  pmTitle: { fontFamily: F.sansMed, fontSize: 10, color: C.midGray, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 },
+  pmRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  pmCardText: { fontFamily: F.sansMed, fontSize: 14, color: C.ink },
+  pmExpiringSoon: { fontFamily: F.sansMed, fontSize: 10, color: C.red, letterSpacing: 0.5, textTransform: 'uppercase' },
+  pmExpiry: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 14 },
+  pmUpdateBtn: {
+    height: 44, backgroundColor: C.burg, borderRadius: 2,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  pmUpdateBtnText: { fontFamily: F.sansMed, fontSize: 11, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' },
   studentToggleRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,

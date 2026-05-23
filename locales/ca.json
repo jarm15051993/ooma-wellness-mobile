@@ -493,7 +493,16 @@
       "cancelConfirmBtn": "CANCEL·LAR SUBSCRIPCIÓ",
       "keepBtn": "MANTENIR SUBSCRIPCIÓ",
       "cancelSuccess": "Subscripció cancel·lada",
-      "classesRemaining": "classes restants"
+      "classesRemaining": "classes restants",
+      "nextCharge": "Pròxim càrrec {{amount}}",
+      "paymentMethod": "MÈTODE DE PAGAMENT",
+      "cardEnding": "{{brand}} acabada en {{last4}}",
+      "cardExpires": "Venç {{month}}/{{year}}",
+      "cardExpiringSoon": "Targeta a punt de vèncer",
+      "updateCard": "Actualitzar targeta",
+      "updateCardSuccess": "Targeta actualitzada correctament",
+      "pastDueNotice": "Pagament fallit. Actualitza la targeta per recuperar l'accés.",
+      "giftClass": "Classe regal"
     }
   },
   "packages": {

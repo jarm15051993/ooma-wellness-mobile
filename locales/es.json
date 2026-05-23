@@ -493,7 +493,16 @@
       "cancelConfirmBtn": "CANCELAR SUSCRIPCIÓN",
       "keepBtn": "MANTENER SUSCRIPCIÓN",
       "cancelSuccess": "Suscripción cancelada",
-      "classesRemaining": "clases restantes"
+      "classesRemaining": "clases restantes",
+      "nextCharge": "Próximo cobro {{amount}}",
+      "paymentMethod": "MÉTODO DE PAGO",
+      "cardEnding": "{{brand}} terminada en {{last4}}",
+      "cardExpires": "Vence {{month}}/{{year}}",
+      "cardExpiringSoon": "Tarjeta a punto de vencer",
+      "updateCard": "Actualizar tarjeta",
+      "updateCardSuccess": "Tarjeta actualizada correctamente",
+      "pastDueNotice": "Pago fallido. Actualiza tu tarjeta para recuperar el acceso.",
+      "giftClass": "Clase regalo"
     }
   },
   "packages": {
