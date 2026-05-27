@@ -33,9 +33,10 @@ type Package = {
   isPurchasable: boolean
   packageType: 'REFORMER' | 'YOGA' | 'BOTH'
   isUnlimited: boolean
+  isRecurring: boolean
 }
 
-type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH' | 'PERSONAL'
+type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH' | 'PERSONAL' | 'ONETIME'
 
 const SPECIAL_BG = '#F0E8D8'
 const SPECIAL_BORDER = '#C8A96A'
@@ -57,6 +58,7 @@ export default function PackagesScreen() {
     YOGA: false,
     BOTH: false,
     PERSONAL: false,
+    ONETIME: false,
   })
 
   const showMembershipGate =
@@ -165,10 +167,11 @@ export default function PackagesScreen() {
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const reformerPkgs = packages.filter(p => p.packageType === 'REFORMER' && p.isPurchasable)
-  const yogaPkgs     = packages.filter(p => p.packageType === 'YOGA' && p.isPurchasable)
-  const bothPkgs     = packages.filter(p => p.packageType === 'BOTH' && p.isPurchasable && !p.isStudentPackage)
-  const studentPkgs  = packages.filter(p => p.isPurchasable && p.isStudentPackage)
+  const reformerPkgs = packages.filter(p => p.packageType === 'REFORMER' && p.isPurchasable && p.isRecurring)
+  const yogaPkgs     = packages.filter(p => p.packageType === 'YOGA' && p.isPurchasable && p.isRecurring)
+  const bothPkgs     = packages.filter(p => p.packageType === 'BOTH' && p.isPurchasable && !p.isStudentPackage && p.isRecurring)
+  const studentPkgs  = packages.filter(p => p.isPurchasable && p.isStudentPackage && p.isRecurring)
+  const trialPkgs    = packages.filter(p => !p.isRecurring && p.isPurchasable)
 
   if (loading) {
     return (
@@ -181,17 +184,66 @@ export default function PackagesScreen() {
   if (showMembershipGate) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.headingRow}>
-          <Text style={styles.headingItalic}>{t('packages.screenHeading')}</Text>
-        </View>
-        <View style={styles.membershipGateContainer}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => { setRefreshing(true); fetchPackages() }}
+              tintColor={C.burg}
+            />
+          }
+        >
+          <View style={styles.headingRow}>
+            <Text style={styles.headingItalic}>{t('packages.screenHeading')}</Text>
+          </View>
+
           <MembershipCard
             price={settings?.subscriptionPrice ?? 0}
             loading={joiningClub}
             onJoin={handleJoinClub}
             t={t}
           />
-        </View>
+
+          {trialPkgs.length > 0 && (
+            <>
+              <View style={styles.trialDividerRow}>
+                <View style={styles.trialDividerLine} />
+                <Text style={styles.trialDividerText}>{t('packages.trialDivider')}</Text>
+                <View style={styles.trialDividerLine} />
+              </View>
+
+              <Text style={styles.trialSubheading}>{t('packages.trialSubheading')}</Text>
+
+              {trialPkgs.map(pkg => (
+                <TrialPackageCard
+                  key={pkg.id}
+                  pkg={pkg}
+                  loadingId={loadingId}
+                  onPress={() => handleSubscribe(pkg)}
+                  t={t}
+                />
+              ))}
+            </>
+          )}
+        </ScrollView>
+
+        <Modal visible={!!(loadingId || joiningClub)} transparent animationType="fade">
+          <View style={styles.processingOverlay}>
+            <View style={styles.processingBox}>
+              <ActivityIndicator size="large" color={C.burg} />
+              <Text style={styles.processingText}>{t('packages.processingPayment')}</Text>
+            </View>
+          </View>
+        </Modal>
+
+        <Toast
+          message={toast.message}
+          visible={toast.visible}
+          onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+        />
+
         {isBeta && <BetaOverlay />}
       </SafeAreaView>
     )
@@ -290,6 +342,26 @@ export default function PackagesScreen() {
           expanded={expanded.PERSONAL}
           onToggle={() => toggleSection('PERSONAL')}
         />
+
+        {trialPkgs.length > 0 && (
+          <Section
+            title={t('packages.sectionOneTime')}
+            expanded={expanded.ONETIME}
+            onToggle={() => toggleSection('ONETIME')}
+          >
+            {trialPkgs.map(pkg => (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                loadingId={loadingId}
+                gated={false}
+                onPress={() => handleSubscribe(pkg)}
+                t={t}
+                isOneTime
+              />
+            ))}
+          </Section>
+        )}
       </ScrollView>
 
       <Toast
@@ -343,6 +415,48 @@ function MembershipCard({
         {loading
           ? <ActivityIndicator size="small" color={C.cream} />
           : <Text style={styles.membershipCardBtnText}>{t('packages.joinClubButton')}</Text>
+        }
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+function TrialPackageCard({
+  pkg,
+  loadingId,
+  onPress,
+  t,
+}: {
+  pkg: Package
+  loadingId: string | null
+  onPress: () => void
+  t: (key: string, opts?: any) => string
+}) {
+  const isLoading  = loadingId === pkg.id
+  const isDisabled = loadingId !== null
+
+  return (
+    <View style={styles.trialCard}>
+      <View style={styles.cardRow}>
+        <View style={styles.cardInfo}>
+          <Text style={styles.packageName}>{pkg.name}</Text>
+          <Text style={styles.classInfo}>
+            {t('packages.trialClassCount', { count: pkg.classCount })}
+          </Text>
+        </View>
+        <View style={styles.priceBlock}>
+          <Text style={styles.packagePrice}>€{pkg.price}</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={[styles.buyBtn, isDisabled && styles.buyBtnDisabled]}
+        onPress={onPress}
+        disabled={isDisabled}
+      >
+        {isLoading
+          ? <ActivityIndicator size="small" color={C.cream} />
+          : <Text style={styles.buyBtnText}>{t('packages.trialButton')}</Text>
         }
       </TouchableOpacity>
     </View>
@@ -455,6 +569,7 @@ function PackageCard({
   onPress,
   t,
   student = false,
+  isOneTime = false,
 }: {
   pkg: Package
   loadingId: string | null
@@ -462,6 +577,7 @@ function PackageCard({
   onPress: () => void
   t: (key: string, opts?: any) => string
   student?: boolean
+  isOneTime?: boolean
 }) {
   const isLoading = loadingId === pkg.id
   const isDisabled = loadingId !== null || gated
@@ -489,9 +605,11 @@ function PackageCard({
           <Text style={[styles.packagePrice, student && styles.packagePriceStudent]}>
             €{pkg.price}
           </Text>
-          <Text style={[styles.perMonth, student && styles.perMonthStudent]}>
-            / {t('packages.perMonth')}
-          </Text>
+          {!isOneTime && (
+            <Text style={[styles.perMonth, student && styles.perMonthStudent]}>
+              / {t('packages.perMonth')}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -502,7 +620,9 @@ function PackageCard({
       >
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.buyBtnText}>{t('packages.subscribeButton')}</Text>
+          : <Text style={styles.buyBtnText}>
+              {isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
+            </Text>
         }
       </TouchableOpacity>
     </View>
@@ -527,7 +647,7 @@ const styles = StyleSheet.create({
   processingText: {
     fontFamily: F.sansMed,
     fontSize: 16,
-    color: C.dark,
+    color: C.ink,
   },
 
   safe: { flex: 1, backgroundColor: C.cream },
@@ -829,5 +949,39 @@ const styles = StyleSheet.create({
     color: '#6E7B6A',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
+  },
+
+  // ── Trial / one-time section (inside membership gate) ────────────────────
+  trialDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 28,
+    marginBottom: 20,
+  },
+  trialDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: C.rule,
+  },
+  trialDividerText: {
+    fontFamily: F.sansReg,
+    fontSize: 11,
+    color: C.midGray,
+    letterSpacing: 0.5,
+  },
+  trialSubheading: {
+    fontFamily: F.serifBold,
+    fontSize: 20,
+    color: C.ink,
+    marginBottom: 12,
+  },
+  trialCard: {
+    backgroundColor: C.warmWhite,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    padding: 16,
+    marginBottom: 10,
   },
 })
