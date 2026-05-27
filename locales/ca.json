@@ -547,7 +547,12 @@
     "joinClubSuccess": "Ara ets membre del club",
     "joinClubButton": "UNIR-ME AL CLUB",
     "membershipBannerTitle": "Fes-te membre del club",
-    "membershipBannerBody": "Per subscriure-t a un pla de classes has de ser membre del club OOMA. L'accés és per una quota única de {{price}}."
+    "membershipBannerBody": "Per subscriure-t a un pla de classes has de ser membre del club OOMA. L'accés és per una quota única de {{price}}.",
+    "trialDivider": "— o prova una classe solta —",
+    "trialSubheading": "Classe solta",
+    "trialButton": "COMPRAR",
+    "trialClassCount_one": "{{count}} classe",
+    "trialClassCount_other": "{{count}} classes"
   },
   "beta": {
     "comingSoon": "Pròximament",
