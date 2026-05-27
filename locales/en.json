@@ -548,6 +548,7 @@
     "joinClubButton": "JOIN THE CLUB",
     "membershipBannerTitle": "Become a club member",
     "membershipBannerBody": "To subscribe to a class plan you need to be an OOMA club member. Access is a one-time fee of {{price}}.",
+    "sectionOneTime": "One Time Classes",
     "trialDivider": "— or try a single class first —",
     "trialSubheading": "One-time class",
     "trialButton": "BUY",

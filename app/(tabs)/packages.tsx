@@ -36,7 +36,7 @@ type Package = {
   isRecurring: boolean
 }
 
-type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH' | 'PERSONAL'
+type SectionKey = 'REFORMER' | 'YOGA' | 'BOTH' | 'PERSONAL' | 'ONETIME'
 
 const SPECIAL_BG = '#F0E8D8'
 const SPECIAL_BORDER = '#C8A96A'
@@ -58,6 +58,7 @@ export default function PackagesScreen() {
     YOGA: false,
     BOTH: false,
     PERSONAL: false,
+    ONETIME: false,
   })
 
   const showMembershipGate =
@@ -341,6 +342,26 @@ export default function PackagesScreen() {
           expanded={expanded.PERSONAL}
           onToggle={() => toggleSection('PERSONAL')}
         />
+
+        {trialPkgs.length > 0 && (
+          <Section
+            title={t('packages.sectionOneTime')}
+            expanded={expanded.ONETIME}
+            onToggle={() => toggleSection('ONETIME')}
+          >
+            {trialPkgs.map(pkg => (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                loadingId={loadingId}
+                gated={false}
+                onPress={() => handleSubscribe(pkg)}
+                t={t}
+                isOneTime
+              />
+            ))}
+          </Section>
+        )}
       </ScrollView>
 
       <Toast
@@ -548,6 +569,7 @@ function PackageCard({
   onPress,
   t,
   student = false,
+  isOneTime = false,
 }: {
   pkg: Package
   loadingId: string | null
@@ -555,6 +577,7 @@ function PackageCard({
   onPress: () => void
   t: (key: string, opts?: any) => string
   student?: boolean
+  isOneTime?: boolean
 }) {
   const isLoading = loadingId === pkg.id
   const isDisabled = loadingId !== null || gated
@@ -582,9 +605,11 @@ function PackageCard({
           <Text style={[styles.packagePrice, student && styles.packagePriceStudent]}>
             €{pkg.price}
           </Text>
-          <Text style={[styles.perMonth, student && styles.perMonthStudent]}>
-            / {t('packages.perMonth')}
-          </Text>
+          {!isOneTime && (
+            <Text style={[styles.perMonth, student && styles.perMonthStudent]}>
+              / {t('packages.perMonth')}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -595,7 +620,9 @@ function PackageCard({
       >
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.buyBtnText}>{t('packages.subscribeButton')}</Text>
+          : <Text style={styles.buyBtnText}>
+              {isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
+            </Text>
         }
       </TouchableOpacity>
     </View>
