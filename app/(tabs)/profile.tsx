@@ -854,8 +854,8 @@ export default function ProfileScreen() {
                   const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
                   const periodEnd = format(new Date(sub.currentPeriodEnd), 'MMM d, yyyy')
                   const credit = sub.credits?.[0]
-                  const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? sub.package.classCount)
-                  const total    = credit?.isUnlimited ? '∞' : (credit?.creditsTotal    ?? sub.package.classCount)
+                  const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? 0)
+                  const total    = credit?.isUnlimited ? '∞' : (credit?.creditsTotal    ?? 0)
 
                   return (
                     <View key={sub.id} style={styles.subCard}>
