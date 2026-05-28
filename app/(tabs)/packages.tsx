@@ -55,7 +55,8 @@ export default function PackagesScreen() {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [joiningClub, setJoiningClub] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
-  const [cashModal, setCashModal] = useState(false)
+  const [cashConfirmTarget, setCashConfirmTarget] = useState<{ type: 'MEMBERSHIP' | 'SUBSCRIPTION' | 'ONE_TIME_CLASS'; pkg?: Package } | null>(null)
+  const [cashSubmitting, setCashSubmitting] = useState(false)
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
     REFORMER: false,
     YOGA: false,
@@ -166,14 +167,26 @@ export default function PackagesScreen() {
     }
   }
 
-  async function handleCashPayment(type: 'MEMBERSHIP' | 'SUBSCRIPTION' | 'ONE_TIME_CLASS', pkg?: Package) {
+  function handleCashPayment(type: 'MEMBERSHIP' | 'SUBSCRIPTION' | 'ONE_TIME_CLASS', pkg?: Package) {
+    if (pendingCashRequest) {
+      Alert.alert('', t('cash.pendingAlert'))
+      return
+    }
+    setCashConfirmTarget({ type, pkg })
+  }
+
+  async function handleCashConfirm() {
+    if (!cashConfirmTarget) return
+    setCashSubmitting(true)
     try {
-      await cashPaymentApi.request(type, pkg?.id)
+      await cashPaymentApi.request(cashConfirmTarget.type, cashConfirmTarget.pkg?.id)
       await refreshCashPaymentStatus()
-      setCashModal(true)
+      setCashConfirmTarget(null)
     } catch (err: any) {
       const msg = err?.response?.data?.error ?? err?.message ?? t('common.somethingWentWrong')
       Alert.alert(t('common.error'), msg)
+    } finally {
+      setCashSubmitting(false)
     }
   }
 
@@ -248,8 +261,10 @@ export default function PackagesScreen() {
         </ScrollView>
 
         <CashPaymentModal
-          visible={cashModal}
-          onDismiss={() => setCashModal(false)}
+          visible={!!cashConfirmTarget}
+          submitting={cashSubmitting}
+          onConfirm={handleCashConfirm}
+          onDismiss={() => setCashConfirmTarget(null)}
           t={t}
         />
 
@@ -399,8 +414,10 @@ export default function PackagesScreen() {
       </ScrollView>
 
       <CashPaymentModal
-        visible={cashModal}
-        onDismiss={() => setCashModal(false)}
+        visible={!!cashConfirmTarget}
+        submitting={cashSubmitting}
+        onConfirm={handleCashConfirm}
+        onDismiss={() => setCashConfirmTarget(null)}
         t={t}
       />
 
@@ -454,26 +471,23 @@ function MembershipCard({
         {t('packages.membershipBannerBody', { price: `€${price}` })}
       </Text>
       <TouchableOpacity
-        style={[styles.membershipCardBtn, (loading || hasPending) && styles.buyBtnDisabled]}
+        style={[styles.membershipCardBtn, loading && styles.buyBtnDisabled]}
         onPress={onJoin}
-        disabled={loading || hasPending}
+        disabled={loading}
         activeOpacity={0.8}
       >
         {loading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.membershipCardBtnText}>
-              {hasPending ? t('cash.pending') : t('packages.joinClubButton')}
-            </Text>
+          : <Text style={styles.membershipCardBtnText}>{t('packages.joinClubButton')}</Text>
         }
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.cashBtn, hasPending && styles.cashBtnDisabled]}
+        style={[styles.cashBtn, (hasPending && !isMembershipPending) && styles.cashBtnDisabled]}
         onPress={onCashJoin}
-        disabled={hasPending}
         activeOpacity={0.8}
       >
-        <Text style={[styles.cashBtnText, hasPending && styles.cashBtnTextDisabled]}>
-          {isMembershipPending ? t('cash.waiting') : hasPending ? t('cash.pending') : t('cash.cta')}
+        <Text style={styles.cashBtnText}>
+          {isMembershipPending ? t('cash.requested') : t('cash.cta')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -497,7 +511,7 @@ function TrialPackageCard({
 }) {
   const isLoading  = loadingId === pkg.id
   const hasPending = pendingCashRequest !== null
-  const isCardDisabled = loadingId !== null || hasPending
+  const isCardDisabled = loadingId !== null
   const isCashPending  = hasPending && pendingCashRequest.packageId === pkg.id
 
   return (
@@ -521,19 +535,16 @@ function TrialPackageCard({
       >
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.buyBtnText}>
-              {hasPending ? t('cash.pending') : t('packages.trialButton')}
-            </Text>
+          : <Text style={styles.buyBtnText}>{t('packages.trialButton')}</Text>
         }
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.cashBtn, hasPending && styles.cashBtnDisabled]}
+        style={[styles.cashBtn, (hasPending && !isCashPending) && styles.cashBtnDisabled]}
         onPress={onCashPress}
-        disabled={hasPending}
         activeOpacity={0.8}
       >
-        <Text style={[styles.cashBtnText, hasPending && styles.cashBtnTextDisabled]}>
-          {isCashPending ? t('cash.waiting') : hasPending ? t('cash.pending') : t('cash.cta')}
+        <Text style={styles.cashBtnText}>
+          {isCashPending ? t('cash.requested') : t('cash.cta')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -542,10 +553,14 @@ function TrialPackageCard({
 
 function CashPaymentModal({
   visible,
+  submitting,
+  onConfirm,
   onDismiss,
   t,
 }: {
   visible: boolean
+  submitting: boolean
+  onConfirm: () => void
   onDismiss: () => void
   t: (key: string, opts?: any) => string
 }) {
@@ -555,8 +570,24 @@ function CashPaymentModal({
         <View style={styles.cashModalBox}>
           <Text style={styles.cashModalTitle}>{t('cash.modal.title')}</Text>
           <Text style={styles.cashModalBody}>{t('cash.modal.body')}</Text>
-          <TouchableOpacity style={styles.cashModalBtn} onPress={onDismiss} activeOpacity={0.8}>
-            <Text style={styles.cashModalBtnText}>{t('cash.modal.dismiss')}</Text>
+          <TouchableOpacity
+            style={styles.cashModalBtn}
+            onPress={onConfirm}
+            disabled={submitting}
+            activeOpacity={0.8}
+          >
+            {submitting
+              ? <ActivityIndicator size="small" color={C.cream} />
+              : <Text style={styles.cashModalBtnText}>{t('cash.modal.confirm')}</Text>
+            }
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cashModalCancelBtn}
+            onPress={onDismiss}
+            disabled={submitting}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.cashModalCancelText}>{t('cash.modal.cancel')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -686,7 +717,7 @@ function PackageCard({
 }) {
   const isLoading  = loadingId === pkg.id
   const hasPending = pendingCashRequest !== null
-  const isDisabled = loadingId !== null || gated || hasPending
+  const isDisabled = loadingId !== null || gated
   const isCashPending = hasPending && pendingCashRequest.packageId === pkg.id
   const perClass = pkg.isUnlimited ? null : (pkg.price / pkg.classCount).toFixed(0)
 
@@ -728,21 +759,18 @@ function PackageCard({
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
           : <Text style={styles.buyBtnText}>
-              {hasPending
-                ? t('cash.pending')
-                : isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
+              {isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
             </Text>
         }
       </TouchableOpacity>
       {!gated && (
         <TouchableOpacity
-          style={[styles.cashBtn, student && styles.cashBtnStudent, hasPending && styles.cashBtnDisabled]}
+          style={[styles.cashBtn, student && styles.cashBtnStudent, (hasPending && !isCashPending) && styles.cashBtnDisabled]}
           onPress={onCashPress}
-          disabled={hasPending}
           activeOpacity={0.8}
         >
-          <Text style={[styles.cashBtnText, hasPending && styles.cashBtnTextDisabled]}>
-            {isCashPending ? t('cash.waiting') : hasPending ? t('cash.pending') : t('cash.cta')}
+          <Text style={styles.cashBtnText}>
+            {isCashPending ? t('cash.requested') : t('cash.cta')}
           </Text>
         </TouchableOpacity>
       )}
@@ -980,7 +1008,7 @@ const styles = StyleSheet.create({
 
   buyBtn: {
     height: 42,
-    backgroundColor: C.ink,
+    backgroundColor: C.burg,
     borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1106,26 +1134,28 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cashBtn: {
-    borderWidth: 1,
-    borderColor: C.ink,
-    borderRadius: 4,
-    paddingVertical: 10,
+    height: 42,
+    backgroundColor: C.ink,
+    borderRadius: 2,
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    marginTop: 6,
   },
   cashBtnStudent: {
-    borderColor: C.burg,
+    backgroundColor: C.ink,
   },
   cashBtnDisabled: {
-    borderColor: C.rule,
+    opacity: 0.5,
   },
   cashBtnText: {
-    ...F.button,
-    color: C.ink,
-    fontSize: 12,
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   cashBtnTextDisabled: {
-    color: C.lgray,
+    color: C.cream,
   },
   cashModalBox: {
     backgroundColor: C.warmWhite,
@@ -1154,10 +1184,25 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingVertical: 12,
     paddingHorizontal: 32,
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
   },
   cashModalBtnText: {
-    ...F.button,
+    fontFamily: F.sansMed,
     color: C.cream,
     fontSize: 13,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  cashModalCancelBtn: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    width: '100%',
+  },
+  cashModalCancelText: {
+    fontFamily: F.sansMed,
+    fontSize: 13,
+    color: C.midGray,
   },
 })

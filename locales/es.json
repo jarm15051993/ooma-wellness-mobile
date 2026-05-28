@@ -487,6 +487,7 @@
       "renewsOn": "Se renueva el {{date}}",
       "expiresOn": "Vence el {{date}}",
       "creditsLeft": "{{remaining}} de {{total}} clases restantes",
+      "giftClass": "Clase de regalo",
       "cancelAction": "Cancelar suscripción",
       "cancelTitle": "Cancelar suscripción",
       "cancelBody": "Tu suscripción seguirá activa hasta el {{date}}. No se realizarán más cobros.",
@@ -541,7 +542,7 @@
     "personalBadge": "1 A 1",
     "personalDescription": "Ooma ofrece la posibilidad de llevar tu práctica al siguiente nivel trabajando 1 a 1 con nuestros coaches. ¿Te interesa?",
     "personalCTA": "EMPECEMOS",
-    "subscribeButton": "COMPRAR",
+    "subscribeButton": "PAGAR CON TARJETA",
     "perMonth": "mes",
     "subscribeSuccess": "Suscripción activada",
     "joinClubSuccess": "Ya eres miembro del club",
@@ -551,19 +552,36 @@
     "sectionOneTime": "Clase Suelta",
     "trialDivider": "— o prueba una clase suelta —",
     "trialSubheading": "Clase suelta",
-    "trialButton": "COMPRAR",
+    "trialButton": "PAGAR CON TARJETA",
     "trialClassCount_one": "{{count}} clase",
     "trialClassCount_other": "{{count}} clases"
   },
   "cash": {
-    "cta": "Pagar en efectivo",
+    "cta": "PAGAR EN EFECTIVO",
     "modal": {
-      "title": "Solicitud recibida",
-      "body": "Por favor, dirígete a recepción para completar tu pago.",
-      "dismiss": "Entendido"
+      "title": "Pagar en recepción",
+      "body": "Deberás pagar en efectivo en recepción para completar tu compra.",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
     },
-    "waiting": "Esperando validación",
-    "pending": "Validación pendiente"
+    "requested": "Pago en efectivo solicitado",
+    "pendingAlert": "Ya tienes una solicitud de pago en efectivo pendiente."
+  },
+  "cashPayments": {
+    "title": "Pagos en efectivo",
+    "tabTitle": "EFECTIVO",
+    "pending": "Pendientes",
+    "processed": "Procesados",
+    "empty": "No hay solicitudes.",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "cancel": "Cancelar",
+    "confirmApprove": "¿Aprobar este pago en efectivo?",
+    "confirmReject": "¿Rechazar esta solicitud?",
+    "status": {
+      "approved": "Aprobado",
+      "rejected": "Rechazado"
+    }
   },
   "beta": {
     "comingSoon": "Próximamente",

@@ -18,7 +18,7 @@ type SearchResult = {
 }
 
 export default function StudentsScreen() {
-  const { isOwner, startTenantSession } = useAuth()
+  const { isOwner, startTenantSession, signOut } = useAuth()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const [query, setQuery] = useState('')
@@ -94,7 +94,12 @@ export default function StudentsScreen() {
   return (
     <SafeAreaView style={s.container} edges={['left', 'right', 'bottom']}>
       <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Text style={s.title}>Students</Text>
+        <View style={s.titleRow}>
+          <Text style={s.title}>Students</Text>
+          <TouchableOpacity style={s.signOutBtn} onPress={signOut}>
+            <Text style={s.signOutText}>SIGN OUT</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={s.subtitle}>Search by name, email or phone</Text>
 
         <TextInput
@@ -179,6 +184,24 @@ const s = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 8,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  signOutBtn: {
+    backgroundColor: '#8B1A1A',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  signOutText: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
+    color: '#fff',
+    letterSpacing: 1,
   },
   title: {
     fontFamily: F.serif,

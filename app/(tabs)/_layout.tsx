@@ -11,6 +11,7 @@ function TabIcon({ label, color }: { label: string; color: string }) {
     Subscriptions: '◫',
     Profile: '◎',
     Students: '⊕',
+    Cash: '◷',
   }
   return (
     <Text style={{ fontSize: 18, color, lineHeight: 22 }}>
@@ -27,6 +28,7 @@ export default function TabLayout() {
   const showStudents = (canViewStudents || isOwner) && !tenantUser
   const showBookings = !isStaff || !!tenantUser
   const showPackages = !isStaff || !!tenantUser
+  const showCashPayments = isStaff && !tenantUser
 
   return (
     <Tabs
@@ -76,6 +78,8 @@ export default function TabLayout() {
         options={{
           title: t('profile.tabTitle'),
           tabBarIcon: ({ color }) => <TabIcon label="Profile" color={color} />,
+          tabBarItemStyle: !isStaff || tenantUser ? undefined : { display: 'none' },
+          tabBarButton: !isStaff || tenantUser ? undefined : () => null,
         }}
       />
       <Tabs.Screen
@@ -85,6 +89,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon label="Students" color={color} />,
           tabBarItemStyle: showStudents ? undefined : { display: 'none' },
           tabBarButton: showStudents ? undefined : () => null,
+        }}
+      />
+      <Tabs.Screen
+        name="cash-payments/index"
+        options={{
+          title: t('cashPayments.tabTitle'),
+          tabBarIcon: ({ color }) => <TabIcon label="Cash" color={color} />,
+          tabBarItemStyle: showCashPayments ? undefined : { display: 'none' },
+          tabBarButton: showCashPayments ? undefined : () => null,
         }}
       />
       {/* Legacy admin tab — hidden for all, kept to avoid routing errors */}

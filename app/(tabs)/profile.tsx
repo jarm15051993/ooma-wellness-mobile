@@ -889,17 +889,19 @@ export default function ProfileScreen() {
                           ? t('packages.unlimitedClasses')
                           : t('profile.subscriptions.creditsLeft', { remaining, total })}
                       </Text>
-                      <Text style={styles.subRenewal}>
-                        {isCancelling
-                          ? t('profile.subscriptions.expiresOn', { date: periodEnd })
-                          : t('profile.subscriptions.renewsOn', { date: periodEnd })}
-                      </Text>
+                      {(isCancelling || sub.package.classCount > 1) && (
+                        <Text style={styles.subRenewal}>
+                          {isCancelling
+                            ? t('profile.subscriptions.expiresOn', { date: periodEnd })
+                            : t('profile.subscriptions.renewsOn', { date: periodEnd })}
+                        </Text>
+                      )}
                       {credit?.paymentMethod === 'CASH' && (
                         <View style={styles.paymentMethodBadge}>
                           <Text style={styles.paymentMethodBadgeText}>CASH</Text>
                         </View>
                       )}
-                      {!isCancelling && sub.status === 'ACTIVE' && (
+                      {!isCancelling && sub.status === 'ACTIVE' && sub.package.classCount > 1 && (
                         <TouchableOpacity
                           style={styles.subCancelLink}
                           onPress={() => setCancelTarget(sub)}

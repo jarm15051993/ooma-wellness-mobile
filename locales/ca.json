@@ -487,6 +487,7 @@
       "renewsOn": "Es renova el {{date}}",
       "expiresOn": "Venç el {{date}}",
       "creditsLeft": "{{remaining}} de {{total}} classes restants",
+      "giftClass": "Classe de regal",
       "cancelAction": "Cancel·lar subscripció",
       "cancelTitle": "Cancel·lar subscripció",
       "cancelBody": "La teva subscripció seguirà activa fins al {{date}}. No se't cobrarà res més.",
@@ -541,7 +542,7 @@
     "personalBadge": "1 A 1",
     "personalDescription": "Ooma ofereix la possibilitat de portar la teva pràctica al següent nivell treballant 1 a 1 amb els nostres coaches. T'interessa?",
     "personalCTA": "COMENCEM",
-    "subscribeButton": "COMPRAR",
+    "subscribeButton": "PAGAR AMB TARGETA",
     "perMonth": "mes",
     "subscribeSuccess": "Subscripció activada",
     "joinClubSuccess": "Ara ets membre del club",
@@ -551,19 +552,36 @@
     "sectionOneTime": "Classe Solta",
     "trialDivider": "— o prova una classe solta —",
     "trialSubheading": "Classe solta",
-    "trialButton": "COMPRAR",
+    "trialButton": "PAGAR AMB TARGETA",
     "trialClassCount_one": "{{count}} classe",
     "trialClassCount_other": "{{count}} classes"
   },
   "cash": {
-    "cta": "Pagar en efectiu",
+    "cta": "PAGAR EN EFECTIU",
     "modal": {
-      "title": "Sol·licitud rebuda",
-      "body": "Si us plau, dirigeix-te a la recepció per completar el pagament.",
-      "dismiss": "Entesos"
+      "title": "Pagar a recepció",
+      "body": "Hauràs de pagar en efectiu a recepció per completar la teva compra.",
+      "confirm": "Confirmar",
+      "cancel": "Cancel·lar"
     },
-    "waiting": "Esperant validació",
-    "pending": "Validació pendent"
+    "requested": "Pagament en efectiu sol·licitat",
+    "pendingAlert": "Ja tens una sol·licitud de pagament en efectiu pendent."
+  },
+  "cashPayments": {
+    "title": "Pagaments en efectiu",
+    "tabTitle": "EFECTIU",
+    "pending": "Pendents",
+    "processed": "Processats",
+    "empty": "No hi ha sol·licituds.",
+    "approve": "Aprovar",
+    "reject": "Rebutjar",
+    "cancel": "Cancel·lar",
+    "confirmApprove": "Aprovar aquest pagament en efectiu?",
+    "confirmReject": "Rebutjar aquesta sol·licitud?",
+    "status": {
+      "approved": "Aprovat",
+      "rejected": "Rebutjat"
+    }
   },
   "beta": {
     "comingSoon": "Pròximament",

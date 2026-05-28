@@ -487,6 +487,7 @@
       "renewsOn": "Renews {{date}}",
       "expiresOn": "Expires {{date}}",
       "creditsLeft": "{{remaining}} of {{total}} classes remaining",
+      "giftClass": "Gift Class",
       "cancelAction": "Cancel subscription",
       "cancelTitle": "Cancel Subscription",
       "cancelBody": "Your subscription will remain active until {{date}}. You will not be charged again.",
@@ -541,7 +542,7 @@
     "personalBadge": "1 ON 1",
     "personalDescription": "Ooma offers the possibility to unlock the next level by working 1 on 1 with our coaches. Interested? Let's get started!",
     "personalCTA": "LET'S GET STARTED",
-    "subscribeButton": "PURCHASE",
+    "subscribeButton": "PAY WITH CARD",
     "perMonth": "month",
     "subscribeSuccess": "Subscription activated",
     "joinClubSuccess": "You are now a club member",
@@ -551,19 +552,36 @@
     "sectionOneTime": "One Time Classes",
     "trialDivider": "— or try a single class first —",
     "trialSubheading": "One-time class",
-    "trialButton": "PURCHASE",
+    "trialButton": "PAY WITH CARD",
     "trialClassCount_one": "{{count}} class",
     "trialClassCount_other": "{{count}} classes"
   },
   "cash": {
-    "cta": "Pay with cash",
+    "cta": "PAY WITH CASH",
     "modal": {
-      "title": "Request received",
-      "body": "Please visit the front desk to complete your payment.",
-      "dismiss": "Got it"
+      "title": "Pay at reception",
+      "body": "You'll need to pay in cash at the front desk to complete your purchase.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
     },
-    "waiting": "Waiting Validation",
-    "pending": "Pending Validation"
+    "requested": "Cash Payment Requested",
+    "pendingAlert": "You already have a cash payment request pending."
+  },
+  "cashPayments": {
+    "title": "Cash Payments",
+    "tabTitle": "CASH",
+    "pending": "Pending",
+    "processed": "Processed",
+    "empty": "No requests.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "confirmApprove": "Approve this cash payment?",
+    "confirmReject": "Reject this request?",
+    "status": {
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "beta": {
     "comingSoon": "Coming Soon",
