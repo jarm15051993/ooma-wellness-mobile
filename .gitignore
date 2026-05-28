@@ -45,3 +45,15 @@ google-services.json
 
 # Firebase — keep out of version control, use EAS secrets for builds
 google-services.json
+
+
+# IDE
+.idea/
+
+# Vercel
+.vercel/
+
+# Stray files
+Components.
+Settings
+assets/icon-512.png
