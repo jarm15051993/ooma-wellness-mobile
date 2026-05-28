@@ -555,6 +555,16 @@
     "trialClassCount_one": "{{count}} classe",
     "trialClassCount_other": "{{count}} classes"
   },
+  "cash": {
+    "cta": "Pagar en efectiu",
+    "modal": {
+      "title": "Sol·licitud rebuda",
+      "body": "Si us plau, dirigeix-te a la recepció per completar el pagament.",
+      "dismiss": "Entesos"
+    },
+    "waiting": "Esperant validació",
+    "pending": "Validació pendent"
+  },
   "beta": {
     "comingSoon": "Pròximament",
     "message": "Estem donant els últims retocs a quelcom especial. Aviat tindràs notícies!"

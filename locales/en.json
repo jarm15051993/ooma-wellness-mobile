@@ -555,6 +555,16 @@
     "trialClassCount_one": "{{count}} class",
     "trialClassCount_other": "{{count}} classes"
   },
+  "cash": {
+    "cta": "Pay with cash",
+    "modal": {
+      "title": "Request received",
+      "body": "Please visit the front desk to complete your payment.",
+      "dismiss": "Got it"
+    },
+    "waiting": "Waiting Validation",
+    "pending": "Pending Validation"
+  },
   "beta": {
     "comingSoon": "Coming Soon",
     "message": "We're putting the finishing touches on something special. Stay tuned."

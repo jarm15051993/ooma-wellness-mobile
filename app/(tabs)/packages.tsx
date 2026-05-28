@@ -18,6 +18,8 @@ import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { subscriptionsApi, isGrandfathered, pollForSubscriptionCredit } from '@/lib/subscriptions'
+import { cashPaymentApi } from '@/lib/cashPayment'
+import { type CashPaymentRequest } from '@/lib/cashPayment'
 import { C, F } from '@/constants/theme'
 import Toast from '@/components/Toast'
 import BetaOverlay from '@/components/BetaOverlay'
@@ -45,7 +47,7 @@ const SPECIAL_BADGE_TEXT = '#8A6035'
 
 export default function PackagesScreen() {
   const { t } = useTranslation()
-  const { user, settings, refreshUser, isBeta } = useAuth()
+  const { user, settings, refreshUser, isBeta, pendingCashRequest, refreshCashPaymentStatus } = useAuth()
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,6 +55,7 @@ export default function PackagesScreen() {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [joiningClub, setJoiningClub] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
+  const [cashModal, setCashModal] = useState(false)
   const [expanded, setExpanded] = useState<Record<SectionKey, boolean>>({
     REFORMER: false,
     YOGA: false,
@@ -163,6 +166,17 @@ export default function PackagesScreen() {
     }
   }
 
+  async function handleCashPayment(type: 'MEMBERSHIP' | 'SUBSCRIPTION' | 'ONE_TIME_CLASS', pkg?: Package) {
+    try {
+      await cashPaymentApi.request(type, pkg?.id)
+      await refreshCashPaymentStatus()
+      setCashModal(true)
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? t('common.somethingWentWrong')
+      Alert.alert(t('common.error'), msg)
+    }
+  }
+
   function toggleSection(key: SectionKey) {
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }))
   }
@@ -203,6 +217,8 @@ export default function PackagesScreen() {
             price={settings?.subscriptionPrice ?? 0}
             loading={joiningClub}
             onJoin={handleJoinClub}
+            onCashJoin={() => handleCashPayment('MEMBERSHIP')}
+            pendingCashRequest={pendingCashRequest}
             t={t}
           />
 
@@ -222,12 +238,20 @@ export default function PackagesScreen() {
                   pkg={pkg}
                   loadingId={loadingId}
                   onPress={() => handleSubscribe(pkg)}
+                  onCashPress={() => handleCashPayment('ONE_TIME_CLASS', pkg)}
+                  pendingCashRequest={pendingCashRequest}
                   t={t}
                 />
               ))}
             </>
           )}
         </ScrollView>
+
+        <CashPaymentModal
+          visible={cashModal}
+          onDismiss={() => setCashModal(false)}
+          t={t}
+        />
 
         <Modal visible={!!(loadingId || joiningClub)} transparent animationType="fade">
           <View style={styles.processingOverlay}>
@@ -278,6 +302,8 @@ export default function PackagesScreen() {
               loadingId={loadingId}
               gated={false}
               onPress={() => handleSubscribe(pkg)}
+              onCashPress={() => handleCashPayment('SUBSCRIPTION', pkg)}
+              pendingCashRequest={pendingCashRequest}
               t={t}
             />
           ))}
@@ -295,6 +321,8 @@ export default function PackagesScreen() {
               loadingId={loadingId}
               gated={false}
               onPress={() => handleSubscribe(pkg)}
+              onCashPress={() => handleCashPayment('SUBSCRIPTION', pkg)}
+              pendingCashRequest={pendingCashRequest}
               t={t}
             />
           ))}
@@ -313,6 +341,8 @@ export default function PackagesScreen() {
               loadingId={loadingId}
               gated={false}
               onPress={() => handleSubscribe(pkg)}
+              onCashPress={() => handleCashPayment('SUBSCRIPTION', pkg)}
+              pendingCashRequest={pendingCashRequest}
               t={t}
             />
           ))}
@@ -330,6 +360,8 @@ export default function PackagesScreen() {
                   loadingId={loadingId}
                   gated={false}
                   onPress={() => handleSubscribe(pkg)}
+                  onCashPress={() => handleCashPayment('SUBSCRIPTION', pkg)}
+                  pendingCashRequest={pendingCashRequest}
                   t={t}
                   student
                 />
@@ -356,6 +388,8 @@ export default function PackagesScreen() {
                 loadingId={loadingId}
                 gated={false}
                 onPress={() => handleSubscribe(pkg)}
+                onCashPress={() => handleCashPayment('ONE_TIME_CLASS', pkg)}
+                pendingCashRequest={pendingCashRequest}
                 t={t}
                 isOneTime
               />
@@ -363,6 +397,12 @@ export default function PackagesScreen() {
           </Section>
         )}
       </ScrollView>
+
+      <CashPaymentModal
+        visible={cashModal}
+        onDismiss={() => setCashModal(false)}
+        t={t}
+      />
 
       <Toast
         message={toast.message}
@@ -390,13 +430,20 @@ function MembershipCard({
   price,
   loading,
   onJoin,
+  onCashJoin,
+  pendingCashRequest,
   t,
 }: {
   price: number
   loading: boolean
   onJoin: () => void
+  onCashJoin: () => void
+  pendingCashRequest: CashPaymentRequest | null
   t: (key: string, opts?: any) => string
 }) {
+  const hasPending = pendingCashRequest !== null
+  const isMembershipPending = pendingCashRequest?.type === 'MEMBERSHIP'
+
   return (
     <View style={styles.membershipCard}>
       <Text style={styles.membershipCardLogo}>OOMA</Text>
@@ -407,15 +454,27 @@ function MembershipCard({
         {t('packages.membershipBannerBody', { price: `€${price}` })}
       </Text>
       <TouchableOpacity
-        style={[styles.membershipCardBtn, loading && styles.buyBtnDisabled]}
+        style={[styles.membershipCardBtn, (loading || hasPending) && styles.buyBtnDisabled]}
         onPress={onJoin}
-        disabled={loading}
+        disabled={loading || hasPending}
         activeOpacity={0.8}
       >
         {loading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.membershipCardBtnText}>{t('packages.joinClubButton')}</Text>
+          : <Text style={styles.membershipCardBtnText}>
+              {hasPending ? t('cash.pending') : t('packages.joinClubButton')}
+            </Text>
         }
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.cashBtn, hasPending && styles.cashBtnDisabled]}
+        onPress={onCashJoin}
+        disabled={hasPending}
+        activeOpacity={0.8}
+      >
+        <Text style={[styles.cashBtnText, hasPending && styles.cashBtnTextDisabled]}>
+          {isMembershipPending ? t('cash.waiting') : hasPending ? t('cash.pending') : t('cash.cta')}
+        </Text>
       </TouchableOpacity>
     </View>
   )
@@ -425,15 +484,21 @@ function TrialPackageCard({
   pkg,
   loadingId,
   onPress,
+  onCashPress,
+  pendingCashRequest,
   t,
 }: {
   pkg: Package
   loadingId: string | null
   onPress: () => void
+  onCashPress: () => void
+  pendingCashRequest: CashPaymentRequest | null
   t: (key: string, opts?: any) => string
 }) {
   const isLoading  = loadingId === pkg.id
-  const isDisabled = loadingId !== null
+  const hasPending = pendingCashRequest !== null
+  const isCardDisabled = loadingId !== null || hasPending
+  const isCashPending  = hasPending && pendingCashRequest.packageId === pkg.id
 
   return (
     <View style={styles.trialCard}>
@@ -450,16 +515,52 @@ function TrialPackageCard({
       </View>
 
       <TouchableOpacity
-        style={[styles.buyBtn, isDisabled && styles.buyBtnDisabled]}
+        style={[styles.buyBtn, isCardDisabled && styles.buyBtnDisabled]}
         onPress={onPress}
-        disabled={isDisabled}
+        disabled={isCardDisabled}
       >
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.buyBtnText}>{t('packages.trialButton')}</Text>
+          : <Text style={styles.buyBtnText}>
+              {hasPending ? t('cash.pending') : t('packages.trialButton')}
+            </Text>
         }
       </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.cashBtn, hasPending && styles.cashBtnDisabled]}
+        onPress={onCashPress}
+        disabled={hasPending}
+        activeOpacity={0.8}
+      >
+        <Text style={[styles.cashBtnText, hasPending && styles.cashBtnTextDisabled]}>
+          {isCashPending ? t('cash.waiting') : hasPending ? t('cash.pending') : t('cash.cta')}
+        </Text>
+      </TouchableOpacity>
     </View>
+  )
+}
+
+function CashPaymentModal({
+  visible,
+  onDismiss,
+  t,
+}: {
+  visible: boolean
+  onDismiss: () => void
+  t: (key: string, opts?: any) => string
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.processingOverlay}>
+        <View style={styles.cashModalBox}>
+          <Text style={styles.cashModalTitle}>{t('cash.modal.title')}</Text>
+          <Text style={styles.cashModalBody}>{t('cash.modal.body')}</Text>
+          <TouchableOpacity style={styles.cashModalBtn} onPress={onDismiss} activeOpacity={0.8}>
+            <Text style={styles.cashModalBtnText}>{t('cash.modal.dismiss')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   )
 }
 
@@ -567,6 +668,8 @@ function PackageCard({
   loadingId,
   gated,
   onPress,
+  onCashPress,
+  pendingCashRequest,
   t,
   student = false,
   isOneTime = false,
@@ -575,12 +678,16 @@ function PackageCard({
   loadingId: string | null
   gated: boolean
   onPress: () => void
+  onCashPress: () => void
+  pendingCashRequest: CashPaymentRequest | null
   t: (key: string, opts?: any) => string
   student?: boolean
   isOneTime?: boolean
 }) {
-  const isLoading = loadingId === pkg.id
-  const isDisabled = loadingId !== null || gated
+  const isLoading  = loadingId === pkg.id
+  const hasPending = pendingCashRequest !== null
+  const isDisabled = loadingId !== null || gated || hasPending
+  const isCashPending = hasPending && pendingCashRequest.packageId === pkg.id
   const perClass = pkg.isUnlimited ? null : (pkg.price / pkg.classCount).toFixed(0)
 
   return (
@@ -621,10 +728,24 @@ function PackageCard({
         {isLoading
           ? <ActivityIndicator size="small" color={C.cream} />
           : <Text style={styles.buyBtnText}>
-              {isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
+              {hasPending
+                ? t('cash.pending')
+                : isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
             </Text>
         }
       </TouchableOpacity>
+      {!gated && (
+        <TouchableOpacity
+          style={[styles.cashBtn, student && styles.cashBtnStudent, hasPending && styles.cashBtnDisabled]}
+          onPress={onCashPress}
+          disabled={hasPending}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.cashBtnText, hasPending && styles.cashBtnTextDisabled]}>
+            {isCashPending ? t('cash.waiting') : hasPending ? t('cash.pending') : t('cash.cta')}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
@@ -983,5 +1104,60 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 16,
     marginBottom: 10,
+  },
+  cashBtn: {
+    borderWidth: 1,
+    borderColor: C.ink,
+    borderRadius: 4,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  cashBtnStudent: {
+    borderColor: C.burg,
+  },
+  cashBtnDisabled: {
+    borderColor: C.rule,
+  },
+  cashBtnText: {
+    ...F.button,
+    color: C.ink,
+    fontSize: 12,
+  },
+  cashBtnTextDisabled: {
+    color: C.lgray,
+  },
+  cashModalBox: {
+    backgroundColor: C.warmWhite,
+    borderRadius: 16,
+    padding: 28,
+    marginHorizontal: 32,
+    alignItems: 'center',
+  },
+  cashModalTitle: {
+    ...F.serif,
+    fontSize: 20,
+    color: C.ink,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  cashModalBody: {
+    ...F.body,
+    fontSize: 14,
+    color: C.mgray,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  cashModalBtn: {
+    backgroundColor: C.ink,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+  },
+  cashModalBtnText: {
+    ...F.button,
+    color: C.cream,
+    fontSize: 13,
   },
 })

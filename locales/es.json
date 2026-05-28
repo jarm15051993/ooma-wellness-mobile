@@ -555,6 +555,16 @@
     "trialClassCount_one": "{{count}} clase",
     "trialClassCount_other": "{{count}} clases"
   },
+  "cash": {
+    "cta": "Pagar en efectivo",
+    "modal": {
+      "title": "Solicitud recibida",
+      "body": "Por favor, dirígete a recepción para completar tu pago.",
+      "dismiss": "Entendido"
+    },
+    "waiting": "Esperando validación",
+    "pending": "Validación pendiente"
+  },
   "beta": {
     "comingSoon": "Próximamente",
     "message": "Estamos dando los últimos retoques a algo especial. ¡Pronto tendrás noticias!"

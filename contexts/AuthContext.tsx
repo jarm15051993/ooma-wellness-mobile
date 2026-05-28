@@ -4,6 +4,7 @@ import { AppState } from 'react-native'
 import { useRouter } from 'expo-router'
 import { api, setTenantUserId } from '@/lib/api'
 import i18n, { type AppLanguage } from '@/lib/i18n'
+import { cashPaymentApi, type CashPaymentRequest } from '@/lib/cashPayment'
 
 export type User = {
   id: string
@@ -33,6 +34,7 @@ export type StandaloneCredit = {
   creditsRemaining: number
   isUnlimited: boolean
   expiresAt: string | null
+  paymentMethod: 'CARD' | 'CASH'
   package: { name: string; packageType: 'REFORMER' | 'YOGA' | 'BOTH' } | null
 }
 
@@ -58,6 +60,7 @@ export type Subscription = {
     creditsTotal: number
     isUnlimited: boolean
     expiresAt: string | null
+    paymentMethod: 'CARD' | 'CASH'
   }>
 }
 
@@ -77,12 +80,14 @@ type AuthContextType = {
   tenantUser: User | null
   lastActivityAt: React.MutableRefObject<number>
   settings: AppSettings | null
+  pendingCashRequest: CashPaymentRequest | null
   startTenantSession: (user: User) => void
   exitTenantSession: (fromInactivity?: boolean) => void
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
   refreshSettings: () => Promise<void>
+  refreshCashPaymentStatus: () => Promise<void>
   setLanguage: (lang: AppLanguage) => void
 }
 
@@ -134,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [tenantUser, setTenantUser] = useState<User | null>(null)
   const [settings, setSettings] = useState<AppSettings | null>(null)
+  const [pendingCashRequest, setPendingCashRequest] = useState<CashPaymentRequest | null>(null)
 
   const lastActivityAt = useRef<number>(Date.now())
   const router = useRouter()
@@ -163,13 +169,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (stored) {
           setToken(stored)
           applyPermissions(stored)
-          const [meRes, settingsRes] = await Promise.all([
+          const [meRes, settingsRes, cashRes] = await Promise.all([
             api.get('/api/mobile/me'),
             api.get('/api/mobile/settings'),
+            cashPaymentApi.status(),
           ])
           setUser(meRes.data.user)
           setIsBeta(meRes.data.user.isBeta ?? false)
           setSettings(settingsRes.data)
+          setPendingCashRequest(cashRes.data.cashRequest ?? null)
           const lang: AppLanguage = meRes.data.user.language ?? 'es'
           setLanguageState(lang)
           i18n.changeLanguage(lang)
@@ -185,13 +193,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     restore()
   }, [])
 
-  // Reset inactivity timer when app comes to foreground
+  // Reset inactivity timer and refresh cash status when app comes to foreground
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
-      if (state === 'active') lastActivityAt.current = Date.now()
+      if (state === 'active') {
+        lastActivityAt.current = Date.now()
+        if (token) {
+          cashPaymentApi.status()
+            .then(res => setPendingCashRequest(res.data.cashRequest ?? null))
+            .catch(() => {})
+        }
+      }
     })
     return () => sub.remove()
-  }, [])
+  }, [token])
 
   // Inactivity check — only active when in tenant session
   useEffect(() => {
@@ -244,6 +259,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
     setTenantUser(null)
     setTenantUserId(null)
+    setPendingCashRequest(null)
   }
 
   async function refreshUser() {
@@ -260,6 +276,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSettings(data)
   }
 
+  async function refreshCashPaymentStatus() {
+    const { data } = await cashPaymentApi.status()
+    setPendingCashRequest(data.cashRequest ?? null)
+  }
+
   return (
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
@@ -267,8 +288,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       language,
       isLoading, tenantUser, lastActivityAt,
       settings,
+      pendingCashRequest,
       startTenantSession, exitTenantSession,
-      signIn, signOut, refreshUser, refreshSettings, setLanguage,
+      signIn, signOut, refreshUser, refreshSettings, refreshCashPaymentStatus, setLanguage,
     }}>
       {children}
     </AuthContext.Provider>

@@ -894,6 +894,11 @@ export default function ProfileScreen() {
                           ? t('profile.subscriptions.expiresOn', { date: periodEnd })
                           : t('profile.subscriptions.renewsOn', { date: periodEnd })}
                       </Text>
+                      {credit?.paymentMethod === 'CASH' && (
+                        <View style={styles.paymentMethodBadge}>
+                          <Text style={styles.paymentMethodBadgeText}>CASH</Text>
+                        </View>
+                      )}
                       {!isCancelling && sub.status === 'ACTIVE' && (
                         <TouchableOpacity
                           style={styles.subCancelLink}
@@ -930,6 +935,11 @@ export default function ProfileScreen() {
                       <Text style={styles.subRenewal}>
                         {t('profile.subscriptions.expiresOn', { date: format(new Date(credit.expiresAt), 'MMM d, yyyy') })}
                       </Text>
+                    )}
+                    {credit.paymentMethod === 'CASH' && (
+                      <View style={styles.paymentMethodBadge}>
+                        <Text style={styles.paymentMethodBadgeText}>CASH</Text>
+                      </View>
                     )}
                   </View>
                 ))}
@@ -1829,5 +1839,21 @@ const styles = StyleSheet.create({
   },
   deleteConfirmBtnText: {
     fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase',
+  },
+  paymentMethodBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: C.bone,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 6,
+  },
+  paymentMethodBadgeText: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
+    color: C.mgray,
+    letterSpacing: 1.5,
   },
 })
