@@ -358,21 +358,21 @@ export default function ClassManageScreen() {
       {editForm && (
         <Modal visible={showEditModal} animationType="slide" onRequestClose={() => setShowEditModal(false)}>
           <SafeAreaView style={styles.editSafe} edges={['top', 'left', 'right', 'bottom']}>
-            <ScrollView contentContainerStyle={styles.editScroll} keyboardShouldPersistTaps="handled">
-              {/* Header */}
-              <View style={styles.editHeader}>
-                <TouchableOpacity onPress={() => setShowEditModal(false)}>
-                  <Text style={styles.editHeaderCancel}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={styles.editHeaderTitle}>Edit Class</Text>
-                <TouchableOpacity onPress={handleSavePress} disabled={saving}>
-                  {saving
-                    ? <ActivityIndicator size="small" color={C.burg} />
-                    : <Text style={styles.editHeaderSave}>Save</Text>
-                  }
-                </TouchableOpacity>
-              </View>
+            {/* Fixed header — outside ScrollView so it never scrolls away */}
+            <View style={styles.editHeader}>
+              <TouchableOpacity onPress={() => setShowEditModal(false)}>
+                <Text style={styles.editHeaderCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.editHeaderTitle}>Edit Class</Text>
+              <TouchableOpacity onPress={handleSavePress} disabled={saving}>
+                {saving
+                  ? <ActivityIndicator size="small" color={C.burg} />
+                  : <Text style={styles.editHeaderSave}>Save</Text>
+                }
+              </TouchableOpacity>
+            </View>
 
+            <ScrollView contentContainerStyle={styles.editScroll} keyboardShouldPersistTaps="handled">
               {hasEnrolled && (
                 <View style={styles.warningBanner}>
                   <Text style={styles.warningText}>
