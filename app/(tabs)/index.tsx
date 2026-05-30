@@ -196,7 +196,7 @@ export default function ClassesScreen() {
     const errs: CreateClassErrors = {}
     if (!createForm.title.trim()) errs.title = 'Class name is required'
     const cap = parseInt(createForm.capacity)
-    if (isNaN(cap) || cap < 1 || cap > 6) errs.capacity = 'Spots must be between 1 and 6'
+    if (isNaN(cap) || cap < 1 || cap > 20) errs.capacity = 'Spots must be between 1 and 20'
     const now = new Date(); now.setHours(0, 0, 0, 0)
     const selectedDate = new Date(createForm.date); selectedDate.setHours(0, 0, 0, 0)
     if (selectedDate < now) errs.date = 'Date must be today or in the future'
@@ -344,11 +344,13 @@ export default function ClassesScreen() {
   }
 
   function prevMonth() {
+    setSelectedKey('')
     if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) }
     else setViewMonth(m => m - 1)
   }
 
   function nextMonth() {
+    setSelectedKey('')
     if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) }
     else setViewMonth(m => m + 1)
   }
@@ -861,7 +863,7 @@ export default function ClassesScreen() {
                 <Text style={styles.stepperValue}>{createForm.capacity}</Text>
                 <TouchableOpacity
                   style={styles.stepperBtn}
-                  onPress={() => setCreateForm(f => ({ ...f, capacity: String(Math.min(6, parseInt(f.capacity || '6') + 1)) }))}
+                  onPress={() => setCreateForm(f => ({ ...f, capacity: String(Math.min(20, parseInt(f.capacity || '6') + 1)) }))}
                 >
                   <Text style={styles.stepperBtnText}>+</Text>
                 </TouchableOpacity>
