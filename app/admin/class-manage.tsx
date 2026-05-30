@@ -76,6 +76,10 @@ export default function ClassManageScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [selected, setSelected] = useState<Attendee | null>(null)
 
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
   // Edit state
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState<EditForm | null>(null)
@@ -104,6 +108,21 @@ export default function ClassManageScreen() {
     }, [classId])
   )
 
+  async function handleDelete() {
+    if (!cls) return
+    setDeleting(true)
+    try {
+      await api.delete(`/api/admin/classes/${cls.id}`)
+      router.back()
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? 'Something went wrong'
+      Alert.alert('Error', msg)
+    } finally {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   function openEdit() {
     if (!cls) return
     setEditForm(buildForm(cls))
@@ -116,7 +135,7 @@ export default function ClassManageScreen() {
     const errs: Partial<Record<keyof EditForm, string>> = {}
     if (!editForm.title.trim()) errs.title = 'Class name is required'
     const cap = parseInt(editForm.capacity)
-    if (isNaN(cap) || cap < 1 || cap > 6) errs.capacity = 'Spots must be between 1 and 6'
+    if (isNaN(cap) || cap < 1 || cap > 20) errs.capacity = 'Spots must be between 1 and 20'
     if (cap < attendees.length) errs.capacity = `Cannot reduce to ${cap} — ${attendees.length} people are enrolled`
     setEditErrors(errs)
     return Object.keys(errs).length === 0
@@ -204,9 +223,16 @@ export default function ClassManageScreen() {
                   {attendees.length} / {cls.capacity} {attendees.length === 1 ? 'participant' : 'participants'}
                 </Text>
               </View>
-              <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
-                <Text style={styles.editBtnText}>EDIT</Text>
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
+                  <Text style={styles.editBtnText}>EDIT</Text>
+                </TouchableOpacity>
+                {!hasEnrolled && (
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => setShowDeleteConfirm(true)}>
+                    <Text style={styles.deleteBtnText}>DELETE</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
         )}
@@ -331,7 +357,7 @@ export default function ClassManageScreen() {
       {/* Edit modal */}
       {editForm && (
         <Modal visible={showEditModal} animationType="slide" onRequestClose={() => setShowEditModal(false)}>
-          <SafeAreaView style={styles.editSafe}>
+          <SafeAreaView style={styles.editSafe} edges={['top', 'left', 'right', 'bottom']}>
             <ScrollView contentContainerStyle={styles.editScroll} keyboardShouldPersistTaps="handled">
               {/* Header */}
               <View style={styles.editHeader}>
@@ -472,7 +498,7 @@ export default function ClassManageScreen() {
                     style={styles.durationBtn}
                     onPress={() => setEditForm(f => {
                       if (!f) return f
-                      const v = Math.min(6, parseInt(f.capacity) + 1)
+                      const v = Math.min(20, parseInt(f.capacity) + 1)
                       return { ...f, capacity: String(v) }
                     })}
                   >
@@ -486,7 +512,28 @@ export default function ClassManageScreen() {
         </Modal>
       )}
 
-      {/* Confirm modal */}
+      {/* Delete confirmation modal */}
+      <Modal visible={showDeleteConfirm} transparent animationType="fade">
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            <Text style={styles.confirmTitle}>Delete class?</Text>
+            <Text style={styles.confirmBody}>
+              This will permanently remove the class. This cannot be undone.
+            </Text>
+            <TouchableOpacity style={styles.deleteBtnFilled} onPress={handleDelete} disabled={deleting}>
+              {deleting
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.confirmBtnText}>Delete</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowDeleteConfirm(false)} disabled={deleting}>
+              <Text style={styles.confirmCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit confirm modal */}
       <Modal visible={showConfirm} transparent animationType="fade">
         <View style={styles.confirmOverlay}>
           <View style={styles.confirmBox}>
@@ -530,16 +577,30 @@ const styles = StyleSheet.create({
   classTitle: { fontFamily: F.serifBold, fontSize: 22, color: C.ink, marginBottom: 6 },
   classMeta: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
   attendeeCount: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, marginTop: 8 },
+  headerActions: { flexDirection: 'column', gap: 6, marginLeft: 12, alignSelf: 'flex-start' },
   editBtn: {
     borderWidth: 1,
     borderColor: C.ink,
     borderRadius: 2,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginLeft: 12,
-    alignSelf: 'flex-start',
   },
   editBtnText: { fontFamily: F.sansMed, fontSize: 10, color: C.ink, letterSpacing: 1 },
+  deleteBtn: {
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    borderRadius: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  deleteBtnText: { fontFamily: F.sansMed, fontSize: 10, color: '#ef4444', letterSpacing: 1 },
+  deleteBtnFilled: {
+    backgroundColor: '#ef4444',
+    borderRadius: 4,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   emptyState: { paddingVertical: 40, alignItems: 'center' },
   emptyText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray },
   list: { gap: 8 },
@@ -592,6 +653,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: C.rule,
