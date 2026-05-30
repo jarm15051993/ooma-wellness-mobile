@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { format, addMinutes } from 'date-fns'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { api } from '@/lib/api'
@@ -69,6 +69,7 @@ const DURATION_OPTIONS = Array.from({ length: 16 }, (_, i) => 30 + i * 10)
 export default function ClassManageScreen() {
   const { classId } = useLocalSearchParams<{ classId: string }>()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
 
   const [cls, setCls] = useState<ClassInfo | null>(null)
   const [attendees, setAttendees] = useState<Attendee[]>([])
