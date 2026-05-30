@@ -70,6 +70,7 @@ type AuthContextType = {
   canViewStudents: boolean
   canValidateAttendance: boolean
   canMarkAsStudent: boolean
+  canGiftClasses: boolean
   isStudent: boolean
   isBeta: boolean
   language: AppLanguage
@@ -93,6 +94,7 @@ type DecodedPermissions = {
   canViewStudents: boolean
   canValidateAttendance: boolean
   canMarkAsStudent: boolean
+  canGiftClasses: boolean
   isStudent: boolean
 }
 
@@ -107,10 +109,11 @@ function decodeJwtPermissions(token: string): DecodedPermissions {
       canViewStudents: isOwner || payload.canViewStudents === true,
       canValidateAttendance: isOwner || payload.canValidateAttendance === true,
       canMarkAsStudent: isOwner || payload.canMarkAsStudent === true,
+      canGiftClasses: isOwner || payload.canGiftClasses === true,
       isStudent: payload.isStudent === true,
     }
   } catch {
-    return { isAdmin: false, isOwner: false, canCreateClass: false, canViewStudents: false, canValidateAttendance: false, canMarkAsStudent: false, isStudent: false }
+    return { isAdmin: false, isOwner: false, canCreateClass: false, canViewStudents: false, canValidateAttendance: false, canMarkAsStudent: false, canGiftClasses: false, isStudent: false }
   }
 }
 
@@ -128,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [canViewStudents, setCanViewStudents] = useState(false)
   const [canValidateAttendance, setCanValidateAttendance] = useState(false)
   const [canMarkAsStudent, setCanMarkAsStudent] = useState(false)
+  const [canGiftClasses, setCanGiftClasses] = useState(false)
   const [isStudent, setIsStudent] = useState(false)
   const [isBeta, setIsBeta] = useState(false)
   const [language, setLanguageState] = useState<AppLanguage>('es')
@@ -146,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCanViewStudents(p.canViewStudents)
     setCanValidateAttendance(p.canValidateAttendance)
     setCanMarkAsStudent(p.canMarkAsStudent)
+    setCanGiftClasses(p.canGiftClasses)
     setIsStudent(p.isStudent)
   }
 
@@ -237,6 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCanViewStudents(false)
     setCanValidateAttendance(false)
     setCanMarkAsStudent(false)
+    setCanGiftClasses(false)
     setIsStudent(false)
     setIsBeta(false)
     setLanguageState('es')
@@ -263,7 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, token, isAdmin, isOwner,
-      canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, isStudent, isBeta,
+      canCreateClass, canViewStudents, canValidateAttendance, canMarkAsStudent, canGiftClasses, isStudent, isBeta,
       language,
       isLoading, tenantUser, lastActivityAt,
       settings,

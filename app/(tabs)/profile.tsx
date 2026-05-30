@@ -153,7 +153,7 @@ export default function ProfileScreen() {
     package_purchase: t('profile.notifications.packagePurchase'),
   }
   const router = useRouter()
-  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, isBeta, language, setLanguage } = useAuth()
+  const { user, signOut, refreshUser, tenantUser, exitTenantSession, isAdmin, isOwner, canMarkAsStudent, canGiftClasses, isBeta, language, setLanguage } = useAuth()
   const displayUser = tenantUser ?? user
   const isStaff = isAdmin || isOwner
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -178,6 +178,13 @@ export default function ProfileScreen() {
   // Student toggle (tenant mode only)
   const [studentStatus, setStudentStatus] = useState(false)
   const [savingStudent, setSavingStudent] = useState(false)
+
+  // Gift classes (tenant mode only)
+  const [showGiftModal, setShowGiftModal] = useState(false)
+  const [giftPackages, setGiftPackages] = useState<{ id: string; name: string; packageType: string; classCount: number }[]>([])
+  const [loadingGiftPackages, setLoadingGiftPackages] = useState(false)
+  const [selectedGiftPackage, setSelectedGiftPackage] = useState<string | null>(null)
+  const [gifting, setGifting] = useState(false)
 
   // Extended profile state
   const [extProfile, setExtProfile] = useState<ExtendedProfile>({ birthday: null, goals: null, userGoalIds: [], additionalInfo: null })
@@ -325,6 +332,37 @@ export default function ProfileScreen() {
       setNotifToast({ visible: true, message: 'Could not update student status. Please try again.', isError: true })
     } finally {
       setSavingStudent(false)
+    }
+  }
+
+  async function openGiftModal() {
+    setSelectedGiftPackage(null)
+    setShowGiftModal(true)
+    setLoadingGiftPackages(true)
+    try {
+      const { data } = await api.get('/api/mobile/packages')
+      const oneTime = (data.packages as any[]).filter((p: any) => !p.isRecurring)
+      setGiftPackages(oneTime.map((p: any) => ({ id: p.id, name: p.name, packageType: p.packageType, classCount: p.classCount })))
+    } catch {
+      setShowGiftModal(false)
+    } finally {
+      setLoadingGiftPackages(false)
+    }
+  }
+
+  async function handleGift() {
+    if (!tenantUser || !selectedGiftPackage) return
+    setGifting(true)
+    try {
+      await api.post('/api/admin/gift-package', { userId: tenantUser.id, packageId: selectedGiftPackage })
+      setShowGiftModal(false)
+      setSelectedGiftPackage(null)
+      setNotifToast({ visible: true, message: 'Class gifted successfully!', isError: false })
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? 'Could not gift class. Please try again.'
+      setNotifToast({ visible: true, message: msg, isError: true })
+    } finally {
+      setGifting(false)
     }
   }
 
@@ -826,6 +864,13 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* Gift a class — only visible in active tenant session with canGiftClasses permission */}
+        {tenantUser && (isOwner || canGiftClasses) && (
+          <TouchableOpacity style={styles.giftBtn} onPress={openGiftModal}>
+            <Text style={styles.giftBtnText}>🎁 Gift a class</Text>
+          </TouchableOpacity>
+        )}
+
         {/* My Subscriptions — hidden for staff */}
         {!isStaff && (
           <View style={styles.packagesSection}>
@@ -1059,6 +1104,51 @@ export default function ProfileScreen() {
       />
 
       {/* Cancel subscription confirmation */}
+      {/* Gift a class modal */}
+      <Modal visible={showGiftModal} transparent animationType="fade" onRequestClose={() => setShowGiftModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Gift a class</Text>
+            <Text style={styles.modalBody}>
+              Select a one-time class to gift to {tenantUser?.name ?? 'this user'}.
+            </Text>
+            {loadingGiftPackages ? (
+              <ActivityIndicator color={C.burg} style={{ marginVertical: 16 }} />
+            ) : giftPackages.length === 0 ? (
+              <Text style={[styles.modalBody, { color: C.midGray }]}>No one-time packages available to gift.</Text>
+            ) : (
+              giftPackages.map(pkg => (
+                <TouchableOpacity
+                  key={pkg.id}
+                  style={[styles.giftOption, selectedGiftPackage === pkg.id && styles.giftOptionSelected]}
+                  onPress={() => setSelectedGiftPackage(pkg.id)}
+                >
+                  <Text style={[styles.giftOptionName, selectedGiftPackage === pkg.id && styles.giftOptionNameSelected]}>
+                    {pkg.name}
+                  </Text>
+                  <Text style={styles.giftOptionMeta}>
+                    {pkg.classCount} class · {pkg.packageType === 'REFORMER' ? 'Reformer Pilates' : pkg.packageType === 'YOGA' ? 'Yoga' : 'Reformer + Yoga'}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
+            <TouchableOpacity
+              style={[styles.modalConfirmBtn, (!selectedGiftPackage || gifting) && { opacity: 0.4 }]}
+              onPress={handleGift}
+              disabled={!selectedGiftPackage || gifting}
+            >
+              {gifting
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.modalConfirmBtnText}>Confirm gift</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowGiftModal(false)} disabled={gifting}>
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={!!cancelTarget} transparent animationType="fade" onRequestClose={() => setCancelTarget(null)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -1783,6 +1873,27 @@ const styles = StyleSheet.create({
   },
   studentToggleLabel: { fontFamily: F.sansMed, fontSize: 13, color: C.ink, letterSpacing: 0.3 },
   studentToggleSub: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 2 },
+  giftBtn: {
+    backgroundColor: C.warmWhite, borderWidth: 1, borderColor: C.rule,
+    borderRadius: 4, paddingHorizontal: 16, paddingVertical: 14,
+    marginTop: 12, alignItems: 'center',
+  },
+  giftBtnText: { fontFamily: F.sansMed, fontSize: 13, color: C.burg, letterSpacing: 0.3 },
+  giftOption: {
+    width: '100%', borderWidth: 1, borderColor: C.rule,
+    borderRadius: 4, padding: 12, marginTop: 4,
+  },
+  giftOptionSelected: { borderColor: C.burg, backgroundColor: C.warmWhite },
+  giftOptionName: { fontFamily: F.sansMed, fontSize: 14, color: C.ink },
+  giftOptionNameSelected: { color: C.burg },
+  giftOptionMeta: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginTop: 2 },
+  modalConfirmBtn: {
+    height: 48, backgroundColor: C.ink, borderRadius: 4,
+    alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', marginTop: 8,
+  },
+  modalConfirmBtnText: { fontFamily: F.sansMed, fontSize: 13, color: C.cream, letterSpacing: 1 },
+  modalCancelBtn: { height: 44, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
+  modalCancelBtnText: { fontFamily: F.sansReg, fontSize: 14, color: C.midGray },
   // ─── Danger Zone ───────────────────────────────────────────────────────────
   dangerZone: {
     marginTop: 32, borderWidth: 1, borderColor: `${C.red}40`,
