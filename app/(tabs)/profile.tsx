@@ -180,11 +180,11 @@ export default function ProfileScreen() {
   const [savingStudent, setSavingStudent] = useState(false)
 
   // Gift classes (tenant mode only)
-  const [showGiftModal, setShowGiftModal] = useState(false)
-  const [giftPackages, setGiftPackages] = useState<{ id: string; name: string; packageType: string; classCount: number }[]>([])
-  const [loadingGiftPackages, setLoadingGiftPackages] = useState(false)
-  const [selectedGiftPackage, setSelectedGiftPackage] = useState<string | null>(null)
-  const [gifting, setGifting] = useState(false)
+  const [showGiftClassModal, setShowGiftClassModal] = useState(false)
+  const [giftClassPackages, setGiftClassPackages] = useState<{ id: string; name: string; packageType: string; classCount: number }[]>([])
+  const [loadingGiftClassPackages, setLoadingGiftClassPackages] = useState(false)
+  const [selectedGiftClassPackage, setSelectedGiftClassPackage] = useState<string | null>(null)
+  const [giftingClass, setGiftingClass] = useState(false)
 
   // Extended profile state
   const [extProfile, setExtProfile] = useState<ExtendedProfile>({ birthday: null, goals: null, userGoalIds: [], additionalInfo: null })
@@ -335,34 +335,34 @@ export default function ProfileScreen() {
     }
   }
 
-  async function openGiftModal() {
-    setSelectedGiftPackage(null)
-    setShowGiftModal(true)
-    setLoadingGiftPackages(true)
+  async function openGiftClassModal() {
+    setSelectedGiftClassPackage(null)
+    setShowGiftClassModal(true)
+    setLoadingGiftClassPackages(true)
     try {
       const { data } = await api.get('/api/mobile/packages')
       const oneTime = (data.packages as any[]).filter((p: any) => !p.isRecurring)
-      setGiftPackages(oneTime.map((p: any) => ({ id: p.id, name: p.name, packageType: p.packageType, classCount: p.classCount })))
+      setGiftClassPackages(oneTime.map((p: any) => ({ id: p.id, name: p.name, packageType: p.packageType, classCount: p.classCount })))
     } catch {
-      setShowGiftModal(false)
+      setShowGiftClassModal(false)
     } finally {
-      setLoadingGiftPackages(false)
+      setLoadingGiftClassPackages(false)
     }
   }
 
-  async function handleGift() {
-    if (!tenantUser || !selectedGiftPackage) return
-    setGifting(true)
+  async function handleGiftClass() {
+    if (!tenantUser || !selectedGiftClassPackage) return
+    setGiftingClass(true)
     try {
-      await api.post('/api/admin/gift-package', { userId: tenantUser.id, packageId: selectedGiftPackage })
-      setShowGiftModal(false)
-      setSelectedGiftPackage(null)
+      await api.post('/api/admin/gift-package', { userId: tenantUser.id, packageId: selectedGiftClassPackage })
+      setShowGiftClassModal(false)
+      setSelectedGiftClassPackage(null)
       setNotifToast({ visible: true, message: 'Class gifted successfully!', isError: false })
     } catch (err: any) {
       const msg = err?.response?.data?.error ?? 'Could not gift class. Please try again.'
       setNotifToast({ visible: true, message: msg, isError: true })
     } finally {
-      setGifting(false)
+      setGiftingClass(false)
     }
   }
 
@@ -866,7 +866,7 @@ export default function ProfileScreen() {
 
         {/* Gift a class — only visible in active tenant session with canGiftClasses permission */}
         {tenantUser && (isOwner || canGiftClasses) && (
-          <TouchableOpacity style={styles.giftBtn} onPress={openGiftModal}>
+          <TouchableOpacity style={styles.giftBtn} onPress={openGiftClassModal}>
             <Text style={styles.giftBtnText}>🎁 Gift a class</Text>
           </TouchableOpacity>
         )}
@@ -1105,25 +1105,25 @@ export default function ProfileScreen() {
 
       {/* Cancel subscription confirmation */}
       {/* Gift a class modal */}
-      <Modal visible={showGiftModal} transparent animationType="fade" onRequestClose={() => setShowGiftModal(false)}>
+      <Modal visible={showGiftClassModal} transparent animationType="fade" onRequestClose={() => setShowGiftClassModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Gift a class</Text>
             <Text style={styles.modalBody}>
               Select a one-time class to gift to {tenantUser?.name ?? 'this user'}.
             </Text>
-            {loadingGiftPackages ? (
+            {loadingGiftClassPackages ? (
               <ActivityIndicator color={C.burg} style={{ marginVertical: 16 }} />
-            ) : giftPackages.length === 0 ? (
+            ) : giftClassPackages.length === 0 ? (
               <Text style={[styles.modalBody, { color: C.midGray }]}>No one-time packages available to gift.</Text>
             ) : (
-              giftPackages.map(pkg => (
+              giftClassPackages.map(pkg => (
                 <TouchableOpacity
                   key={pkg.id}
-                  style={[styles.giftOption, selectedGiftPackage === pkg.id && styles.giftOptionSelected]}
-                  onPress={() => setSelectedGiftPackage(pkg.id)}
+                  style={[styles.giftOption, selectedGiftClassPackage === pkg.id && styles.giftOptionSelected]}
+                  onPress={() => setSelectedGiftClassPackage(pkg.id)}
                 >
-                  <Text style={[styles.giftOptionName, selectedGiftPackage === pkg.id && styles.giftOptionNameSelected]}>
+                  <Text style={[styles.giftOptionName, selectedGiftClassPackage === pkg.id && styles.giftOptionNameSelected]}>
                     {pkg.name}
                   </Text>
                   <Text style={styles.giftOptionMeta}>
@@ -1133,16 +1133,16 @@ export default function ProfileScreen() {
               ))
             )}
             <TouchableOpacity
-              style={[styles.modalConfirmBtn, (!selectedGiftPackage || gifting) && { opacity: 0.4 }]}
-              onPress={handleGift}
-              disabled={!selectedGiftPackage || gifting}
+              style={[styles.modalConfirmBtn, (!selectedGiftClassPackage || giftingClass) && { opacity: 0.4 }]}
+              onPress={handleGiftClass}
+              disabled={!selectedGiftClassPackage || giftingClass}
             >
-              {gifting
+              {giftingClass
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={styles.modalConfirmBtnText}>Confirm gift</Text>
               }
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowGiftModal(false)} disabled={gifting}>
+            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowGiftClassModal(false)} disabled={giftingClass}>
               <Text style={styles.modalCancelBtnText}>Cancel</Text>
             </TouchableOpacity>
           </View>
