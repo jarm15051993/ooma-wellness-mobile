@@ -357,9 +357,9 @@ export default function ClassManageScreen() {
       {/* Edit modal */}
       {editForm && (
         <Modal visible={showEditModal} animationType="slide" onRequestClose={() => setShowEditModal(false)}>
-          <SafeAreaView style={styles.editSafe} edges={['top', 'left', 'right', 'bottom']}>
+          <SafeAreaView style={styles.editSafe}>
             {/* Fixed header — outside ScrollView so it never scrolls away */}
-            <View style={styles.editHeader}>
+            <View style={[styles.editHeader, { paddingTop: insets.top + 12 }]}>
               <TouchableOpacity onPress={() => setShowEditModal(false)}>
                 <Text style={styles.editHeaderCancel}>Cancel</Text>
               </TouchableOpacity>
