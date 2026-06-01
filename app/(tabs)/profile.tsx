@@ -242,7 +242,7 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (isStaff) return
+      if (isStaff && !tenantUser) return
       setLoadingSubscriptions(true)
       subscriptionsApi.list()
         .then(({ data }) => {
@@ -251,7 +251,7 @@ export default function ProfileScreen() {
         })
         .catch(() => {})
         .finally(() => setLoadingSubscriptions(false))
-    }, [isStaff])
+    }, [isStaff, tenantUser])
   )
 
   useFocusEffect(
