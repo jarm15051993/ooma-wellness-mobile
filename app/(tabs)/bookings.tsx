@@ -50,7 +50,19 @@ type PastClass = {
   attendedAt: string | null
 }
 
-type Tab = 'upcoming' | 'past'
+type MissedClass = {
+  bookingId: string
+  class: {
+    title: string
+    startsAt: string
+    instructor: string | null
+    durationMins: number
+    classType?: 'REFORMER' | 'YOGA'
+  }
+  stretcherNumber: number
+}
+
+type Tab = 'upcoming' | 'past' | 'missed'
 
 export default function BookingsScreen() {
   const { t } = useTranslation()
@@ -58,6 +70,7 @@ export default function BookingsScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('upcoming')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [pastClasses, setPastClasses] = useState<PastClass[]>([])
+  const [missedClasses, setMissedClasses] = useState<MissedClass[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null)
@@ -66,12 +79,14 @@ export default function BookingsScreen() {
 
   async function fetchAll() {
     try {
-      const [bookingsRes, historyRes] = await Promise.all([
+      const [bookingsRes, historyRes, missedRes] = await Promise.all([
         api.get('/api/mobile/bookings'),
         api.get('/api/mobile/bookings/history'),
+        api.get('/api/mobile/bookings/missed'),
       ])
       setBookings(bookingsRes.data.bookings)
       setPastClasses(historyRes.data.history)
+      setMissedClasses(missedRes.data.missed)
     } catch (err: any) {
       if (err.response?.status !== 401) {
         Alert.alert('Error', err.response?.data?.error ?? 'Failed to load classes')
@@ -170,6 +185,31 @@ export default function BookingsScreen() {
     )
   }
 
+  function renderMissed({ item }: { item: MissedClass }) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardTop}>
+          <Text style={styles.classTitle}>{item.class.title}</Text>
+          <View style={styles.missedBadge}>
+            <Text style={styles.missedBadgeText}>{t('bookings.missed').toUpperCase()}</Text>
+          </View>
+        </View>
+        <Text style={styles.dateText}>
+          {format(new Date(item.class.startsAt), 'EEEE, MMMM d')}
+        </Text>
+        <Text style={styles.timeText}>
+          {format(new Date(item.class.startsAt), 'h:mm a')} · {item.class.durationMins} min
+        </Text>
+        {item.class.instructor ? (
+          <Text style={styles.instructorText}>{item.class.instructor}</Text>
+        ) : null}
+        {item.class.classType === 'YOGA' && (
+          <Text style={styles.classTypeLabel}>{t('classes.typeYoga')}</Text>
+        )}
+      </View>
+    )
+  }
+
   const header = (
     <>
       <View style={styles.headingRow}>
@@ -190,6 +230,14 @@ export default function BookingsScreen() {
         >
           <Text style={[styles.toggleBtnText, activeTab === 'past' && styles.toggleBtnTextActive]}>
             {t('bookings.history')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.toggleBtn, activeTab === 'missed' && styles.toggleBtnActive]}
+          onPress={() => setActiveTab('missed')}
+        >
+          <Text style={[styles.toggleBtnText, activeTab === 'missed' && styles.toggleBtnTextActive]}>
+            {t('bookings.missed')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -231,7 +279,7 @@ export default function BookingsScreen() {
             </View>
           }
         />
-      ) : (
+      ) : activeTab === 'past' ? (
         <FlatList
           data={pastClasses}
           keyExtractor={item => item.bookingId}
@@ -253,6 +301,31 @@ export default function BookingsScreen() {
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>{t('bookings.noHistory')}</Text>
               <Text style={styles.emptySubtext}>{t('bookings.noUpcomingMessage')}</Text>
+            </View>
+          }
+        />
+      ) : (
+        <FlatList
+          data={missedClasses}
+          keyExtractor={item => item.bookingId}
+          renderItem={renderMissed}
+          contentContainerStyle={[
+            styles.listContent,
+            missedClasses.length === 0 && styles.emptyContainer,
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => { setRefreshing(true); fetchAll() }}
+              tintColor={C.burg}
+            />
+          }
+          ListHeaderComponent={header}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>{t('bookings.noMissed')}</Text>
+              <Text style={styles.emptySubtext}>{t('bookings.noMissedMessage')}</Text>
             </View>
           }
         />
@@ -347,6 +420,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   attendedBadgeText: { fontFamily: F.sansMed, fontSize: 10, color: '#6E7B6A', letterSpacing: 0.5 },
+  missedBadge: {
+    backgroundColor: '#F0E0DA',
+    borderRadius: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    flexShrink: 0,
+  },
+  missedBadgeText: { fontFamily: F.sansMed, fontSize: 10, color: '#A0522D', letterSpacing: 0.5 },
   dateText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
   timeText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
   instructorText: { fontFamily: F.sansReg, fontSize: 12, color: C.lightGray },
