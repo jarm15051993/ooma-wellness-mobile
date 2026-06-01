@@ -10,6 +10,9 @@ export const C = {
   midGray: '#8A8070',     // brandbook: mgray
   lightGray: '#BDB3A8',   // brandbook: lgray
 
+  // True burgundy — used for destructive/action buttons (Log Out, Sign Out)
+  wine: '#722F37',
+
   // Terracotta scale (primary accent — replaces burgundy)
   burg: '#9C7A52',        // brandbook: terra
   burgMid: '#B8956A',     // brandbook: terra-mid

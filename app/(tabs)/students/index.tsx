@@ -197,7 +197,7 @@ const s = StyleSheet.create({
     color: C.ink,
   },
   logOutBtn: {
-    backgroundColor: C.burg,
+    backgroundColor: C.wine,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,

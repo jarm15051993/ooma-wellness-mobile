@@ -1683,7 +1683,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.lightGray,
   },
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
-  signOutBtn: { height: 48, backgroundColor: C.burg, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
+  signOutBtn: { height: 48, backgroundColor: C.wine, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   signOutText: { fontFamily: F.sansMed, fontSize: 11, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' },
   // Language row
   languageRow: {
