@@ -242,7 +242,7 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (isStaff) return
+      if (isStaff && !tenantUser) return
       setLoadingSubscriptions(true)
       subscriptionsApi.list()
         .then(({ data }) => {
@@ -251,7 +251,7 @@ export default function ProfileScreen() {
         })
         .catch(() => {})
         .finally(() => setLoadingSubscriptions(false))
-    }, [isStaff])
+    }, [isStaff, tenantUser])
   )
 
   useFocusEffect(
@@ -871,8 +871,8 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
-        {/* My Subscriptions — hidden for staff */}
-        {!isStaff && (
+        {/* My Subscriptions — shown for regular users and admins in an active tenant session */}
+        {(!isStaff || !!tenantUser) && (
           <View style={styles.packagesSection}>
             <Text style={styles.sectionLabel}>{t('profile.subscriptions.title')}</Text>
             <View style={styles.creditsDivider} />

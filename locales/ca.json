@@ -493,7 +493,8 @@
       "cancelConfirmBtn": "CANCEL·LAR SUBSCRIPCIÓ",
       "keepBtn": "MANTENIR SUBSCRIPCIÓ",
       "cancelSuccess": "Subscripció cancel·lada",
-      "classesRemaining": "classes restants"
+      "classesRemaining": "classes restants",
+      "giftClass": "Classe de regal"
     }
   },
   "packages": {

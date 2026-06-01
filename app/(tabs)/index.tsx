@@ -116,7 +116,8 @@ function buildDateTimeUTC(date: Date, time: Date): Date {
 
 export default function ClassesScreen() {
   const { t } = useTranslation()
-  const { isAdmin, isOwner, canCreateClass, tenantUser, isBeta } = useAuth()
+  const { isAdmin, isOwner, canCreateClass, tenantUser, isBeta, signOut } = useAuth()
+  const isStaff = isAdmin || isOwner
   const router = useRouter()
   const today = new Date()
   const [classes, setClasses] = useState<ClassItem[]>([])
@@ -419,15 +420,22 @@ export default function ClassesScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
             <Text style={styles.headingItalic}>Calendar</Text>
           </View>
-          {showCreateButton && (
-            <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-              setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
-              setCreateErrors({})
-              setShowCreateModal(true)
-            }}>
-              <Text style={styles.newClassBtnText}>+ NEW CLASS</Text>
-            </TouchableOpacity>
-          )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {showCreateButton && (
+              <TouchableOpacity style={styles.newClassBtn} onPress={() => {
+                setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+                setCreateErrors({})
+                setShowCreateModal(true)
+              }}>
+                <Text style={styles.newClassBtnText}>+ NEW CLASS</Text>
+              </TouchableOpacity>
+            )}
+            {isStaff && !tenantUser && (
+              <TouchableOpacity style={styles.logOutBtn} onPress={signOut}>
+                <Text style={styles.logOutBtnText}>LOG OUT</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Calendar card */}
@@ -927,6 +935,18 @@ const styles = StyleSheet.create({
     fontFamily: F.sansMed,
     fontSize: 10,
     color: C.burg,
+    letterSpacing: 1,
+  },
+  logOutBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  logOutBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
+    color: '#fff',
     letterSpacing: 1,
   },
   headingRegular: {

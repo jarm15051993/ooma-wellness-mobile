@@ -18,7 +18,8 @@ type SearchResult = {
 }
 
 export default function StudentsScreen() {
-  const { isOwner, startTenantSession } = useAuth()
+  const { isAdmin, isOwner, startTenantSession, signOut } = useAuth()
+  const isStaff = isAdmin || isOwner
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const [query, setQuery] = useState('')
@@ -94,7 +95,14 @@ export default function StudentsScreen() {
   return (
     <SafeAreaView style={s.container} edges={['left', 'right', 'bottom']}>
       <View style={[s.header, { paddingTop: insets.top + 16 }]}>
-        <Text style={s.title}>Students</Text>
+        <View style={s.headerRow}>
+          <Text style={s.title}>Students</Text>
+          {isStaff && (
+            <TouchableOpacity style={s.logOutBtn} onPress={signOut}>
+              <Text style={s.logOutBtnText}>LOG OUT</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <Text style={s.subtitle}>Search by name, email or phone</Text>
 
         <TextInput
@@ -124,13 +132,10 @@ export default function StudentsScreen() {
       <FlatList
         data={results}
         keyExtractor={item => item.id}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={s.resultRow}
-            onPress={() => isOwner ? setSelectedUser(item) : null}
-            activeOpacity={isOwner ? 0.7 : 1}
-          >
+          <View style={s.resultRow}>
             <View style={s.resultInfo}>
               <Text style={s.resultName}>{item.fullName}</Text>
               <Text style={s.resultSub}>{item.email}</Text>
@@ -141,7 +146,7 @@ export default function StudentsScreen() {
                 <Text style={s.sessionBtnText}>Start Session</Text>
               </TouchableOpacity>
             )}
-          </TouchableOpacity>
+          </View>
         )}
         ItemSeparatorComponent={() => <View style={s.separator} />}
       />
@@ -180,11 +185,28 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 8,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   title: {
     fontFamily: F.serif,
     fontSize: 32,
     color: C.ink,
-    marginBottom: 4,
+  },
+  logOutBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  logOutBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 10,
+    color: '#fff',
+    letterSpacing: 1,
   },
   subtitle: {
     fontFamily: F.sansReg,
