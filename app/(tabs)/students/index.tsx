@@ -134,11 +134,7 @@ export default function StudentsScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={s.resultRow}
-            onPress={() => isOwner ? setSelectedUser(item) : null}
-            activeOpacity={isOwner ? 0.7 : 1}
-          >
+          <View style={s.resultRow}>
             <View style={s.resultInfo}>
               <Text style={s.resultName}>{item.fullName}</Text>
               <Text style={s.resultSub}>{item.email}</Text>
@@ -149,7 +145,7 @@ export default function StudentsScreen() {
                 <Text style={s.sessionBtnText}>Start Session</Text>
               </TouchableOpacity>
             )}
-          </TouchableOpacity>
+          </View>
         )}
         ItemSeparatorComponent={() => <View style={s.separator} />}
       />
