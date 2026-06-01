@@ -871,8 +871,8 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
-        {/* My Subscriptions — hidden for staff */}
-        {!isStaff && (
+        {/* My Subscriptions — shown for regular users and admins in an active tenant session */}
+        {(!isStaff || !!tenantUser) && (
           <View style={styles.packagesSection}>
             <Text style={styles.sectionLabel}>{t('profile.subscriptions.title')}</Text>
             <View style={styles.creditsDivider} />

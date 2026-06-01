@@ -27,6 +27,7 @@ export default function TabLayout() {
   const showStudents = (canViewStudents || isOwner) && !tenantUser
   const showBookings = !isStaff || !!tenantUser
   const showPackages = !isStaff || !!tenantUser
+  const showProfile = !isStaff || !!tenantUser
 
   return (
     <Tabs
@@ -76,6 +77,8 @@ export default function TabLayout() {
         options={{
           title: t('profile.tabTitle'),
           tabBarIcon: ({ color }) => <TabIcon label="Profile" color={color} />,
+          tabBarItemStyle: showProfile ? undefined : { display: 'none' },
+          tabBarButton: showProfile ? undefined : () => null,
         }}
       />
       <Tabs.Screen
