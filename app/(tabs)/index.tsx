@@ -199,11 +199,15 @@ export default function ClassesScreen() {
 
   async function downloadTemplate() {
     try {
-      const path = FileSystem.cacheDirectory + 'ooma-classes-template.csv'
+      const dir = FileSystem.cacheDirectory
+      if (!dir) throw new Error('No cache directory')
+      const path = dir + 'ooma-classes-template.csv'
       await FileSystem.writeAsStringAsync(path, CSV_TEMPLATE, { encoding: FileSystem.EncodingType.UTF8 })
-      await Sharing.shareAsync(path, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text', dialogTitle: 'Save CSV Template' })
-    } catch {
-      Alert.alert('Error', 'Could not download the template.')
+      const canShare = await Sharing.isAvailableAsync()
+      if (!canShare) throw new Error('Sharing not available')
+      await Sharing.shareAsync(path, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' })
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not download the template.')
     }
   }
 
