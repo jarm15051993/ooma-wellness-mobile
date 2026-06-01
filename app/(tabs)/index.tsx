@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import * as Calendar from 'expo-calendar'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
-import * as Sharing from 'expo-sharing'
 import {
   View,
   Text,
@@ -17,7 +16,6 @@ import {
   TextInput,
   Platform,
   KeyboardAvoidingView,
-  Share,
 } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -179,11 +177,6 @@ export default function ClassesScreen() {
     failed: { row: number; reason: string }[]
   } | null>(null)
 
-  const CSV_TEMPLATE = [
-    'title,date,startTime,durationMins,capacity,classType,instructor',
-    `Example Class,${format(new Date(), 'yyyy-MM-dd')},09:00,60,6,REFORMER,Instructor Name`,
-  ].join('\n')
-
   function parseCSV(content: string): Record<string, any>[] {
     const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n').filter(Boolean)
     if (lines.length < 2) return []
@@ -196,16 +189,6 @@ export default function ClassesScreen() {
       if ('capacity' in obj) obj.capacity = Number(obj.capacity)
       return obj
     })
-  }
-
-  async function downloadTemplate() {
-    try {
-      await Share.share({ message: CSV_TEMPLATE, title: 'ooma-classes-template.csv' })
-    } catch (e: any) {
-      if (e?.message !== 'The user canceled the action') {
-        Alert.alert('Error', 'Could not share the template.')
-      }
-    }
   }
 
   async function handleUploadCSV() {
@@ -966,10 +949,6 @@ export default function ClassesScreen() {
               setShowCreateModal(true)
             }}>
               <Text style={styles.menuItemText}>+ New Class</Text>
-            </TouchableOpacity>
-            <View style={styles.menuDivider} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setTimeout(downloadTemplate, 350) }}>
-              <Text style={styles.menuItemText}>Download CSV Template</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setTimeout(handleUploadCSV, 350) }}>
