@@ -968,11 +968,11 @@ export default function ClassesScreen() {
               <Text style={styles.menuItemText}>+ New Class</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); downloadTemplate() }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setTimeout(downloadTemplate, 350) }}>
               <Text style={styles.menuItemText}>Download CSV Template</Text>
             </TouchableOpacity>
             <View style={styles.menuDivider} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); handleUploadCSV() }}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setTimeout(handleUploadCSV, 350) }}>
               <Text style={styles.menuItemText}>Upload Classes</Text>
             </TouchableOpacity>
           </View>
