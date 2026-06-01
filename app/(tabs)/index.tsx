@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import * as Calendar from 'expo-calendar'
 import * as DocumentPicker from 'expo-document-picker'
-import * as FileSystem from 'expo-file-system'
 import {
   View,
   Text,
@@ -193,12 +192,13 @@ export default function ClassesScreen() {
 
   async function handleUploadCSV() {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', '*/*'], copyToCacheDirectory: true })
+      const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', '*/*'], copyToCacheDirectory: false })
       if (result.canceled) return
       setShowUploadModal(true)
       setUploading(true)
       setUploadResult(null)
-      const content = await FileSystem.readAsStringAsync(result.assets[0].uri)
+      const response = await fetch(result.assets[0].uri)
+      const content = await response.text()
       const classes = parseCSV(content)
       if (classes.length === 0) {
         setUploadResult({ created: 0, failed: [{ row: 0, reason: 'The file contains no classes to upload' }] })
