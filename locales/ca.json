@@ -356,7 +356,10 @@
     "mat": "Estora #{{number}}",
     "cancelled": "Cancel·lada",
     "attended": "Assistida",
-    "creditLost": "Crèdit perdut"
+    "creditLost": "Crèdit perdut",
+    "missed": "NO ASSISTIDA",
+    "noMissed": "Sense classes perdudes",
+    "noMissedMessage": "Continua així — et veiem a classe!"
   },
   "profile": {
     "tabTitle": "Perfil",

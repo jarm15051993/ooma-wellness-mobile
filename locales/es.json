@@ -356,7 +356,10 @@
     "mat": "Tapete #{{number}}",
     "cancelled": "Cancelada",
     "attended": "Asistida",
-    "creditLost": "Crédito perdido"
+    "creditLost": "Crédito perdido",
+    "missed": "NO ASISTIDA",
+    "noMissed": "Sin clases perdidas",
+    "noMissedMessage": "¡Sigue así — te vemos en clase!"
   },
   "profile": {
     "tabTitle": "Perfil",

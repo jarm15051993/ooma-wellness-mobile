@@ -356,7 +356,10 @@
     "mat": "Mat #{{number}}",
     "cancelled": "Cancelled",
     "attended": "Attended",
-    "creditLost": "Credit lost"
+    "creditLost": "Credit lost",
+    "missed": "MISSED",
+    "noMissed": "No missed classes",
+    "noMissedMessage": "Keep it up — we'll see you on the mat."
   },
   "profile": {
     "tabTitle": "Profile",
