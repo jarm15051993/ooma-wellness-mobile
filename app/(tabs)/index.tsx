@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import * as Calendar from 'expo-calendar'
+import * as DocumentPicker from 'expo-document-picker'
+import * as FileSystem from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
 import {
   View,
   Text,
@@ -165,6 +168,68 @@ export default function ClassesScreen() {
   const [creating, setCreating] = useState(false)
 
   const showCreateButton = (canCreateClass || isOwner) && !tenantUser
+
+  // CSV bulk upload state
+  const [showMenu, setShowMenu] = useState(false)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadResult, setUploadResult] = useState<{
+    created: number
+    failed: { row: number; reason: string }[]
+  } | null>(null)
+
+  const CSV_TEMPLATE = [
+    'title,date,startTime,durationMins,capacity,classType,instructor',
+    `Example Class,${format(new Date(), 'yyyy-MM-dd')},09:00,60,6,REFORMER,Instructor Name`,
+  ].join('\n')
+
+  function parseCSV(content: string): Record<string, any>[] {
+    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n').filter(Boolean)
+    if (lines.length < 2) return []
+    const headers = lines[0].split(',').map(h => h.trim())
+    return lines.slice(1).map(line => {
+      const values = line.split(',').map(v => v.trim())
+      const obj: Record<string, any> = {}
+      headers.forEach((h, i) => { obj[h] = values[i] ?? '' })
+      if ('durationMins' in obj) obj.durationMins = Number(obj.durationMins)
+      if ('capacity' in obj) obj.capacity = Number(obj.capacity)
+      return obj
+    })
+  }
+
+  async function downloadTemplate() {
+    try {
+      const path = FileSystem.cacheDirectory + 'ooma-classes-template.csv'
+      await FileSystem.writeAsStringAsync(path, CSV_TEMPLATE, { encoding: FileSystem.EncodingType.UTF8 })
+      await Sharing.shareAsync(path, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text', dialogTitle: 'Save CSV Template' })
+    } catch {
+      Alert.alert('Error', 'Could not download the template.')
+    }
+  }
+
+  async function handleUploadCSV() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', '*/*'], copyToCacheDirectory: true })
+      if (result.canceled) return
+      setShowUploadModal(true)
+      setUploading(true)
+      setUploadResult(null)
+      const content = await FileSystem.readAsStringAsync(result.assets[0].uri)
+      const classes = parseCSV(content)
+      if (classes.length === 0) {
+        setUploadResult({ created: 0, failed: [{ row: 0, reason: 'The file contains no classes to upload' }] })
+        setUploading(false)
+        return
+      }
+      const { data } = await api.post('/api/admin/classes/bulk', { classes })
+      setUploadResult(data)
+      if (data.created > 0) fetchClasses()
+    } catch {
+      setUploadResult({ created: 0, failed: [{ row: 0, reason: 'Something went wrong. Please try again.' }] })
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function fetchClasses() {
     try {
@@ -422,12 +487,8 @@ export default function ClassesScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {showCreateButton && (
-              <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-                setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
-                setCreateErrors({})
-                setShowCreateModal(true)
-              }}>
-                <Text style={styles.newClassBtnText}>+ NEW CLASS</Text>
+              <TouchableOpacity style={styles.newClassBtn} onPress={() => setShowMenu(true)}>
+                <Text style={styles.newClassBtnText}>⋯</Text>
               </TouchableOpacity>
             )}
             {isStaff && !tenantUser && (
@@ -893,6 +954,67 @@ export default function ClassesScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* ⋯ Admin menu */}
+      <Modal visible={showMenu} transparent animationType="fade" onRequestClose={() => setShowMenu(false)}>
+        <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={() => setShowMenu(false)}>
+          <View style={styles.menuSheet}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              setShowMenu(false)
+              setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+              setCreateErrors({})
+              setShowCreateModal(true)
+            }}>
+              <Text style={styles.menuItemText}>+ New Class</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); downloadTemplate() }}>
+              <Text style={styles.menuItemText}>Download CSV Template</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); handleUploadCSV() }}>
+              <Text style={styles.menuItemText}>Upload Classes</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Upload result modal */}
+      <Modal visible={showUploadModal} transparent animationType="fade" onRequestClose={() => setShowUploadModal(false)}>
+        <View style={styles.menuBackdrop}>
+          <View style={styles.uploadResultSheet}>
+            {uploading ? (
+              <>
+                <ActivityIndicator size="large" color={C.burg} style={{ marginBottom: 12 }} />
+                <Text style={styles.uploadResultTitle}>Uploading classes…</Text>
+              </>
+            ) : uploadResult ? (
+              <>
+                <Text style={styles.uploadResultTitle}>
+                  {uploadResult.created} {uploadResult.created === 1 ? 'class' : 'classes'} created
+                </Text>
+                {uploadResult.failed.length > 0 && (
+                  <>
+                    <Text style={styles.uploadResultSkipped}>
+                      {uploadResult.failed.length} {uploadResult.failed.length === 1 ? 'row' : 'rows'} skipped
+                    </Text>
+                    <View style={styles.uploadErrorList}>
+                      {uploadResult.failed.map((f, i) => (
+                        <Text key={i} style={styles.uploadErrorRow}>
+                          {f.row > 0 ? `Row ${f.row}: ` : ''}{f.reason}
+                        </Text>
+                      ))}
+                    </View>
+                  </>
+                )}
+                <TouchableOpacity style={styles.uploadDoneBtn} onPress={() => { setShowUploadModal(false); setUploadResult(null) }}>
+                  <Text style={styles.uploadDoneBtnText}>DONE</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
+
       {isBeta && <BetaOverlay />}
     </SafeAreaView>
   )
@@ -948,6 +1070,81 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#fff',
     letterSpacing: 1,
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: 100,
+    paddingRight: 20,
+  },
+  menuSheet: {
+    backgroundColor: C.warmWhite,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: C.rule,
+    minWidth: 200,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  menuItemText: {
+    fontFamily: F.sansMed,
+    fontSize: 13,
+    color: C.ink,
+    letterSpacing: 0.3,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: C.rule,
+  },
+  uploadResultSheet: {
+    backgroundColor: C.warmWhite,
+    borderRadius: 8,
+    padding: 24,
+    marginHorizontal: 24,
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    alignItems: 'center',
+  },
+  uploadResultTitle: {
+    fontFamily: F.serifBold,
+    fontSize: 20,
+    color: C.ink,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  uploadResultSkipped: {
+    fontFamily: F.sansReg,
+    fontSize: 13,
+    color: C.midGray,
+    marginBottom: 12,
+  },
+  uploadErrorList: {
+    alignSelf: 'stretch',
+    marginBottom: 20,
+  },
+  uploadErrorRow: {
+    fontFamily: F.sansReg,
+    fontSize: 12,
+    color: '#B04040',
+    marginBottom: 4,
+  },
+  uploadDoneBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingHorizontal: 32,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  uploadDoneBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: '#fff',
+    letterSpacing: 1.5,
   },
   headingRegular: {
     fontFamily: F.serifReg,
