@@ -132,6 +132,7 @@ export default function StudentsScreen() {
       <FlatList
         data={results}
         keyExtractor={item => item.id}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         renderItem={({ item }) => (
           <View style={s.resultRow}>
