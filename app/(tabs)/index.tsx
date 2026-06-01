@@ -168,7 +168,6 @@ export default function ClassesScreen() {
   const showCreateButton = (canCreateClass || isOwner) && !tenantUser
 
   // CSV bulk upload state
-  const [showMenu, setShowMenu] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{
@@ -479,9 +478,18 @@ export default function ClassesScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {showCreateButton && (
-              <TouchableOpacity style={styles.newClassBtn} onPress={() => setShowMenu(true)}>
-                <Text style={styles.newClassBtnText}>⋯</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity style={styles.newClassBtn} onPress={() => {
+                  setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+                  setCreateErrors({})
+                  setShowCreateModal(true)
+                }}>
+                  <Text style={styles.newClassBtnText}>+ CLASS</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.newClassBtn} onPress={() => setTimeout(handleUploadCSV, 50)}>
+                  <Text style={styles.newClassBtnText}>↑ UPLOAD</Text>
+                </TouchableOpacity>
+              </>
             )}
             {isStaff && !tenantUser && (
               <TouchableOpacity style={styles.logOutBtn} onPress={signOut}>
@@ -946,29 +954,9 @@ export default function ClassesScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ⋯ Admin menu */}
-      <Modal visible={showMenu} transparent animationType="fade" onRequestClose={() => setShowMenu(false)}>
-        <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={() => setShowMenu(false)}>
-          <View style={styles.menuSheet}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              setShowMenu(false)
-              setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
-              setCreateErrors({})
-              setShowCreateModal(true)
-            }}>
-              <Text style={styles.menuItemText}>+ New Class</Text>
-            </TouchableOpacity>
-            <View style={styles.menuDivider} />
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setTimeout(handleUploadCSV, 350) }}>
-              <Text style={styles.menuItemText}>Upload Classes</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
       {/* Upload result modal */}
       <Modal visible={showUploadModal} transparent animationType="fade" onRequestClose={() => setShowUploadModal(false)}>
-        <View style={styles.menuBackdrop}>
+        <View style={styles.uploadBackdrop}>
           <View style={styles.uploadResultSheet}>
             {uploading ? (
               <>
@@ -1059,43 +1047,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 1,
   },
-  menuBackdrop: {
+  uploadBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingTop: 100,
-    paddingRight: 20,
-  },
-  menuSheet: {
-    backgroundColor: C.warmWhite,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: C.rule,
-    minWidth: 200,
-    overflow: 'hidden',
-  },
-  menuItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  menuItemText: {
-    fontFamily: F.sansMed,
-    fontSize: 13,
-    color: C.ink,
-    letterSpacing: 0.3,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: C.rule,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
   },
   uploadResultSheet: {
     backgroundColor: C.warmWhite,
     borderRadius: 8,
     padding: 24,
-    marginHorizontal: 24,
-    marginTop: 'auto',
-    marginBottom: 'auto',
+    width: '100%',
     alignItems: 'center',
   },
   uploadResultTitle: {
