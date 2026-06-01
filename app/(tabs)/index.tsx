@@ -192,7 +192,7 @@ export default function ClassesScreen() {
 
   async function handleUploadCSV() {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', '*/*'], copyToCacheDirectory: false })
+      const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', '*/*'], copyToCacheDirectory: true })
       if (result.canceled) return
       setShowUploadModal(true)
       setUploading(true)
@@ -208,8 +208,8 @@ export default function ClassesScreen() {
       const { data } = await api.post('/api/admin/classes/bulk', { classes })
       setUploadResult(data)
       if (data.created > 0) fetchClasses()
-    } catch {
-      setUploadResult({ created: 0, failed: [{ row: 0, reason: 'Something went wrong. Please try again.' }] })
+    } catch (e: any) {
+      setUploadResult({ created: 0, failed: [{ row: 0, reason: e?.message ?? 'Something went wrong. Please try again.' }] })
     } finally {
       setUploading(false)
     }
