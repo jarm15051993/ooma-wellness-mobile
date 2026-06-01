@@ -199,12 +199,20 @@ export default function ClassesScreen() {
       setUploadResult(null)
       const response = await fetch(result.assets[0].uri)
       const content = await response.text()
-      const classes = parseCSV(content)
-      if (classes.length === 0) {
+      const raw = parseCSV(content)
+      if (raw.length === 0) {
         setUploadResult({ created: 0, failed: [{ row: 0, reason: 'The file contains no classes to upload' }] })
         setUploading(false)
         return
       }
+      // Build ISO datetimes in device local time so timezone is preserved
+      const classes = raw.map((c: any) => {
+        if (!c.date || !c.startTime) return c
+        const padded = String(c.startTime).padStart(5, '0')
+        const start = new Date(`${c.date}T${padded}:00`)
+        const end = new Date(start.getTime() + Number(c.durationMins || 0) * 60000)
+        return { ...c, startTime: start.toISOString(), endTime: end.toISOString() }
+      })
       const { data } = await api.post('/api/admin/classes/bulk', { classes })
       setUploadResult(data)
       if (data.created > 0) fetchClasses()
