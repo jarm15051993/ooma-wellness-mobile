@@ -961,49 +961,66 @@ export default function ProfileScreen() {
                     ? (sub.package.price / sub.package.classCount).toFixed(0)
                     : null
 
+                  const packageTypeLabel = sub.package.packageType === 'REFORMER'
+                    ? t('classes.typeReformer')
+                    : sub.package.packageType === 'YOGA'
+                    ? t('classes.typeYoga')
+                    : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`
+
                   return (
                     <View key={sub.id} style={styles.subCard}>
+                      {/* Header: PLAN ACTIVO · REFORMER PILATES */}
+                      <Text style={styles.subCardHeader}>
+                        {isCancelling
+                          ? t('profile.subscriptions.planCancelling')
+                          : sub.status === 'PAST_DUE'
+                          ? t('profile.subscriptions.planPastDue')
+                          : t('profile.subscriptions.planActive')} · {packageTypeLabel.toUpperCase()}
+                      </Text>
+
+                      {/* Name + price pill */}
                       <View style={styles.subCardTop}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.subName}>{sub.package.name}</Text>
-                          <Text style={styles.subMeta}>
-                            {sub.package.packageType === 'REFORMER'
-                              ? t('classes.typeReformer')
-                              : sub.package.packageType === 'YOGA'
-                              ? t('classes.typeYoga')
-                              : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
-                          </Text>
-                        </View>
-                        {/* Price */}
-                        <View style={{ alignItems: 'flex-end' }}>
-                          <Text style={styles.subPrice}>€{sub.package.price.toFixed(0)}<Text style={styles.subPricePer}>/mes</Text></Text>
-                          {pricePerClass && (
-                            <Text style={styles.subPricePerClass}>€{pricePerClass}/{t('profile.subscriptions.perClass')}</Text>
-                          )}
+                        <Text style={styles.subName}>{sub.package.name}</Text>
+                        <View style={styles.subPricePill}>
+                          <Text style={styles.subPricePillText}>€{sub.package.price.toFixed(0)}<Text style={styles.subPricePillPer}> /mes</Text></Text>
                         </View>
                       </View>
-                      <Text style={styles.subCredits}>
-                        {credit?.isUnlimited
-                          ? t('packages.unlimitedClasses')
-                          : t('profile.subscriptions.creditsLeft', { remaining, total })}
-                      </Text>
+
+                      {/* Subtitle */}
+                      {pricePerClass && !credit?.isUnlimited && (
+                        <Text style={styles.subClassCount}>
+                          {t('profile.subscriptions.classesPerMonthAt', { count: sub.package.classCount, price: pricePerClass })}
+                        </Text>
+                      )}
+
+                      {/* Billing pill or expiry */}
                       {isCancelling ? (
-                        <Text style={styles.subRenewal}>{t('profile.subscriptions.expiresOn', { date: periodEnd })}</Text>
+                        <Text style={[styles.subRenewal, { marginTop: 8 }]}>{t('profile.subscriptions.expiresOn', { date: periodEnd })}</Text>
                       ) : (
-                        <View style={[styles.billingPill, { backgroundColor: billingPillColors.bg }]}>
+                        <View style={[styles.billingPill, { backgroundColor: billingPillColors.bg, marginTop: 10 }]}>
                           <View style={[styles.billingPillDot, { backgroundColor: billingPillColors.text }]} />
                           <Text style={[styles.billingPillText, { color: billingPillColors.text }]}>
                             {t('profile.subscriptions.nextBillingDate')} {periodEndShort}
                           </Text>
                         </View>
                       )}
+
+                      {/* Actions */}
                       {!isCancelling && sub.status === 'ACTIVE' && (
-                        <TouchableOpacity
-                          style={styles.subCancelLink}
-                          onPress={() => setCancelTarget(sub)}
-                        >
-                          <Text style={styles.subCancelLinkText}>{t('profile.subscriptions.cancelAction')}</Text>
-                        </TouchableOpacity>
+                        <>
+                          <View style={[styles.creditsDivider, { marginTop: 14, marginBottom: 12 }]} />
+                          {!isStaff && (
+                            <TouchableOpacity style={styles.changePlanBtn} onPress={() => router.push('/(tabs)/packages')}>
+                              <Text style={styles.changePlanBtnText}>{t('profile.subscriptions.changePlan')}</Text>
+                            </TouchableOpacity>
+                          )}
+                          <TouchableOpacity
+                            style={[styles.cancelPlanBtn, isStaff && { marginTop: 0 }]}
+                            onPress={() => setCancelTarget(sub)}
+                          >
+                            <Text style={styles.cancelPlanBtnText}>{t('profile.subscriptions.cancelAction').toUpperCase()}</Text>
+                          </TouchableOpacity>
+                        </>
                       )}
                     </View>
                   )
@@ -2083,8 +2100,9 @@ const styles = StyleSheet.create({
     backgroundColor: C.cream, borderWidth: 1, borderColor: C.rule,
     borderRadius: 3, padding: 14, marginBottom: 10,
   },
-  subCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
-  subName: { fontFamily: F.serifBold, fontSize: 15, color: C.ink },
+  subCardHeader: { fontFamily: F.sansMed, fontSize: 10, color: C.midGray, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 },
+  subCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  subName: { fontFamily: F.serifBold, fontSize: 20, color: C.ink, flex: 1, marginRight: 8 },
   subMeta: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 2 },
   subStatusBadge: { paddingLeft: 8 },
   subStatusText: { fontFamily: F.sansMed, fontSize: 10, color: C.green, letterSpacing: 0.5, textTransform: 'uppercase' },
@@ -2092,6 +2110,17 @@ const styles = StyleSheet.create({
   subStatusCancelling: { color: C.midGray },
   subCredits: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
   subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  subPricePill: {
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    flexShrink: 0,
+  },
+  subPricePillText: { fontFamily: F.serifBold, fontSize: 16, color: C.ink },
+  subPricePillPer: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray },
+  subClassCount: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginTop: 2 },
   subPrice: { fontFamily: F.serifBold, fontSize: 20, color: C.ink },
   subPricePer: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
   subPricePerClass: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 1 },
@@ -2102,19 +2131,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    marginTop: 8,
   },
-  billingPillDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+  billingPillDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  billingPillText: { fontFamily: F.sansMed, fontSize: 11, letterSpacing: 0.5 },
+  changePlanBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  billingPillText: {
-    fontFamily: F.sansMed,
-    fontSize: 11,
-    letterSpacing: 0.5,
+  changePlanBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.cream, letterSpacing: 1.5, textTransform: 'uppercase' },
+  cancelPlanBtn: {
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    paddingVertical: 13,
+    alignItems: 'center',
   },
+  cancelPlanBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.midGray, letterSpacing: 1.5 },
   subCancelLink: { marginTop: 10, alignSelf: 'flex-start' },
   subCancelLinkText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
   studentToggleRow: {

@@ -499,7 +499,12 @@
       "classesRemaining": "classes restants",
       "giftClass": "Classe de regal",
       "nextBillingDate": "Proper Cobrament",
-      "perClass": "classe"
+      "perClass": "classe",
+      "classesPerMonthAt": "{{count}} classes / mes · €{{price}} per classe",
+      "changePlan": "Canviar Pla",
+      "planActive": "Pla Actiu",
+      "planPastDue": "Pagament Pendent",
+      "planCancelling": "Cancel·lant-se"
     }
   },
   "packages": {
