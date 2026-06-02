@@ -1021,7 +1021,7 @@ export default function ProfileScreen() {
                           <View style={[styles.creditsDivider, { marginTop: 14, marginBottom: 12 }]} />
                           {sub.status === 'PAST_DUE' ? (
                             <Text style={styles.pastDueHint}>{t('profile.subscriptions.pastDueHint')}</Text>
-                          ) : !isStaff ? (
+                          ) : (!isStaff || !!tenantUser) ? (
                             <TouchableOpacity style={styles.changePlanBtn} onPress={() => router.push('/(tabs)/packages')}>
                               <Text style={styles.changePlanBtnText}>{t('profile.subscriptions.changePlan')}</Text>
                             </TouchableOpacity>
