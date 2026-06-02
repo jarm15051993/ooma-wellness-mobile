@@ -1830,7 +1830,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   creditCardVisual: {
-    backgroundColor: C.wine,
+    backgroundColor: C.burg,
     borderRadius: 12,
     padding: 20,
     marginTop: 14,
