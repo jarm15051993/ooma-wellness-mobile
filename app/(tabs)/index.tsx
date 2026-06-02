@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import * as Calendar from 'expo-calendar'
+import * as DocumentPicker from 'expo-document-picker'
 import {
   View,
   Text,
@@ -165,6 +166,61 @@ export default function ClassesScreen() {
   const [creating, setCreating] = useState(false)
 
   const showCreateButton = (canCreateClass || isOwner) && !tenantUser
+
+  // CSV bulk upload state
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadResult, setUploadResult] = useState<{
+    created: number
+    failed: { row: number; reason: string }[]
+  } | null>(null)
+
+  function parseCSV(content: string): Record<string, any>[] {
+    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n').filter(Boolean)
+    if (lines.length < 2) return []
+    const headers = lines[0].split(',').map(h => h.trim())
+    return lines.slice(1).map(line => {
+      const values = line.split(',').map(v => v.trim())
+      const obj: Record<string, any> = {}
+      headers.forEach((h, i) => { obj[h] = values[i] ?? '' })
+      if ('durationMins' in obj) obj.durationMins = Number(obj.durationMins)
+      if ('capacity' in obj) obj.capacity = Number(obj.capacity)
+      return obj
+    })
+  }
+
+  async function handleUploadCSV() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', '*/*'], copyToCacheDirectory: true })
+      if (result.canceled) return
+      setShowUploadModal(true)
+      setUploading(true)
+      setUploadResult(null)
+      const response = await fetch(result.assets[0].uri)
+      const content = await response.text()
+      const raw = parseCSV(content)
+      if (raw.length === 0) {
+        setUploadResult({ created: 0, failed: [{ row: 0, reason: 'The file contains no classes to upload' }] })
+        setUploading(false)
+        return
+      }
+      // Build ISO datetimes in device local time so timezone is preserved
+      const classes = raw.map((c: any) => {
+        if (!c.date || !c.startTime) return c
+        const padded = String(c.startTime).padStart(5, '0')
+        const start = new Date(`${c.date}T${padded}:00`)
+        const end = new Date(start.getTime() + Number(c.durationMins || 0) * 60000)
+        return { ...c, startTime: start.toISOString(), endTime: end.toISOString() }
+      })
+      const { data } = await api.post('/api/admin/classes/bulk', { classes })
+      setUploadResult(data)
+      if (data.created > 0) fetchClasses()
+    } catch (e: any) {
+      setUploadResult({ created: 0, failed: [{ row: 0, reason: e?.message ?? 'Something went wrong. Please try again.' }] })
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function fetchClasses() {
     try {
@@ -422,13 +478,18 @@ export default function ClassesScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {showCreateButton && (
-              <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-                setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
-                setCreateErrors({})
-                setShowCreateModal(true)
-              }}>
-                <Text style={styles.newClassBtnText}>+ NEW CLASS</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity style={styles.newClassBtn} onPress={() => {
+                  setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+                  setCreateErrors({})
+                  setShowCreateModal(true)
+                }}>
+                  <Text style={styles.newClassBtnText}>+ CLASS</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.newClassBtn} onPress={() => setTimeout(handleUploadCSV, 50)}>
+                  <Text style={styles.newClassBtnText}>↑ UPLOAD</Text>
+                </TouchableOpacity>
+              </>
             )}
             {isStaff && !tenantUser && (
               <TouchableOpacity style={styles.logOutBtn} onPress={signOut}>
@@ -893,6 +954,43 @@ export default function ClassesScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Upload result modal */}
+      <Modal visible={showUploadModal} transparent animationType="fade" onRequestClose={() => setShowUploadModal(false)}>
+        <View style={styles.uploadBackdrop}>
+          <View style={styles.uploadResultSheet}>
+            {uploading ? (
+              <>
+                <ActivityIndicator size="large" color={C.burg} style={{ marginBottom: 12 }} />
+                <Text style={styles.uploadResultTitle}>Uploading classes…</Text>
+              </>
+            ) : uploadResult ? (
+              <>
+                <Text style={styles.uploadResultTitle}>
+                  {uploadResult.created} {uploadResult.created === 1 ? 'class' : 'classes'} created
+                </Text>
+                {uploadResult.failed.length > 0 && (
+                  <>
+                    <Text style={styles.uploadResultSkipped}>
+                      {uploadResult.failed.length} {uploadResult.failed.length === 1 ? 'row' : 'rows'} skipped
+                    </Text>
+                    <View style={styles.uploadErrorList}>
+                      {uploadResult.failed.map((f, i) => (
+                        <Text key={i} style={styles.uploadErrorRow}>
+                          {f.row > 0 ? `Row ${f.row}: ` : ''}{f.reason}
+                        </Text>
+                      ))}
+                    </View>
+                  </>
+                )}
+                <TouchableOpacity style={styles.uploadDoneBtn} onPress={() => { setShowUploadModal(false); setUploadResult(null) }}>
+                  <Text style={styles.uploadDoneBtnText}>DONE</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
+
       {isBeta && <BetaOverlay />}
     </SafeAreaView>
   )
@@ -938,7 +1036,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   logOutBtn: {
-    backgroundColor: C.burg,
+    backgroundColor: C.wine,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -948,6 +1046,56 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#fff',
     letterSpacing: 1,
+  },
+  uploadBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  uploadResultSheet: {
+    backgroundColor: C.warmWhite,
+    borderRadius: 8,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+  },
+  uploadResultTitle: {
+    fontFamily: F.serifBold,
+    fontSize: 20,
+    color: C.ink,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  uploadResultSkipped: {
+    fontFamily: F.sansReg,
+    fontSize: 13,
+    color: C.midGray,
+    marginBottom: 12,
+  },
+  uploadErrorList: {
+    alignSelf: 'stretch',
+    marginBottom: 20,
+  },
+  uploadErrorRow: {
+    fontFamily: F.sansReg,
+    fontSize: 12,
+    color: '#B04040',
+    marginBottom: 4,
+  },
+  uploadDoneBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingHorizontal: 32,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  uploadDoneBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: '#fff',
+    letterSpacing: 1.5,
   },
   headingRegular: {
     fontFamily: F.serifReg,
