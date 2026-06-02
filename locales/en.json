@@ -497,7 +497,14 @@
       "keepBtn": "KEEP SUBSCRIPTION",
       "cancelSuccess": "Subscription cancelled",
       "classesRemaining": "classes remaining",
-      "giftClass": "Gift Class"
+      "giftClass": "Gift Class",
+      "nextBillingDate": "Next Billing",
+      "perClass": "class",
+      "classesPerMonthAt": "{{count}} classes / month · €{{price}} per class",
+      "changePlan": "Change Plan",
+      "planActive": "Active Plan",
+      "planPastDue": "Past Due",
+      "planCancelling": "Cancelling"
     }
   },
   "packages": {

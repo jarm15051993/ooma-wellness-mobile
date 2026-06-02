@@ -24,6 +24,7 @@ import * as SecureStore from 'expo-secure-store'
 import * as Sharing from 'expo-sharing'
 import * as IntentLauncher from 'expo-intent-launcher'
 import QRCode from 'react-native-qrcode-svg'
+import { useStripe } from '@stripe/stripe-react-native'
 import { api } from '@/lib/api'
 import { useAuth, type Subscription, type StandaloneCredit } from '@/contexts/AuthContext'
 import { subscriptionsApi } from '@/lib/subscriptions'
@@ -175,6 +176,13 @@ export default function ProfileScreen() {
   const [savingNotif, setSavingNotif] = useState<NotifType | null>(null)
   const [notifToast, setNotifToast] = useState({ visible: false, message: '', isError: false })
 
+  // Payment method
+  const { initPaymentSheet, presentPaymentSheet } = useStripe()
+  type CardInfo = { brand: string; last4: string; expMonth: number; expYear: number } | null
+  const [card, setCard] = useState<CardInfo>(null)
+  const [loadingCard, setLoadingCard] = useState(false)
+  const [updatingCard, setUpdatingCard] = useState(false)
+
   // Student toggle (tenant mode only)
   const [studentStatus, setStudentStatus] = useState(false)
   const [savingStudent, setSavingStudent] = useState(false)
@@ -251,6 +259,21 @@ export default function ProfileScreen() {
         })
         .catch(() => {})
         .finally(() => setLoadingSubscriptions(false))
+    }, [isStaff, tenantUser])
+  )
+
+  function fetchCard() {
+    setLoadingCard(true)
+    api.get('/api/mobile/payment-method')
+      .then(({ data }) => setCard(data.card ?? null))
+      .catch(() => {})
+      .finally(() => setLoadingCard(false))
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isStaff && !tenantUser) return
+      fetchCard()
     }, [isStaff, tenantUser])
   )
 
@@ -690,6 +713,31 @@ export default function ProfileScreen() {
     }
   }
 
+  async function handleUpdateCard() {
+    setUpdatingCard(true)
+    try {
+      const { data } = await api.post('/api/mobile/payment-method/setup')
+      const { error: initError } = await initPaymentSheet({
+        setupIntentClientSecret: data.setupIntentClientSecret,
+        merchantDisplayName: 'OOMA Wellness',
+        returnURL: 'ooma://stripe-redirect',
+        style: 'alwaysLight',
+      })
+      if (initError) throw new Error(initError.message)
+      const { error: presentError } = await presentPaymentSheet()
+      if (presentError) {
+        if (presentError.code !== 'Canceled') Alert.alert('Error', presentError.message)
+        return
+      }
+      await api.post('/api/mobile/payment-method/confirm', { setupIntentId: data.setupIntentId })
+      fetchCard()
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not update card.')
+    } finally {
+      setUpdatingCard(false)
+    }
+  }
+
   async function handleSignOut() {
     await signOut()
   }
@@ -897,55 +945,80 @@ export default function ProfileScreen() {
 
                 {subscriptions.map(sub => {
                   const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
-                  const periodEnd = format(new Date(sub.currentPeriodEnd), 'MMM d, yyyy')
+                  const periodEndDate = new Date(sub.currentPeriodEnd)
+                  const periodEnd = format(periodEndDate, 'MMM d, yyyy')
+                  const periodEndShort = format(periodEndDate, 'd MMM').toUpperCase()
                   const credit = sub.credits?.[0]
                   const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? 0)
                   const total    = credit?.isUnlimited ? '∞' : (credit?.creditsTotal    ?? 0)
+                  const daysUntilRenewal = Math.ceil((periodEndDate.getTime() - Date.now()) / 86_400_000)
+                  const billingPillColors = daysUntilRenewal >= 10
+                    ? { bg: '#D6EFD8', text: '#2D6A4F' }
+                    : daysUntilRenewal >= 6
+                    ? { bg: '#FFF3CD', text: '#856404' }
+                    : { bg: '#FFE5CC', text: '#CC5500' }
+                  const pricePerClass = sub.package.classCount > 0
+                    ? (sub.package.price / sub.package.classCount).toFixed(0)
+                    : null
+
+                  const packageTypeLabel = sub.package.packageType === 'REFORMER'
+                    ? t('classes.typeReformer')
+                    : sub.package.packageType === 'YOGA'
+                    ? t('classes.typeYoga')
+                    : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`
 
                   return (
                     <View key={sub.id} style={styles.subCard}>
-                      <View style={styles.subCardTop}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.subName}>{sub.package.name}</Text>
-                          <Text style={styles.subMeta}>
-                            {sub.package.packageType === 'REFORMER'
-                              ? t('classes.typeReformer')
-                              : sub.package.packageType === 'YOGA'
-                              ? t('classes.typeYoga')
-                              : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
-                          </Text>
-                        </View>
-                        <View style={styles.subStatusBadge}>
-                          <Text style={[
-                            styles.subStatusText,
-                            sub.status === 'PAST_DUE' && styles.subStatusPastDue,
-                            isCancelling && styles.subStatusCancelling,
-                          ]}>
-                            {sub.status === 'PAST_DUE'
-                              ? t('profile.subscriptions.statusPastDue')
-                              : isCancelling
-                              ? t('profile.subscriptions.statusCancelling')
-                              : t('profile.subscriptions.statusActive')}
-                          </Text>
-                        </View>
-                      </View>
-                      <Text style={styles.subCredits}>
-                        {credit?.isUnlimited
-                          ? t('packages.unlimitedClasses')
-                          : t('profile.subscriptions.creditsLeft', { remaining, total })}
-                      </Text>
-                      <Text style={styles.subRenewal}>
+                      {/* Header: PLAN ACTIVO · REFORMER PILATES */}
+                      <Text style={styles.subCardHeader}>
                         {isCancelling
-                          ? t('profile.subscriptions.expiresOn', { date: periodEnd })
-                          : t('profile.subscriptions.renewsOn', { date: periodEnd })}
+                          ? t('profile.subscriptions.planCancelling')
+                          : sub.status === 'PAST_DUE'
+                          ? t('profile.subscriptions.planPastDue')
+                          : t('profile.subscriptions.planActive')} · {packageTypeLabel.toUpperCase()}
                       </Text>
+
+                      {/* Name + price pill */}
+                      <View style={styles.subCardTop}>
+                        <Text style={styles.subName}>{sub.package.name}</Text>
+                        <Text style={styles.subPricePillText}>€{sub.package.price.toFixed(0)}<Text style={styles.subPricePillPer}> /mes</Text></Text>
+                      </View>
+
+                      {/* Subtitle */}
+                      {pricePerClass && !credit?.isUnlimited && (
+                        <Text style={styles.subClassCount}>
+                          {t('profile.subscriptions.classesPerMonthAt', { count: sub.package.classCount, price: pricePerClass })}
+                        </Text>
+                      )}
+
+                      {/* Billing pill or expiry */}
+                      {isCancelling ? (
+                        <Text style={[styles.subRenewal, { marginTop: 8 }]}>{t('profile.subscriptions.expiresOn', { date: periodEnd })}</Text>
+                      ) : (
+                        <View style={[styles.billingPill, { backgroundColor: billingPillColors.bg, marginTop: 10 }]}>
+                          <View style={[styles.billingPillDot, { backgroundColor: billingPillColors.text }]} />
+                          <Text style={[styles.billingPillText, { color: billingPillColors.text }]}>
+                            {t('profile.subscriptions.nextBillingDate')} {periodEndShort}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Actions */}
                       {!isCancelling && sub.status === 'ACTIVE' && (
-                        <TouchableOpacity
-                          style={styles.subCancelLink}
-                          onPress={() => setCancelTarget(sub)}
-                        >
-                          <Text style={styles.subCancelLinkText}>{t('profile.subscriptions.cancelAction')}</Text>
-                        </TouchableOpacity>
+                        <>
+                          <View style={[styles.creditsDivider, { marginTop: 14, marginBottom: 12 }]} />
+                          {!isStaff && (
+                            <TouchableOpacity style={styles.changePlanBtn} onPress={() => router.push('/(tabs)/packages')}>
+                              <Text style={styles.changePlanBtnText}>{t('profile.subscriptions.changePlan')}</Text>
+                            </TouchableOpacity>
+                          )}
+                          <TouchableOpacity
+                            style={[styles.cancelPlanBtn, isStaff && { marginTop: 0 }]}
+                            onPress={() => setCancelTarget(sub)}
+                          >
+                            <Text style={styles.cancelPlanBtnText}>{t('profile.subscriptions.cancelAction').toUpperCase()}</Text>
+                          </TouchableOpacity>
+                        </>
                       )}
                     </View>
                   )
@@ -983,6 +1056,69 @@ export default function ProfileScreen() {
           </View>
         )}
 
+
+        {/* Payment Method — shown when user has active recurring subscriptions */}
+        {(!isStaff || !!tenantUser) && subscriptions.some(s => s.status === 'ACTIVE' || s.status === 'PAST_DUE') && (
+          <View style={styles.paymentMethodSection}>
+            <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
+            <View style={styles.creditsDivider} />
+            {loadingCard ? (
+              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 20 }} />
+            ) : card ? (
+              <>
+                <View style={styles.creditCardVisual}>
+                  {/* Chip */}
+                  <View style={styles.cardChip} />
+                  {/* Number + brand logo on the same row */}
+                  <View style={styles.cardNumberRow}>
+                    <Text style={styles.cardNumber}>•••• •••• •••• {card.last4}</Text>
+                    {card.brand === 'mastercard' ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#EB001B' }} />
+                        <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#F79E1B', marginLeft: -10, opacity: 0.9 }} />
+                      </View>
+                    ) : card.brand === 'visa' ? (
+                      <Text style={styles.cardBrandVisa}>VISA</Text>
+                    ) : card.brand === 'amex' ? (
+                      <View style={styles.cardBrandAmex}>
+                        <Text style={styles.cardBrandAmexText}>AMEX</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.cardBrandText}>{card.brand.toUpperCase()}</Text>
+                    )}
+                  </View>
+                  {/* Bottom row */}
+                  <View style={styles.cardBottom}>
+                    <View>
+                      <Text style={styles.cardLabel}>CARDHOLDER</Text>
+                      <Text style={styles.cardName}>
+                        {[displayUser?.name, displayUser?.lastName].filter(Boolean).join(' ').toUpperCase() || '—'}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.cardLabel}>EXPIRES</Text>
+                      <Text style={styles.cardName}>{String(card.expMonth).padStart(2, '0')}/{String(card.expYear).slice(-2)}</Text>
+                    </View>
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
+                  {updatingCard
+                    ? <ActivityIndicator size="small" color={C.cream} />
+                    : <Text style={styles.updateCardBtnText}>Update Card</Text>}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={styles.cardRow}>
+                <Text style={styles.cardExpiry}>No card on file</Text>
+                <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
+                  {updatingCard
+                    ? <ActivityIndicator size="small" color={C.cream} />
+                    : <Text style={styles.updateCardBtnText}>Add Card</Text>}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Class Pass / Wallet card */}
         {!tenantUser && <View style={styles.passCard}>
@@ -1685,6 +1821,113 @@ const styles = StyleSheet.create({
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
   signOutBtn: { height: 48, backgroundColor: C.wine, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   signOutText: { fontFamily: F.sansMed, fontSize: 11, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' },
+  paymentMethodSection: {
+    backgroundColor: C.warmWhite,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    padding: 16,
+    marginBottom: 12,
+  },
+  creditCardVisual: {
+    backgroundColor: C.midGray,
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 14,
+    marginBottom: 14,
+    minHeight: 148,
+    justifyContent: 'space-between',
+  },
+  cardChip: {
+    width: 36,
+    height: 26,
+    backgroundColor: C.burgSoft,
+    borderRadius: 4,
+    opacity: 0.9,
+  },
+  cardNumberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  cardNumber: {
+    fontFamily: F.sansMed,
+    fontSize: 17,
+    color: C.cream,
+    letterSpacing: 3,
+  },
+  cardBottom: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  cardLabel: {
+    fontFamily: F.sansReg,
+    fontSize: 8,
+    color: C.lightGray,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  cardName: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 1,
+  },
+  cardBrandText: {
+    fontFamily: F.sansMed,
+    fontSize: 13,
+    color: C.cream,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  cardBrandVisa: {
+    fontFamily: F.serifBold,
+    fontSize: 22,
+    color: C.cream,
+    letterSpacing: 2,
+  },
+  cardBrandAmex: {
+    borderWidth: 1.5,
+    borderColor: C.cream,
+    borderRadius: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  cardBrandAmexText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 1.5,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  cardExpiry: {
+    fontFamily: F.sansReg,
+    fontSize: 12,
+    color: C.midGray,
+    marginTop: 2,
+  },
+  updateCardBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  updateCardBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   // Language row
   languageRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -1855,8 +2098,9 @@ const styles = StyleSheet.create({
     backgroundColor: C.cream, borderWidth: 1, borderColor: C.rule,
     borderRadius: 3, padding: 14, marginBottom: 10,
   },
-  subCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
-  subName: { fontFamily: F.serifBold, fontSize: 15, color: C.ink },
+  subCardHeader: { fontFamily: F.sansMed, fontSize: 10, color: C.midGray, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 },
+  subCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  subName: { fontFamily: F.serifBold, fontSize: 20, color: C.ink, flex: 1, marginRight: 8 },
   subMeta: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 2 },
   subStatusBadge: { paddingLeft: 8 },
   subStatusText: { fontFamily: F.sansMed, fontSize: 10, color: C.green, letterSpacing: 0.5, textTransform: 'uppercase' },
@@ -1864,6 +2108,39 @@ const styles = StyleSheet.create({
   subStatusCancelling: { color: C.midGray },
   subCredits: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
   subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  subPricePill: {},
+  subPricePillText: { fontFamily: F.serifBold, fontSize: 32, color: C.burg },
+  subPricePillPer: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray },
+  subClassCount: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginTop: 2 },
+  subPrice: { fontFamily: F.serifBold, fontSize: 20, color: C.ink },
+  subPricePer: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  subPricePerClass: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 1 },
+  billingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  billingPillDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  billingPillText: { fontFamily: F.sansMed, fontSize: 11, letterSpacing: 0.5 },
+  changePlanBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  changePlanBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.cream, letterSpacing: 1.5, textTransform: 'uppercase' },
+  cancelPlanBtn: {
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  cancelPlanBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.midGray, letterSpacing: 1.5 },
   subCancelLink: { marginTop: 10, alignSelf: 'flex-start' },
   subCancelLinkText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
   studentToggleRow: {
