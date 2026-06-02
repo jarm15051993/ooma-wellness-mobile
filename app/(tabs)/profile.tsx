@@ -1044,21 +1044,9 @@ export default function ProfileScreen() {
                 <View style={styles.creditCardVisual}>
                   {/* Chip */}
                   <View style={styles.cardChip} />
-                  {/* Number */}
-                  <Text style={styles.cardNumber}>•••• •••• •••• {card.last4}</Text>
-                  {/* Bottom row */}
-                  <View style={styles.cardBottom}>
-                    <View>
-                      <Text style={styles.cardLabel}>CARDHOLDER</Text>
-                      <Text style={styles.cardName}>
-                        {[displayUser?.name, displayUser?.lastName].filter(Boolean).join(' ').toUpperCase() || '—'}
-                      </Text>
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={styles.cardLabel}>EXPIRES</Text>
-                      <Text style={styles.cardName}>{String(card.expMonth).padStart(2, '0')}/{String(card.expYear).slice(-2)}</Text>
-                    </View>
-                    {/* Brand logo */}
+                  {/* Number + brand logo on the same row */}
+                  <View style={styles.cardNumberRow}>
+                    <Text style={styles.cardNumber}>•••• •••• •••• {card.last4}</Text>
                     {card.brand === 'mastercard' ? (
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#EB001B' }} />
@@ -1073,6 +1061,19 @@ export default function ProfileScreen() {
                     ) : (
                       <Text style={styles.cardBrandText}>{card.brand.toUpperCase()}</Text>
                     )}
+                  </View>
+                  {/* Bottom row */}
+                  <View style={styles.cardBottom}>
+                    <View>
+                      <Text style={styles.cardLabel}>CARDHOLDER</Text>
+                      <Text style={styles.cardName}>
+                        {[displayUser?.name, displayUser?.lastName].filter(Boolean).join(' ').toUpperCase() || '—'}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.cardLabel}>EXPIRES</Text>
+                      <Text style={styles.cardName}>{String(card.expMonth).padStart(2, '0')}/{String(card.expYear).slice(-2)}</Text>
+                    </View>
                   </View>
                 </View>
                 <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
@@ -1819,12 +1820,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     opacity: 0.9,
   },
+  cardNumberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
   cardNumber: {
     fontFamily: F.sansMed,
     fontSize: 17,
     color: C.cream,
     letterSpacing: 3,
-    marginTop: 16,
   },
   cardBottom: {
     flexDirection: 'row',
