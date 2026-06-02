@@ -2109,7 +2109,7 @@ const styles = StyleSheet.create({
   subCredits: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
   subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
   subPricePill: {},
-  subPricePillText: { fontFamily: F.serifBold, fontSize: 26, color: C.burg },
+  subPricePillText: { fontFamily: F.serifBold, fontSize: 32, color: C.burg },
   subPricePillPer: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray },
   subClassCount: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginTop: 2 },
   subPrice: { fontFamily: F.serifBold, fontSize: 20, color: C.ink },
