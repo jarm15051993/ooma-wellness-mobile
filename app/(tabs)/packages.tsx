@@ -107,9 +107,10 @@ export default function PackagesScreen() {
     if (!activeSub) return null
     if (pkg.id === activeSub.packageId) return 'current'
     const curType  = activeSub.package.packageType
-    const curCount = activeSub.package.classCount
-    if (curType === pkg.packageType && pkg.classCount > curCount) return 'upgrade'
-    if (curType !== 'BOTH' && pkg.packageType === 'BOTH' && pkg.classCount > curCount) return 'upgrade'
+    const curEff   = activeSub.package.isUnlimited ? Infinity : activeSub.package.classCount
+    const newEff   = pkg.isUnlimited ? Infinity : pkg.classCount
+    if (curType === pkg.packageType && newEff > curEff) return 'upgrade'
+    if (curType !== 'BOTH' && pkg.packageType === 'BOTH' && newEff > curEff) return 'upgrade'
     return 'downgrade'
   }
 
