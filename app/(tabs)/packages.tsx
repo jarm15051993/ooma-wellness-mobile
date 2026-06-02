@@ -297,52 +297,6 @@ export default function PackagesScreen() {
           </View>
         </Modal>
 
-        {/* Plan change confirmation modal */}
-        <Modal visible={!!changePlanTarget} transparent animationType="fade" onRequestClose={() => { setChangePlanTarget(null); setChangePlanPreview(null) }}>
-          <View style={styles.planChangeBackdrop}>
-            <View style={styles.planChangeSheet}>
-              {loadingPreview || !changePlanPreview ? (
-                <ActivityIndicator size="large" color={C.burg} style={{ marginVertical: 24 }} />
-              ) : changePlanPreview.isUpgrade ? (
-                <>
-                  <Text style={styles.planChangeTitle}>{t('packages.upgradeTitle')}</Text>
-                  <Text style={styles.planChangeBody}>
-                    {t('packages.upgradeBody', {
-                      amount: changePlanPreview.chargeAmount.toFixed(2),
-                      remaining: changePlanPreview.newCreditsRemaining ?? 0,
-                      total: changePlanPreview.newPlanTotal,
-                      used: changePlanPreview.alreadyUsed,
-                    })}
-                  </Text>
-                  <TouchableOpacity style={styles.planChangeConfirmBtn} onPress={executeChangePlan} disabled={executingChange}>
-                    {executingChange
-                      ? <ActivityIndicator size="small" color={C.cream} />
-                      : <Text style={styles.planChangeConfirmText}>{t('packages.upgradeConfirm')}</Text>}
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.planChangeTitle}>{t('packages.downgradeTitle')}</Text>
-                  <Text style={styles.planChangeBody}>
-                    {t('packages.downgradeBody', {
-                      date: format(new Date(changePlanPreview.currentPeriodEnd), 'MMM d, yyyy'),
-                      name: changePlanPreview.newPackageName,
-                    })}
-                  </Text>
-                  <TouchableOpacity style={styles.planChangeConfirmBtn} onPress={executeChangePlan} disabled={executingChange}>
-                    {executingChange
-                      ? <ActivityIndicator size="small" color={C.cream} />
-                      : <Text style={styles.planChangeConfirmText}>{t('packages.downgradeConfirm')}</Text>}
-                  </TouchableOpacity>
-                </>
-              )}
-              <TouchableOpacity style={styles.planChangeCancelBtn} onPress={() => { setChangePlanTarget(null); setChangePlanPreview(null) }} disabled={executingChange}>
-                <Text style={styles.planChangeCancelText}>{t('packages.planChangeCancel')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
         <Toast
           message={toast.message}
           visible={toast.visible}
@@ -494,7 +448,52 @@ export default function PackagesScreen() {
         </View>
       </Modal>
 
-      {isBeta && <BetaOverlay />}
+      {/* Plan change confirmation modal — must be in main return so it renders for active subscribers */}
+      <Modal visible={!!changePlanTarget} transparent animationType="fade" onRequestClose={() => { setChangePlanTarget(null); setChangePlanPreview(null) }}>
+        <View style={styles.planChangeBackdrop}>
+          <View style={styles.planChangeSheet}>
+            {loadingPreview || !changePlanPreview ? (
+              <ActivityIndicator size="large" color={C.burg} style={{ marginVertical: 24 }} />
+            ) : changePlanPreview.isUpgrade ? (
+              <>
+                <Text style={styles.planChangeTitle}>{t('packages.upgradeTitle')}</Text>
+                <Text style={styles.planChangeBody}>
+                  {t('packages.upgradeBody', {
+                    amount: changePlanPreview.chargeAmount.toFixed(2),
+                    remaining: changePlanPreview.newCreditsRemaining ?? 0,
+                    total: changePlanPreview.newPlanTotal,
+                    used: changePlanPreview.alreadyUsed,
+                  })}
+                </Text>
+                <TouchableOpacity style={styles.planChangeConfirmBtn} onPress={executeChangePlan} disabled={executingChange}>
+                  {executingChange
+                    ? <ActivityIndicator size="small" color={C.cream} />
+                    : <Text style={styles.planChangeConfirmText}>{t('packages.upgradeConfirm')}</Text>}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.planChangeTitle}>{t('packages.downgradeTitle')}</Text>
+                <Text style={styles.planChangeBody}>
+                  {t('packages.downgradeBody', {
+                    date: format(new Date(changePlanPreview.currentPeriodEnd), 'MMM d, yyyy'),
+                    name: changePlanPreview.newPackageName,
+                  })}
+                </Text>
+                <TouchableOpacity style={styles.planChangeConfirmBtn} onPress={executeChangePlan} disabled={executingChange}>
+                  {executingChange
+                    ? <ActivityIndicator size="small" color={C.cream} />
+                    : <Text style={styles.planChangeConfirmText}>{t('packages.downgradeConfirm')}</Text>}
+                </TouchableOpacity>
+              </>
+            )}
+            <TouchableOpacity style={styles.planChangeCancelBtn} onPress={() => { setChangePlanTarget(null); setChangePlanPreview(null) }} disabled={executingChange}>
+              <Text style={styles.planChangeCancelText}>{t('packages.planChangeCancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   )
 }
