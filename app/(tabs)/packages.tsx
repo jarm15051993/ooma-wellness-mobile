@@ -15,8 +15,9 @@ import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useStripe } from '@stripe/stripe-react-native'
 import { useTranslation } from 'react-i18next'
+import { format } from 'date-fns'
 import { api } from '@/lib/api'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth, type Subscription } from '@/contexts/AuthContext'
 import { subscriptionsApi, isGrandfathered, pollForSubscriptionCredit } from '@/lib/subscriptions'
 import { C, F } from '@/constants/theme'
 import Toast from '@/components/Toast'
@@ -60,6 +61,15 @@ export default function PackagesScreen() {
     PERSONAL: false,
     ONETIME: false,
   })
+  const [activeSub, setActiveSub] = useState<Subscription | null>(null)
+  const [changePlanTarget, setChangePlanTarget] = useState<Package | null>(null)
+  const [changePlanPreview, setChangePlanPreview] = useState<{
+    isUpgrade: boolean; chargeAmount: number; currency: string;
+    newCreditsRemaining: number | null; newPlanTotal: number;
+    alreadyUsed: number; currentPeriodEnd: string; newPackageName: string
+  } | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const [executingChange, setExecutingChange] = useState(false)
 
   const showMembershipGate =
     settings?.subscriptionPaymentRequired === true &&
@@ -68,8 +78,14 @@ export default function PackagesScreen() {
 
   async function fetchPackages() {
     try {
-      const { data } = await api.get('/api/mobile/packages')
-      setPackages(data.packages as Package[])
+      const [pkgRes, subRes] = await Promise.all([
+        api.get('/api/mobile/packages'),
+        api.get('/api/mobile/subscriptions'),
+      ])
+      setPackages(pkgRes.data.packages as Package[])
+      const active = (subRes.data.subscriptions as Subscription[])
+        .find(s => s.status === 'ACTIVE' || s.status === 'PAST_DUE') ?? null
+      setActiveSub(active)
     } catch (err: any) {
       if (err.response?.status !== 401) {
         Alert.alert(t('common.error'), t('packages.errorLoad'))
@@ -86,6 +102,49 @@ export default function PackagesScreen() {
       fetchPackages()
     }, [])
   )
+
+  function planChangeLabel(pkg: Package): 'current' | 'upgrade' | 'downgrade' | null {
+    if (!activeSub) return null
+    if (pkg.id === activeSub.packageId) return 'current'
+    const curType  = activeSub.package.packageType
+    const curCount = activeSub.package.classCount
+    if (curType === pkg.packageType && pkg.classCount > curCount) return 'upgrade'
+    if (curType !== 'BOTH' && pkg.packageType === 'BOTH' && pkg.classCount > curCount) return 'upgrade'
+    return 'downgrade'
+  }
+
+  async function openChangePlan(pkg: Package) {
+    setChangePlanTarget(pkg)
+    setLoadingPreview(true)
+    setChangePlanPreview(null)
+    try {
+      const { data } = await api.get(`/api/mobile/subscriptions/change?targetPackageId=${pkg.id}`)
+      setChangePlanPreview(data)
+    } catch (err: any) {
+      setChangePlanTarget(null)
+      Alert.alert(t('common.error'), err?.response?.data?.error ?? t('common.somethingWentWrong'))
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  async function executeChangePlan() {
+    if (!changePlanTarget) return
+    setExecutingChange(true)
+    try {
+      await api.post('/api/mobile/subscriptions/change', { targetPackageId: changePlanTarget.id })
+      setChangePlanTarget(null)
+      setChangePlanPreview(null)
+      await fetchPackages()
+      setToast({ visible: true, message: changePlanPreview?.isUpgrade
+        ? t('packages.upgradeSuccess')
+        : t('packages.downgradeSuccess') })
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err?.response?.data?.error ?? t('common.somethingWentWrong'))
+    } finally {
+      setExecutingChange(false)
+    }
+  }
 
   async function handleSubscribe(pkg: Package) {
     setLoadingId(pkg.id)
@@ -238,6 +297,52 @@ export default function PackagesScreen() {
           </View>
         </Modal>
 
+        {/* Plan change confirmation modal */}
+        <Modal visible={!!changePlanTarget} transparent animationType="fade" onRequestClose={() => { setChangePlanTarget(null); setChangePlanPreview(null) }}>
+          <View style={styles.planChangeBackdrop}>
+            <View style={styles.planChangeSheet}>
+              {loadingPreview || !changePlanPreview ? (
+                <ActivityIndicator size="large" color={C.burg} style={{ marginVertical: 24 }} />
+              ) : changePlanPreview.isUpgrade ? (
+                <>
+                  <Text style={styles.planChangeTitle}>{t('packages.upgradeTitle')}</Text>
+                  <Text style={styles.planChangeBody}>
+                    {t('packages.upgradeBody', {
+                      amount: changePlanPreview.chargeAmount.toFixed(2),
+                      remaining: changePlanPreview.newCreditsRemaining ?? 0,
+                      total: changePlanPreview.newPlanTotal,
+                      used: changePlanPreview.alreadyUsed,
+                    })}
+                  </Text>
+                  <TouchableOpacity style={styles.planChangeConfirmBtn} onPress={executeChangePlan} disabled={executingChange}>
+                    {executingChange
+                      ? <ActivityIndicator size="small" color={C.cream} />
+                      : <Text style={styles.planChangeConfirmText}>{t('packages.upgradeConfirm')}</Text>}
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.planChangeTitle}>{t('packages.downgradeTitle')}</Text>
+                  <Text style={styles.planChangeBody}>
+                    {t('packages.downgradeBody', {
+                      date: format(new Date(changePlanPreview.currentPeriodEnd), 'MMM d, yyyy'),
+                      name: changePlanPreview.newPackageName,
+                    })}
+                  </Text>
+                  <TouchableOpacity style={styles.planChangeConfirmBtn} onPress={executeChangePlan} disabled={executingChange}>
+                    {executingChange
+                      ? <ActivityIndicator size="small" color={C.cream} />
+                      : <Text style={styles.planChangeConfirmText}>{t('packages.downgradeConfirm')}</Text>}
+                  </TouchableOpacity>
+                </>
+              )}
+              <TouchableOpacity style={styles.planChangeCancelBtn} onPress={() => { setChangePlanTarget(null); setChangePlanPreview(null) }} disabled={executingChange}>
+                <Text style={styles.planChangeCancelText}>{t('packages.planChangeCancel')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         <Toast
           message={toast.message}
           visible={toast.visible}
@@ -279,6 +384,8 @@ export default function PackagesScreen() {
               gated={false}
               onPress={() => handleSubscribe(pkg)}
               t={t}
+              planLabel={planChangeLabel(pkg)}
+              onChangePlan={() => openChangePlan(pkg)}
             />
           ))}
         </Section>
@@ -296,6 +403,8 @@ export default function PackagesScreen() {
               gated={false}
               onPress={() => handleSubscribe(pkg)}
               t={t}
+              planLabel={planChangeLabel(pkg)}
+              onChangePlan={() => openChangePlan(pkg)}
             />
           ))}
         </Section>
@@ -314,6 +423,8 @@ export default function PackagesScreen() {
               gated={false}
               onPress={() => handleSubscribe(pkg)}
               t={t}
+              planLabel={planChangeLabel(pkg)}
+              onChangePlan={() => openChangePlan(pkg)}
             />
           ))}
           {studentPkgs.length > 0 && (
@@ -332,6 +443,8 @@ export default function PackagesScreen() {
                   onPress={() => handleSubscribe(pkg)}
                   t={t}
                   student
+                  planLabel={planChangeLabel(pkg)}
+                  onChangePlan={() => openChangePlan(pkg)}
                 />
               ))}
             </>
@@ -570,6 +683,8 @@ function PackageCard({
   t,
   student = false,
   isOneTime = false,
+  planLabel = null,
+  onChangePlan,
 }: {
   pkg: Package
   loadingId: string | null
@@ -578,13 +693,21 @@ function PackageCard({
   t: (key: string, opts?: any) => string
   student?: boolean
   isOneTime?: boolean
+  planLabel?: 'current' | 'upgrade' | 'downgrade' | null
+  onChangePlan?: () => void
 }) {
   const isLoading = loadingId === pkg.id
   const isDisabled = loadingId !== null || gated
   const perClass = pkg.isUnlimited ? null : (pkg.price / pkg.classCount).toFixed(0)
+  const isCurrent = planLabel === 'current'
 
   return (
-    <View style={[styles.card, student && styles.cardStudent]}>
+    <View style={[styles.card, student && styles.cardStudent, isCurrent && styles.cardCurrent]}>
+      {isCurrent && (
+        <View style={styles.currentPlanBadge}>
+          <Text style={styles.currentPlanBadgeText}>{t('packages.currentPlan')}</Text>
+        </View>
+      )}
       <View style={styles.cardRow}>
         <View style={styles.cardInfo}>
           <Text style={styles.packageName}>{pkg.name}</Text>
@@ -613,18 +736,34 @@ function PackageCard({
         </View>
       </View>
 
-      <TouchableOpacity
-        style={[styles.buyBtn, student && styles.buyBtnStudent, isDisabled && styles.buyBtnDisabled]}
-        onPress={onPress}
-        disabled={isDisabled}
-      >
-        {isLoading
-          ? <ActivityIndicator size="small" color={C.cream} />
-          : <Text style={styles.buyBtnText}>
-              {isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
-            </Text>
-        }
-      </TouchableOpacity>
+      {isCurrent ? (
+        <View style={[styles.buyBtn, styles.buyBtnDisabled]}>
+          <Text style={styles.buyBtnText}>{t('packages.currentPlan')}</Text>
+        </View>
+      ) : planLabel && onChangePlan ? (
+        <TouchableOpacity
+          style={[styles.buyBtn, planLabel === 'downgrade' && styles.buyBtnDowngrade, isDisabled && styles.buyBtnDisabled]}
+          onPress={onChangePlan}
+          disabled={isDisabled}
+        >
+          <Text style={styles.buyBtnText}>
+            {planLabel === 'upgrade' ? t('packages.upgradeButton') : t('packages.downgradeButton')}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={[styles.buyBtn, student && styles.buyBtnStudent, isDisabled && styles.buyBtnDisabled]}
+          onPress={onPress}
+          disabled={isDisabled}
+        >
+          {isLoading
+            ? <ActivityIndicator size="small" color={C.cream} />
+            : <Text style={styles.buyBtnText}>
+                {isOneTime ? t('packages.trialButton') : t('packages.subscribeButton')}
+              </Text>
+          }
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
@@ -868,6 +1007,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6E7B6A',
   },
   buyBtnDisabled: { opacity: 0.5 },
+  buyBtnDowngrade: { backgroundColor: C.midGray },
   buyBtnText: {
     fontFamily: F.sansMed,
     fontSize: 11,
@@ -875,6 +1015,47 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
+  cardCurrent: { borderColor: C.burg, borderWidth: 1.5 },
+  currentPlanBadge: {
+    backgroundColor: C.burgPale,
+    alignSelf: 'flex-start',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 8,
+  },
+  currentPlanBadgeText: { fontFamily: F.sansMed, fontSize: 10, color: C.burg, letterSpacing: 0.5 },
+  planChangeBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  planChangeSheet: {
+    backgroundColor: C.warmWhite,
+    borderRadius: 8,
+    padding: 24,
+    width: '100%',
+  },
+  planChangeTitle: { fontFamily: F.serifBold, fontSize: 22, color: C.ink, marginBottom: 12 },
+  planChangeBody: { fontFamily: F.sansReg, fontSize: 14, color: C.midGray, lineHeight: 22, marginBottom: 20 },
+  planChangeConfirmBtn: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  planChangeConfirmText: { fontFamily: F.sansMed, fontSize: 12, color: C.cream, letterSpacing: 1.5, textTransform: 'uppercase' },
+  planChangeCancelBtn: {
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  planChangeCancelText: { fontFamily: F.sansMed, fontSize: 12, color: C.midGray, letterSpacing: 1 },
 
   // ── Personal section ──────────────────────────────────────────────────────
   sectionPersonal: {

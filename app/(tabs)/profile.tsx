@@ -943,7 +943,19 @@ export default function ProfileScreen() {
                   <Text style={styles.totalClassesLabel}>{t('profile.subscriptions.classesRemaining')}</Text>
                 </View>
 
-                {subscriptions.map(sub => {
+                {/* Pending plan change note */}
+                {subscriptions.filter(s => s.status === 'PENDING').map(pending => (
+                  <View key={pending.id} style={styles.pendingPlanNote}>
+                    <Text style={styles.pendingPlanNoteText}>
+                      {t('profile.subscriptions.pendingChange', {
+                        name: pending.package.name,
+                        date: format(new Date(pending.currentPeriodStart), 'MMM d, yyyy'),
+                      })}
+                    </Text>
+                  </View>
+                ))}
+
+                {subscriptions.filter(s => s.status !== 'PENDING').map(sub => {
                   const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
                   const periodEndDate = new Date(sub.currentPeriodEnd)
                   const periodEnd = format(periodEndDate, 'MMM d, yyyy')
@@ -1004,20 +1016,24 @@ export default function ProfileScreen() {
                       )}
 
                       {/* Actions */}
-                      {!isCancelling && sub.status === 'ACTIVE' && (
+                      {!isCancelling && (sub.status === 'ACTIVE' || sub.status === 'PAST_DUE') && (
                         <>
                           <View style={[styles.creditsDivider, { marginTop: 14, marginBottom: 12 }]} />
-                          {!isStaff && (
+                          {sub.status === 'PAST_DUE' ? (
+                            <Text style={styles.pastDueHint}>{t('profile.subscriptions.pastDueHint')}</Text>
+                          ) : !isStaff ? (
                             <TouchableOpacity style={styles.changePlanBtn} onPress={() => router.push('/(tabs)/packages')}>
                               <Text style={styles.changePlanBtnText}>{t('profile.subscriptions.changePlan')}</Text>
                             </TouchableOpacity>
+                          ) : null}
+                          {sub.status === 'ACTIVE' && (
+                            <TouchableOpacity
+                              style={[styles.cancelPlanBtn, (isStaff || sub.status === 'PAST_DUE') && { marginTop: 0 }]}
+                              onPress={() => setCancelTarget(sub)}
+                            >
+                              <Text style={styles.cancelPlanBtnText}>{t('profile.subscriptions.cancelAction').toUpperCase()}</Text>
+                            </TouchableOpacity>
                           )}
-                          <TouchableOpacity
-                            style={[styles.cancelPlanBtn, isStaff && { marginTop: 0 }]}
-                            onPress={() => setCancelTarget(sub)}
-                          >
-                            <Text style={styles.cancelPlanBtnText}>{t('profile.subscriptions.cancelAction').toUpperCase()}</Text>
-                          </TouchableOpacity>
                         </>
                       )}
                     </View>
@@ -2141,6 +2157,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelPlanBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.midGray, letterSpacing: 1.5 },
+  pendingPlanNote: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 10,
+  },
+  pendingPlanNoteText: { fontFamily: F.sansReg, fontSize: 12, color: '#856404' },
+  pastDueHint: { fontFamily: F.sansReg, fontSize: 12, color: C.red, marginBottom: 10 },
   subCancelLink: { marginTop: 10, alignSelf: 'flex-start' },
   subCancelLinkText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
   studentToggleRow: {
