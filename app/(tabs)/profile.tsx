@@ -24,6 +24,7 @@ import * as SecureStore from 'expo-secure-store'
 import * as Sharing from 'expo-sharing'
 import * as IntentLauncher from 'expo-intent-launcher'
 import QRCode from 'react-native-qrcode-svg'
+import { useStripe } from '@stripe/stripe-react-native'
 import { api } from '@/lib/api'
 import { useAuth, type Subscription, type StandaloneCredit } from '@/contexts/AuthContext'
 import { subscriptionsApi } from '@/lib/subscriptions'
@@ -175,6 +176,13 @@ export default function ProfileScreen() {
   const [savingNotif, setSavingNotif] = useState<NotifType | null>(null)
   const [notifToast, setNotifToast] = useState({ visible: false, message: '', isError: false })
 
+  // Payment method
+  const { initPaymentSheet, presentPaymentSheet } = useStripe()
+  type CardInfo = { brand: string; last4: string; expMonth: number; expYear: number } | null
+  const [card, setCard] = useState<CardInfo>(null)
+  const [loadingCard, setLoadingCard] = useState(false)
+  const [updatingCard, setUpdatingCard] = useState(false)
+
   // Student toggle (tenant mode only)
   const [studentStatus, setStudentStatus] = useState(false)
   const [savingStudent, setSavingStudent] = useState(false)
@@ -251,6 +259,21 @@ export default function ProfileScreen() {
         })
         .catch(() => {})
         .finally(() => setLoadingSubscriptions(false))
+    }, [isStaff, tenantUser])
+  )
+
+  function fetchCard() {
+    setLoadingCard(true)
+    api.get('/api/mobile/payment-method')
+      .then(({ data }) => setCard(data.card ?? null))
+      .catch(() => {})
+      .finally(() => setLoadingCard(false))
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isStaff && !tenantUser) return
+      fetchCard()
     }, [isStaff, tenantUser])
   )
 
@@ -690,6 +713,31 @@ export default function ProfileScreen() {
     }
   }
 
+  async function handleUpdateCard() {
+    setUpdatingCard(true)
+    try {
+      const { data } = await api.post('/api/mobile/payment-method/setup')
+      const { error: initError } = await initPaymentSheet({
+        setupIntentClientSecret: data.setupIntentClientSecret,
+        merchantDisplayName: 'OOMA Wellness',
+        returnURL: 'ooma://stripe-redirect',
+        style: 'alwaysLight',
+      })
+      if (initError) throw new Error(initError.message)
+      const { error: presentError } = await presentPaymentSheet()
+      if (presentError) {
+        if (presentError.code !== 'Canceled') Alert.alert('Error', presentError.message)
+        return
+      }
+      await api.post('/api/mobile/payment-method/confirm', { setupIntentId: data.setupIntentId })
+      fetchCard()
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not update card.')
+    } finally {
+      setUpdatingCard(false)
+    }
+  }
+
   async function handleSignOut() {
     await signOut()
   }
@@ -983,6 +1031,38 @@ export default function ProfileScreen() {
           </View>
         )}
 
+
+        {/* Payment Method — shown when user has active recurring subscriptions */}
+        {(!isStaff || !!tenantUser) && subscriptions.some(s => s.status === 'ACTIVE' || s.status === 'PAST_DUE') && (
+          <View style={styles.paymentMethodCard}>
+            <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
+            <View style={styles.creditsDivider} />
+            {loadingCard ? (
+              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 12 }} />
+            ) : card ? (
+              <View style={styles.cardRow}>
+                <View>
+                  <Text style={styles.cardBrand}>{card.brand.charAt(0).toUpperCase() + card.brand.slice(1)} •••• {card.last4}</Text>
+                  <Text style={styles.cardExpiry}>Expires {String(card.expMonth).padStart(2, '0')}/{card.expYear}</Text>
+                </View>
+                <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
+                  {updatingCard
+                    ? <ActivityIndicator size="small" color={C.burg} />
+                    : <Text style={styles.updateCardBtnText}>Update</Text>}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.cardRow}>
+                <Text style={styles.cardExpiry}>No card on file</Text>
+                <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
+                  {updatingCard
+                    ? <ActivityIndicator size="small" color={C.burg} />
+                    : <Text style={styles.updateCardBtnText}>Add Card</Text>}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Class Pass / Wallet card */}
         {!tenantUser && <View style={styles.passCard}>
@@ -1685,6 +1765,46 @@ const styles = StyleSheet.create({
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
   signOutBtn: { height: 48, backgroundColor: C.wine, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   signOutText: { fontFamily: F.sansMed, fontSize: 11, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' },
+  paymentMethodCard: {
+    backgroundColor: C.warmWhite,
+    borderWidth: 1,
+    borderColor: C.rule,
+    borderRadius: 4,
+    padding: 16,
+    marginBottom: 12,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  cardBrand: {
+    fontFamily: F.sansMed,
+    fontSize: 14,
+    color: C.ink,
+  },
+  cardExpiry: {
+    fontFamily: F.sansReg,
+    fontSize: 12,
+    color: C.midGray,
+    marginTop: 2,
+  },
+  updateCardBtn: {
+    borderWidth: 1,
+    borderColor: C.burg,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minWidth: 72,
+    alignItems: 'center',
+  },
+  updateCardBtnText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.burg,
+    letterSpacing: 0.5,
+  },
   // Language row
   languageRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
