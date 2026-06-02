@@ -31,6 +31,8 @@ type Attendee = {
   }
 }
 
+type ClassLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+
 type ClassInfo = {
   id: string
   title: string
@@ -39,12 +41,14 @@ type ClassInfo = {
   capacity: number
   instructor: string | null
   classType: 'REFORMER' | 'YOGA'
+  level: ClassLevel | null
 }
 
 type EditForm = {
   title: string
   instructor: string
   classType: 'REFORMER' | 'YOGA'
+  level: ClassLevel | null
   startTime: Date
   durationMins: number
   capacity: string
@@ -58,6 +62,7 @@ function buildForm(cls: ClassInfo): EditForm {
     title: cls.title,
     instructor: cls.instructor ?? '',
     classType: cls.classType,
+    level: cls.level ?? null,
     startTime: start,
     durationMins,
     capacity: String(cls.capacity),
@@ -162,6 +167,7 @@ export default function ClassManageScreen() {
         title: editForm.title.trim(),
         instructor: editForm.instructor.trim() || null,
         classType: editForm.classType,
+        level: editForm.level,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         capacity: parseInt(editForm.capacity),
@@ -430,6 +436,27 @@ export default function ClassManageScreen() {
                 {classTypeLocked && (
                   <Text style={styles.fieldHint}>Class type cannot be changed while people are enrolled.</Text>
                 )}
+              </View>
+
+              {/* Level */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>LEVEL</Text>
+                <View style={styles.typeRow}>
+                  {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => {
+                    const active = editForm.level === lvl
+                    return (
+                      <TouchableOpacity
+                        key={lvl ?? 'none'}
+                        style={[styles.typeBtn, active && styles.typeBtnActive]}
+                        onPress={() => setEditForm(f => f ? { ...f, level: lvl } : f)}
+                      >
+                        <Text style={[styles.typeBtnText, active && styles.typeBtnTextActive]}>
+                          {lvl === null ? '—' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
               </View>
 
               {/* Start time */}

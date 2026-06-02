@@ -42,6 +42,7 @@ type ClassItem = {
   instructor: string | null
   bookingId: string | null
   classType: 'REFORMER' | 'YOGA'
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | null
 }
 
 type ActiveCredit = {
@@ -77,6 +78,14 @@ function groupByDate(classes: ClassItem[]): Record<string, ClassItem[]> {
   return map
 }
 
+function levelPillStyle(level: ClassItem['level']): { bg: string; text: string } | null {
+  if (!level) return null
+  if (level === 'BEGINNER')     return { bg: '#D6EFD8', text: '#2D6A4F' }
+  if (level === 'INTERMEDIATE') return { bg: '#FFF3CD', text: '#856404' }
+  if (level === 'ADVANCED')     return { bg: '#FFE5CC', text: '#CC5500' }
+  return null
+}
+
 function AvailabilityBadge(item: ClassItem, t: (key: string, opts?: any) => string): { label: string; bg: string; text: string } {
   if (item.isBooked) return { label: t('classes.booked', { number: item.userStretcherNumber }), bg: C.burgPale, text: C.burg }
   if (item.isFull) return { label: t('classes.classFull'), bg: '#FEE2E2', text: C.red }
@@ -101,6 +110,7 @@ type CreateClassForm = {
   title: string
   instructor: string
   classType: 'REFORMER' | 'YOGA'
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | null
   date: Date
   startTime: Date
   durationMins: number
@@ -157,7 +167,7 @@ export default function ClassesScreen() {
   // Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
-    title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(),
+    title: '', instructor: '', classType: 'REFORMER', level: null, date: today, startTime: nextHour(),
     durationMins: 60, capacity: '6',
   })
   const [createErrors, setCreateErrors] = useState<CreateClassErrors>({})
@@ -271,12 +281,13 @@ export default function ClassesScreen() {
         title: createForm.title.trim(),
         instructor: createForm.instructor.trim() || null,
         classType: createForm.classType,
+        level: createForm.level,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         capacity: parseInt(createForm.capacity),
       })
       setShowCreateModal(false)
-      setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: today, durationMins: 60, capacity: '6' })
+      setCreateForm({ title: '', instructor: '', classType: 'REFORMER', level: null, date: today, startTime: today, durationMins: 60, capacity: '6' })
       setCreateErrors({})
       await fetchClasses()
       setToast({ visible: true, message: t('classes.createClass.successTitle') })
@@ -480,7 +491,7 @@ export default function ClassesScreen() {
             {showCreateButton && (
               <>
                 <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-                  setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+                  setCreateForm({ title: '', instructor: '', classType: 'REFORMER', level: null, date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
                   setCreateErrors({})
                   setShowCreateModal(true)
                 }}>
@@ -605,16 +616,26 @@ export default function ClassesScreen() {
             filteredClasses.map(item => {
               const isActing = actingClassId === item.id
               const badge = AvailabilityBadge(item, t)
+              const levelStyle = levelPillStyle(item.level)
               const bookState = getBookButtonState(item.classType)
               const showingNotInPlan = notInPlanClassId === item.id
               return (
                 <View key={item.id} style={styles.classCard}>
                   <View style={styles.classCardTop}>
                     <Text style={styles.classTitle}>{item.title}</Text>
-                    <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                      <Text style={[styles.badgeText, { color: badge.text }]}>
-                        {badge.label}
-                      </Text>
+                    <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                      <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                        <Text style={[styles.badgeText, { color: badge.text }]}>
+                          {badge.label}
+                        </Text>
+                      </View>
+                      {levelStyle && (
+                        <View style={[styles.badge, { backgroundColor: levelStyle.bg }]}>
+                          <Text style={[styles.badgeText, { color: levelStyle.text }]}>
+                            {t(`classes.level${item.level!.charAt(0).toUpperCase() + item.level!.slice(1).toLowerCase()}`)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
 
@@ -859,6 +880,22 @@ export default function ClassesScreen() {
                   >
                     <Text style={[styles.classTypeBtnText, createForm.classType === type && styles.classTypeBtnTextActive]}>
                       {type === 'REFORMER' ? 'Reformer Pilates' : 'Yoga'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.fieldLabel}>LEVEL</Text>
+              <View style={styles.classTypeToggle}>
+                {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+                  <TouchableOpacity
+                    key={lvl ?? 'none'}
+                    style={[styles.classTypeBtn, createForm.level === lvl && styles.classTypeBtnActive]}
+                    onPress={() => setCreateForm(f => ({ ...f, level: lvl }))}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.classTypeBtnText, createForm.level === lvl && styles.classTypeBtnTextActive]}>
+                      {lvl === null ? '—' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
                     </Text>
                   </TouchableOpacity>
                 ))}
