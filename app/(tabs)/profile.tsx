@@ -1034,29 +1034,45 @@ export default function ProfileScreen() {
 
         {/* Payment Method — shown when user has active recurring subscriptions */}
         {(!isStaff || !!tenantUser) && subscriptions.some(s => s.status === 'ACTIVE' || s.status === 'PAST_DUE') && (
-          <View style={styles.paymentMethodCard}>
+          <View style={styles.paymentMethodSection}>
             <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
             <View style={styles.creditsDivider} />
             {loadingCard ? (
-              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 12 }} />
+              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 20 }} />
             ) : card ? (
-              <View style={styles.cardRow}>
-                <View>
-                  <Text style={styles.cardBrand}>{card.brand.charAt(0).toUpperCase() + card.brand.slice(1)} •••• {card.last4}</Text>
-                  <Text style={styles.cardExpiry}>Expires {String(card.expMonth).padStart(2, '0')}/{card.expYear}</Text>
+              <>
+                <View style={styles.creditCardVisual}>
+                  {/* Chip */}
+                  <View style={styles.cardChip} />
+                  {/* Number */}
+                  <Text style={styles.cardNumber}>•••• •••• •••• {card.last4}</Text>
+                  {/* Bottom row */}
+                  <View style={styles.cardBottom}>
+                    <View>
+                      <Text style={styles.cardLabel}>CARDHOLDER</Text>
+                      <Text style={styles.cardName}>
+                        {[displayUser?.name, displayUser?.lastName].filter(Boolean).join(' ').toUpperCase() || '—'}
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={styles.cardLabel}>EXPIRES</Text>
+                      <Text style={styles.cardName}>{String(card.expMonth).padStart(2, '0')}/{String(card.expYear).slice(-2)}</Text>
+                    </View>
+                    <Text style={styles.cardBrandText}>{card.brand.toUpperCase()}</Text>
+                  </View>
                 </View>
                 <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
                   {updatingCard
-                    ? <ActivityIndicator size="small" color={C.burg} />
-                    : <Text style={styles.updateCardBtnText}>Update</Text>}
+                    ? <ActivityIndicator size="small" color={C.cream} />
+                    : <Text style={styles.updateCardBtnText}>Update Card</Text>}
                 </TouchableOpacity>
-              </View>
+              </>
             ) : (
               <View style={styles.cardRow}>
                 <Text style={styles.cardExpiry}>No card on file</Text>
                 <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
                   {updatingCard
-                    ? <ActivityIndicator size="small" color={C.burg} />
+                    ? <ActivityIndicator size="small" color={C.cream} />
                     : <Text style={styles.updateCardBtnText}>Add Card</Text>}
                 </TouchableOpacity>
               </View>
@@ -1765,7 +1781,7 @@ const styles = StyleSheet.create({
   buyBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
   signOutBtn: { height: 48, backgroundColor: C.wine, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
   signOutText: { fontFamily: F.sansMed, fontSize: 11, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' },
-  paymentMethodCard: {
+  paymentMethodSection: {
     backgroundColor: C.warmWhite,
     borderWidth: 1,
     borderColor: C.rule,
@@ -1773,16 +1789,60 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  creditCardVisual: {
+    backgroundColor: C.ink,
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 14,
+    marginBottom: 14,
+    minHeight: 148,
+    justifyContent: 'space-between',
+  },
+  cardChip: {
+    width: 36,
+    height: 26,
+    backgroundColor: C.burgSoft,
+    borderRadius: 4,
+    opacity: 0.9,
+  },
+  cardNumber: {
+    fontFamily: F.sansMed,
+    fontSize: 17,
+    color: C.cream,
+    letterSpacing: 3,
+    marginTop: 16,
+  },
+  cardBottom: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  cardLabel: {
+    fontFamily: F.sansReg,
+    fontSize: 8,
+    color: C.lightGray,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  cardName: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 1,
+  },
+  cardBrandText: {
+    fontFamily: F.serifBold,
+    fontSize: 18,
+    color: C.cream,
+    letterSpacing: 1,
+    fontStyle: 'italic',
+  },
   cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 12,
-  },
-  cardBrand: {
-    fontFamily: F.sansMed,
-    fontSize: 14,
-    color: C.ink,
   },
   cardExpiry: {
     fontFamily: F.sansReg,
@@ -1791,19 +1851,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   updateCardBtn: {
-    borderWidth: 1,
-    borderColor: C.burg,
+    backgroundColor: C.burg,
     borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    minWidth: 72,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   updateCardBtnText: {
     fontFamily: F.sansMed,
     fontSize: 11,
-    color: C.burg,
-    letterSpacing: 0.5,
+    color: C.cream,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   // Language row
   languageRow: {
