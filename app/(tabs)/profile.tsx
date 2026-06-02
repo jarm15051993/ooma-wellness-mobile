@@ -278,7 +278,7 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (isStaff) return
+      if (isStaff && !tenantUser) return
       api.get('/api/mobile/notification-preferences')
         .then(({ data }) => {
           const prefs = { ...notifPrefs }
@@ -286,7 +286,7 @@ export default function ProfileScreen() {
           setNotifPrefs(prefs)
         })
         .catch(() => {})
-    }, [isStaff])
+    }, [isStaff, tenantUser])
   )
 
   useFocusEffect(
@@ -1031,7 +1031,7 @@ export default function ProfileScreen() {
         </View>}
 
         {/* Notifications — students only */}
-        {!isStaff && (
+        {(!isStaff || !!tenantUser) && (
           <View style={styles.notifSection}>
             <Text style={styles.sectionLabel}>{t('profile.notifications.title')}</Text>
             <View style={styles.creditsDivider} />
