@@ -981,9 +981,7 @@ export default function ProfileScreen() {
                       {/* Name + price pill */}
                       <View style={styles.subCardTop}>
                         <Text style={styles.subName}>{sub.package.name}</Text>
-                        <View style={styles.subPricePill}>
-                          <Text style={styles.subPricePillText}>€{sub.package.price.toFixed(0)}<Text style={styles.subPricePillPer}> /mes</Text></Text>
-                        </View>
+                        <Text style={styles.subPricePillText}>€{sub.package.price.toFixed(0)}<Text style={styles.subPricePillPer}> /mes</Text></Text>
                       </View>
 
                       {/* Subtitle */}
@@ -2110,16 +2108,9 @@ const styles = StyleSheet.create({
   subStatusCancelling: { color: C.midGray },
   subCredits: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
   subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
-  subPricePill: {
-    borderWidth: 1,
-    borderColor: C.rule,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    flexShrink: 0,
-  },
-  subPricePillText: { fontFamily: F.serifBold, fontSize: 16, color: C.ink },
-  subPricePillPer: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray },
+  subPricePill: {},
+  subPricePillText: { fontFamily: F.serifBold, fontSize: 26, color: C.burg },
+  subPricePillPer: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray },
   subClassCount: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginTop: 2 },
   subPrice: { fontFamily: F.serifBold, fontSize: 20, color: C.ink },
   subPricePer: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
