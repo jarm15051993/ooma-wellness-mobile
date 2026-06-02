@@ -497,7 +497,9 @@
       "keepBtn": "KEEP SUBSCRIPTION",
       "cancelSuccess": "Subscription cancelled",
       "classesRemaining": "classes remaining",
-      "giftClass": "Gift Class"
+      "giftClass": "Gift Class",
+      "nextBillingDate": "Next Billing",
+      "perClass": "class"
     }
   },
   "packages": {

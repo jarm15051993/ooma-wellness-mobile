@@ -945,10 +945,21 @@ export default function ProfileScreen() {
 
                 {subscriptions.map(sub => {
                   const isCancelling = sub.cancelledAt !== null && sub.status === 'ACTIVE'
-                  const periodEnd = format(new Date(sub.currentPeriodEnd), 'MMM d, yyyy')
+                  const periodEndDate = new Date(sub.currentPeriodEnd)
+                  const periodEnd = format(periodEndDate, 'MMM d, yyyy')
+                  const periodEndShort = format(periodEndDate, 'd MMM').toUpperCase()
                   const credit = sub.credits?.[0]
                   const remaining = credit?.isUnlimited ? '∞' : (credit?.creditsRemaining ?? 0)
                   const total    = credit?.isUnlimited ? '∞' : (credit?.creditsTotal    ?? 0)
+                  const daysUntilRenewal = Math.ceil((periodEndDate.getTime() - Date.now()) / 86_400_000)
+                  const billingPillColors = daysUntilRenewal >= 10
+                    ? { bg: '#D6EFD8', text: '#2D6A4F' }
+                    : daysUntilRenewal >= 6
+                    ? { bg: '#FFF3CD', text: '#856404' }
+                    : { bg: '#FFE5CC', text: '#CC5500' }
+                  const pricePerClass = sub.package.classCount > 0
+                    ? (sub.package.price / sub.package.classCount).toFixed(0)
+                    : null
 
                   return (
                     <View key={sub.id} style={styles.subCard}>
@@ -963,18 +974,12 @@ export default function ProfileScreen() {
                               : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
                           </Text>
                         </View>
-                        <View style={styles.subStatusBadge}>
-                          <Text style={[
-                            styles.subStatusText,
-                            sub.status === 'PAST_DUE' && styles.subStatusPastDue,
-                            isCancelling && styles.subStatusCancelling,
-                          ]}>
-                            {sub.status === 'PAST_DUE'
-                              ? t('profile.subscriptions.statusPastDue')
-                              : isCancelling
-                              ? t('profile.subscriptions.statusCancelling')
-                              : t('profile.subscriptions.statusActive')}
-                          </Text>
+                        {/* Price */}
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={styles.subPrice}>€{sub.package.price.toFixed(0)}<Text style={styles.subPricePer}>/mes</Text></Text>
+                          {pricePerClass && (
+                            <Text style={styles.subPricePerClass}>€{pricePerClass}/{t('profile.subscriptions.perClass')}</Text>
+                          )}
                         </View>
                       </View>
                       <Text style={styles.subCredits}>
@@ -982,11 +987,16 @@ export default function ProfileScreen() {
                           ? t('packages.unlimitedClasses')
                           : t('profile.subscriptions.creditsLeft', { remaining, total })}
                       </Text>
-                      <Text style={styles.subRenewal}>
-                        {isCancelling
-                          ? t('profile.subscriptions.expiresOn', { date: periodEnd })
-                          : t('profile.subscriptions.renewsOn', { date: periodEnd })}
-                      </Text>
+                      {isCancelling ? (
+                        <Text style={styles.subRenewal}>{t('profile.subscriptions.expiresOn', { date: periodEnd })}</Text>
+                      ) : (
+                        <View style={[styles.billingPill, { backgroundColor: billingPillColors.bg }]}>
+                          <View style={[styles.billingPillDot, { backgroundColor: billingPillColors.text }]} />
+                          <Text style={[styles.billingPillText, { color: billingPillColors.text }]}>
+                            {t('profile.subscriptions.nextBillingDate')} {periodEndShort}
+                          </Text>
+                        </View>
+                      )}
                       {!isCancelling && sub.status === 'ACTIVE' && (
                         <TouchableOpacity
                           style={styles.subCancelLink}
@@ -2082,6 +2092,29 @@ const styles = StyleSheet.create({
   subStatusCancelling: { color: C.midGray },
   subCredits: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, marginBottom: 2 },
   subRenewal: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  subPrice: { fontFamily: F.serifBold, fontSize: 20, color: C.ink },
+  subPricePer: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray },
+  subPricePerClass: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 1 },
+  billingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 8,
+  },
+  billingPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  billingPillText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
   subCancelLink: { marginTop: 10, alignSelf: 'flex-start' },
   subCancelLinkText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, textDecorationLine: 'underline' },
   studentToggleRow: {
