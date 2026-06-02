@@ -1058,7 +1058,21 @@ export default function ProfileScreen() {
                       <Text style={styles.cardLabel}>EXPIRES</Text>
                       <Text style={styles.cardName}>{String(card.expMonth).padStart(2, '0')}/{String(card.expYear).slice(-2)}</Text>
                     </View>
-                    <Text style={styles.cardBrandText}>{card.brand.toUpperCase()}</Text>
+                    {/* Brand logo */}
+                    {card.brand === 'mastercard' ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#EB001B' }} />
+                        <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#F79E1B', marginLeft: -10, opacity: 0.9 }} />
+                      </View>
+                    ) : card.brand === 'visa' ? (
+                      <Text style={styles.cardBrandVisa}>VISA</Text>
+                    ) : card.brand === 'amex' ? (
+                      <View style={styles.cardBrandAmex}>
+                        <Text style={styles.cardBrandAmexText}>AMEX</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.cardBrandText}>{card.brand.toUpperCase()}</Text>
+                    )}
                   </View>
                 </View>
                 <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
@@ -1790,7 +1804,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   creditCardVisual: {
-    backgroundColor: C.ink,
+    backgroundColor: C.wine,
     borderRadius: 12,
     padding: 20,
     marginTop: 14,
@@ -1832,11 +1846,30 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   cardBrandText: {
-    fontFamily: F.serifBold,
-    fontSize: 18,
+    fontFamily: F.sansMed,
+    fontSize: 13,
     color: C.cream,
     letterSpacing: 1,
-    fontStyle: 'italic',
+    textTransform: 'uppercase',
+  },
+  cardBrandVisa: {
+    fontFamily: F.serifBold,
+    fontSize: 22,
+    color: C.cream,
+    letterSpacing: 2,
+  },
+  cardBrandAmex: {
+    borderWidth: 1.5,
+    borderColor: C.cream,
+    borderRadius: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  cardBrandAmexText: {
+    fontFamily: F.sansMed,
+    fontSize: 11,
+    color: C.cream,
+    letterSpacing: 1.5,
   },
   cardRow: {
     flexDirection: 'row',
