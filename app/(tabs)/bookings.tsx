@@ -20,6 +20,8 @@ import Toast from '@/components/Toast'
 import BetaOverlay from '@/components/BetaOverlay'
 import { useAuth } from '@/contexts/AuthContext'
 
+type ClassLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | null
+
 type ClassInfo = {
   id: string
   title: string
@@ -27,6 +29,7 @@ type ClassInfo = {
   endTime: string
   instructor: string | null
   classType?: 'REFORMER' | 'YOGA'
+  level?: ClassLevel
 }
 
 type Booking = {
@@ -45,6 +48,7 @@ type PastClass = {
     instructor: string | null
     durationMins: number
     classType?: 'REFORMER' | 'YOGA'
+    level?: ClassLevel
   }
   stretcherNumber: number
   attendedAt: string | null
@@ -58,6 +62,7 @@ type MissedClass = {
     instructor: string | null
     durationMins: number
     classType?: 'REFORMER' | 'YOGA'
+    level?: ClassLevel
   }
   stretcherNumber: number
 }
@@ -124,6 +129,24 @@ export default function BookingsScreen() {
     }
   }
 
+  function LevelPill({ level }: { level: ClassLevel }) {
+    if (!level) return null
+    const colors: Record<string, { bg: string; text: string }> = {
+      BEGINNER:     { bg: '#D6EFD8', text: '#2D6A4F' },
+      INTERMEDIATE: { bg: '#FFF3CD', text: '#856404' },
+      ADVANCED:     { bg: '#FFE5CC', text: '#CC5500' },
+    }
+    const c = colors[level]
+    if (!c) return null
+    return (
+      <View style={[styles.levelPill, { backgroundColor: c.bg }]}>
+        <Text style={[styles.levelPillText, { color: c.text }]}>
+          {t(`classes.level${level.charAt(0) + level.slice(1).toLowerCase()}`)}
+        </Text>
+      </View>
+    )
+  }
+
   function renderUpcoming({ item }: { item: Booking }) {
     return (
       <View style={styles.card}>
@@ -150,6 +173,7 @@ export default function BookingsScreen() {
         {item.class.classType === 'YOGA' && (
           <Text style={styles.classTypeLabel}>{t('classes.typeYoga')}</Text>
         )}
+        <LevelPill level={item.class.level ?? null} />
         <View style={styles.divider} />
         <TouchableOpacity style={styles.cancelBtn} onPress={() => setCancelTarget(item)}>
           <Text style={styles.cancelBtnText}>{t('classes.cancelClass').toUpperCase()}</Text>
@@ -181,6 +205,7 @@ export default function BookingsScreen() {
             ? t('bookings.mat', { number: item.stretcherNumber })
             : t('bookings.reformer', { number: item.stretcherNumber })}
         </Text>
+        <LevelPill level={item.class.level ?? null} />
       </View>
     )
   }
@@ -206,6 +231,7 @@ export default function BookingsScreen() {
         {item.class.classType === 'YOGA' && (
           <Text style={styles.classTypeLabel}>{t('classes.typeYoga')}</Text>
         )}
+        <LevelPill level={item.class.level ?? null} />
       </View>
     )
   }
@@ -428,6 +454,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   missedBadgeText: { fontFamily: F.sansMed, fontSize: 10, color: '#A0522D', letterSpacing: 0.5 },
+  levelPill: { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginTop: 6 },
+  levelPillText: { fontFamily: F.sansMed, fontSize: 10, letterSpacing: 0.5 },
   dateText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
   timeText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 2 },
   instructorText: { fontFamily: F.sansReg, fontSize: 12, color: C.lightGray },

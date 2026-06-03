@@ -42,6 +42,7 @@ type ClassItem = {
   instructor: string | null
   bookingId: string | null
   classType: 'REFORMER' | 'YOGA'
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | null
 }
 
 type ActiveCredit = {
@@ -77,6 +78,14 @@ function groupByDate(classes: ClassItem[]): Record<string, ClassItem[]> {
   return map
 }
 
+function levelPillStyle(level: ClassItem['level']): { bg: string; text: string } | null {
+  if (!level) return null
+  if (level === 'BEGINNER')     return { bg: '#D6EFD8', text: '#2D6A4F' }
+  if (level === 'INTERMEDIATE') return { bg: '#FFF3CD', text: '#856404' }
+  if (level === 'ADVANCED')     return { bg: '#FFE5CC', text: '#CC5500' }
+  return null
+}
+
 function AvailabilityBadge(item: ClassItem, t: (key: string, opts?: any) => string): { label: string; bg: string; text: string } {
   if (item.isBooked) return { label: t('classes.booked', { number: item.userStretcherNumber }), bg: C.burgPale, text: C.burg }
   if (item.isFull) return { label: t('classes.classFull'), bg: '#FEE2E2', text: C.red }
@@ -101,6 +110,7 @@ type CreateClassForm = {
   title: string
   instructor: string
   classType: 'REFORMER' | 'YOGA'
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | null
   date: Date
   startTime: Date
   durationMins: number
@@ -157,12 +167,13 @@ export default function ClassesScreen() {
   // Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState<CreateClassForm>({
-    title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(),
+    title: '', instructor: '', classType: 'REFORMER', level: null, date: today, startTime: nextHour(),
     durationMins: 60, capacity: '6',
   })
   const [createErrors, setCreateErrors] = useState<CreateClassErrors>({})
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showLevelPicker, setShowLevelPicker] = useState(false)
   const [creating, setCreating] = useState(false)
 
   const showCreateButton = (canCreateClass || isOwner) && !tenantUser
@@ -271,12 +282,13 @@ export default function ClassesScreen() {
         title: createForm.title.trim(),
         instructor: createForm.instructor.trim() || null,
         classType: createForm.classType,
+        level: createForm.level,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         capacity: parseInt(createForm.capacity),
       })
       setShowCreateModal(false)
-      setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: today, durationMins: 60, capacity: '6' })
+      setCreateForm({ title: '', instructor: '', classType: 'REFORMER', level: null, date: today, startTime: today, durationMins: 60, capacity: '6' })
       setCreateErrors({})
       await fetchClasses()
       setToast({ visible: true, message: t('classes.createClass.successTitle') })
@@ -480,7 +492,7 @@ export default function ClassesScreen() {
             {showCreateButton && (
               <>
                 <TouchableOpacity style={styles.newClassBtn} onPress={() => {
-                  setCreateForm({ title: '', instructor: '', classType: 'REFORMER', date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
+                  setCreateForm({ title: '', instructor: '', classType: 'REFORMER', level: null, date: today, startTime: nextHour(), durationMins: 60, capacity: '6' })
                   setCreateErrors({})
                   setShowCreateModal(true)
                 }}>
@@ -605,16 +617,26 @@ export default function ClassesScreen() {
             filteredClasses.map(item => {
               const isActing = actingClassId === item.id
               const badge = AvailabilityBadge(item, t)
+              const levelStyle = levelPillStyle(item.level)
               const bookState = getBookButtonState(item.classType)
               const showingNotInPlan = notInPlanClassId === item.id
               return (
                 <View key={item.id} style={styles.classCard}>
                   <View style={styles.classCardTop}>
                     <Text style={styles.classTitle}>{item.title}</Text>
-                    <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                      <Text style={[styles.badgeText, { color: badge.text }]}>
-                        {badge.label}
-                      </Text>
+                    <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                      <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                        <Text style={[styles.badgeText, { color: badge.text }]}>
+                          {badge.label}
+                        </Text>
+                      </View>
+                      {levelStyle && (
+                        <View style={[styles.badge, { backgroundColor: levelStyle.bg }]}>
+                          <Text style={[styles.badgeText, { color: levelStyle.text }]}>
+                            {t(`classes.level${item.level!.charAt(0).toUpperCase() + item.level!.slice(1).toLowerCase()}`)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
 
@@ -864,6 +886,15 @@ export default function ClassesScreen() {
                 ))}
               </View>
 
+              <Text style={styles.fieldLabel}>LEVEL</Text>
+              <TouchableOpacity style={[styles.fieldInput, styles.fieldInputTouchable]} onPress={() => setShowLevelPicker(true)}>
+                <Text style={[styles.fieldInputText, !createForm.level && { color: C.lightGray }]}>
+                  {createForm.level
+                    ? createForm.level.charAt(0) + createForm.level.slice(1).toLowerCase()
+                    : 'None'}
+                </Text>
+              </TouchableOpacity>
+
               <Text style={styles.fieldLabel}>DATE *</Text>
               <TouchableOpacity
                 style={[styles.fieldInput, styles.fieldInputTouchable, createErrors.date && styles.fieldInputError]}
@@ -950,6 +981,25 @@ export default function ClassesScreen() {
                 }
               </TouchableOpacity>
             </ScrollView>
+
+            {/* Level picker — inside create modal to avoid nested Modal issues */}
+            {showLevelPicker && (
+              <TouchableOpacity style={styles.levelPickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
+                <View style={styles.levelPickerSheet}>
+                  {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+                    <TouchableOpacity
+                      key={lvl ?? 'none'}
+                      style={[styles.levelPickerOption, createForm.level === lvl && styles.levelPickerOptionActive]}
+                      onPress={() => { setCreateForm(f => ({ ...f, level: lvl })); setShowLevelPicker(false) }}
+                    >
+                      <Text style={[styles.levelPickerOptionText, createForm.level === lvl && styles.levelPickerOptionTextActive]}>
+                        {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            )}
           </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
@@ -1047,6 +1097,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 1,
   },
+  levelPickerBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  levelPickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
+  levelPickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
+  levelPickerOptionActive: { backgroundColor: C.burgPale },
+  levelPickerOptionText: { fontFamily: F.sansReg, fontSize: 15, color: C.ink },
+  levelPickerOptionTextActive: { fontFamily: F.sansMed, color: C.burg },
   uploadBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',

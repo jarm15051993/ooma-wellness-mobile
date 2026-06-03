@@ -31,6 +31,8 @@ type Attendee = {
   }
 }
 
+type ClassLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+
 type ClassInfo = {
   id: string
   title: string
@@ -39,12 +41,14 @@ type ClassInfo = {
   capacity: number
   instructor: string | null
   classType: 'REFORMER' | 'YOGA'
+  level: ClassLevel | null
 }
 
 type EditForm = {
   title: string
   instructor: string
   classType: 'REFORMER' | 'YOGA'
+  level: ClassLevel | null
   startTime: Date
   durationMins: number
   capacity: string
@@ -58,6 +62,7 @@ function buildForm(cls: ClassInfo): EditForm {
     title: cls.title,
     instructor: cls.instructor ?? '',
     classType: cls.classType,
+    level: cls.level ?? null,
     startTime: start,
     durationMins,
     capacity: String(cls.capacity),
@@ -85,6 +90,7 @@ export default function ClassManageScreen() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState<EditForm | null>(null)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showLevelPicker, setShowLevelPicker] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editErrors, setEditErrors] = useState<Partial<Record<keyof EditForm, string>>>({})
@@ -162,6 +168,7 @@ export default function ClassManageScreen() {
         title: editForm.title.trim(),
         instructor: editForm.instructor.trim() || null,
         classType: editForm.classType,
+        level: editForm.level,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         capacity: parseInt(editForm.capacity),
@@ -223,6 +230,21 @@ export default function ClassManageScreen() {
                 <Text style={styles.attendeeCount}>
                   {attendees.length} / {cls.capacity} {attendees.length === 1 ? 'participant' : 'participants'}
                 </Text>
+                {cls.level && (() => {
+                  const lvlColors: Record<string, { bg: string; text: string }> = {
+                    BEGINNER:     { bg: '#D6EFD8', text: '#2D6A4F' },
+                    INTERMEDIATE: { bg: '#FFF3CD', text: '#856404' },
+                    ADVANCED:     { bg: '#FFE5CC', text: '#CC5500' },
+                  }
+                  const lc = lvlColors[cls.level]
+                  return lc ? (
+                    <View style={[styles.levelPill, { backgroundColor: lc.bg }]}>
+                      <Text style={[styles.levelPillText, { color: lc.text }]}>
+                        {cls.level.charAt(0) + cls.level.slice(1).toLowerCase()}
+                      </Text>
+                    </View>
+                  ) : null
+                })()}
               </View>
               <View style={styles.headerActions}>
                 <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
@@ -432,6 +454,18 @@ export default function ClassManageScreen() {
                 )}
               </View>
 
+              {/* Level */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>LEVEL</Text>
+                <TouchableOpacity style={styles.fieldInput} onPress={() => setShowLevelPicker(true)}>
+                  <Text style={[styles.fieldInputText, !editForm.level && { color: C.lightGray }]}>
+                    {editForm.level
+                      ? editForm.level.charAt(0) + editForm.level.slice(1).toLowerCase()
+                      : 'None'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Start time */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>START TIME</Text>
@@ -509,6 +543,46 @@ export default function ClassManageScreen() {
                 {editErrors.capacity ? <Text style={styles.fieldError}>{editErrors.capacity}</Text> : null}
               </View>
             </ScrollView>
+
+            {/* Level picker overlay */}
+            {showLevelPicker && (
+              <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
+                <View style={styles.pickerSheet}>
+                  {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+                    <TouchableOpacity
+                      key={lvl ?? 'none'}
+                      style={[styles.pickerOption, editForm?.level === lvl && styles.pickerOptionActive]}
+                      onPress={() => { setEditForm(f => f ? { ...f, level: lvl } : f); setShowLevelPicker(false) }}
+                    >
+                      <Text style={[styles.pickerOptionText, editForm?.level === lvl && styles.pickerOptionTextActive]}>
+                        {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {/* Save confirm overlay — inside edit modal to avoid nested Modal issues */}
+            {showConfirm && (
+              <View style={styles.pickerBackdrop}>
+                <View style={styles.confirmBox}>
+                  <Text style={styles.confirmTitle}>Save changes?</Text>
+                  <Text style={styles.confirmBody}>
+                    {attendees.length} {attendees.length === 1 ? 'person is' : 'people are'} enrolled in this class.
+                    They will not be notified automatically.
+                  </Text>
+                  <TouchableOpacity style={styles.confirmBtn} onPress={submitEdit} disabled={saving}>
+                    {saving
+                      ? <ActivityIndicator color="#fff" />
+                      : <Text style={styles.confirmBtnText}>Confirm changes</Text>}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowConfirm(false)}>
+                    <Text style={styles.confirmCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </SafeAreaView>
         </Modal>
       )}
@@ -534,27 +608,7 @@ export default function ClassManageScreen() {
         </View>
       </Modal>
 
-      {/* Edit confirm modal */}
-      <Modal visible={showConfirm} transparent animationType="fade">
-        <View style={styles.confirmOverlay}>
-          <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>Save changes?</Text>
-            <Text style={styles.confirmBody}>
-              {attendees.length} {attendees.length === 1 ? 'person is' : 'people are'} enrolled in this class.
-              They will not be notified automatically.
-            </Text>
-            <TouchableOpacity style={styles.confirmBtn} onPress={submitEdit} disabled={saving}>
-              {saving
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.confirmBtnText}>Confirm changes</Text>
-              }
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowConfirm(false)}>
-              <Text style={styles.confirmCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+
     </SafeAreaView>
   )
 }
@@ -685,6 +739,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fieldInputText: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  levelPill: { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginTop: 6 },
+  levelPillText: { fontFamily: F.sansMed, fontSize: 10, letterSpacing: 0.5 },
+  pickerBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  pickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
+  pickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
+  pickerOptionActive: { backgroundColor: C.burgPale },
+  pickerOptionText: { fontFamily: F.sansReg, fontSize: 15, color: C.ink },
+  pickerOptionTextActive: { fontFamily: F.sansMed, color: C.burg },
   fieldInputError: { borderColor: '#ef4444' },
   fieldError: { fontFamily: F.sansReg, fontSize: 12, color: '#ef4444', marginTop: 4 },
   fieldHint: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 6 },
