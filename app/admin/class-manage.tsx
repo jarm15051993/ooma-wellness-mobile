@@ -90,6 +90,7 @@ export default function ClassManageScreen() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState<EditForm | null>(null)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showLevelPicker, setShowLevelPicker] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editErrors, setEditErrors] = useState<Partial<Record<keyof EditForm, string>>>({})
@@ -441,22 +442,13 @@ export default function ClassManageScreen() {
               {/* Level */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>LEVEL</Text>
-                <View style={styles.typeRow}>
-                  {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => {
-                    const active = editForm.level === lvl
-                    return (
-                      <TouchableOpacity
-                        key={lvl ?? 'none'}
-                        style={[styles.typeBtn, active && styles.typeBtnActive]}
-                        onPress={() => setEditForm(f => f ? { ...f, level: lvl } : f)}
-                      >
-                        <Text style={[styles.typeBtnText, active && styles.typeBtnTextActive]}>
-                          {lvl === null ? '—' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </View>
+                <TouchableOpacity style={styles.fieldInput} onPress={() => setShowLevelPicker(true)}>
+                  <Text style={[styles.fieldInputText, !editForm.level && { color: C.lightGray }]}>
+                    {editForm.level
+                      ? editForm.level.charAt(0) + editForm.level.slice(1).toLowerCase()
+                      : 'None'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               {/* Start time */}
@@ -581,6 +573,28 @@ export default function ClassManageScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Level picker */}
+      <Modal visible={showLevelPicker} transparent animationType="fade" onRequestClose={() => setShowLevelPicker(false)}>
+        <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
+          <View style={styles.pickerSheet}>
+            {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+              <TouchableOpacity
+                key={lvl ?? 'none'}
+                style={[styles.pickerOption, editForm?.level === lvl && styles.pickerOptionActive]}
+                onPress={() => {
+                  setEditForm(f => f ? { ...f, level: lvl } : f)
+                  setShowLevelPicker(false)
+                }}
+              >
+                <Text style={[styles.pickerOptionText, editForm?.level === lvl && styles.pickerOptionTextActive]}>
+                  {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   )
@@ -712,6 +726,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fieldInputText: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  pickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  pickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
+  pickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
+  pickerOptionActive: { backgroundColor: C.burgPale },
+  pickerOptionText: { fontFamily: F.sansReg, fontSize: 15, color: C.ink },
+  pickerOptionTextActive: { fontFamily: F.sansMed, color: C.burg },
   fieldInputError: { borderColor: '#ef4444' },
   fieldError: { fontFamily: F.sansReg, fontSize: 12, color: '#ef4444', marginTop: 4 },
   fieldHint: { fontFamily: F.sansReg, fontSize: 11, color: C.midGray, marginTop: 6 },

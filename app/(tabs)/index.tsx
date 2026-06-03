@@ -173,6 +173,7 @@ export default function ClassesScreen() {
   const [createErrors, setCreateErrors] = useState<CreateClassErrors>({})
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showLevelPicker, setShowLevelPicker] = useState(false)
   const [creating, setCreating] = useState(false)
 
   const showCreateButton = (canCreateClass || isOwner) && !tenantUser
@@ -886,20 +887,13 @@ export default function ClassesScreen() {
               </View>
 
               <Text style={styles.fieldLabel}>LEVEL</Text>
-              <View style={styles.classTypeToggle}>
-                {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
-                  <TouchableOpacity
-                    key={lvl ?? 'none'}
-                    style={[styles.classTypeBtn, createForm.level === lvl && styles.classTypeBtnActive]}
-                    onPress={() => setCreateForm(f => ({ ...f, level: lvl }))}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.classTypeBtnText, createForm.level === lvl && styles.classTypeBtnTextActive]}>
-                      {lvl === null ? '—' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <TouchableOpacity style={[styles.fieldInput, styles.fieldInputTouchable]} onPress={() => setShowLevelPicker(true)}>
+                <Text style={[styles.fieldInputText, !createForm.level && { color: C.lightGray }]}>
+                  {createForm.level
+                    ? createForm.level.charAt(0) + createForm.level.slice(1).toLowerCase()
+                    : 'None'}
+                </Text>
+              </TouchableOpacity>
 
               <Text style={styles.fieldLabel}>DATE *</Text>
               <TouchableOpacity
@@ -989,6 +983,25 @@ export default function ClassesScreen() {
             </ScrollView>
           </SafeAreaView>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Level picker for create modal */}
+      <Modal visible={showLevelPicker} transparent animationType="fade" onRequestClose={() => setShowLevelPicker(false)}>
+        <TouchableOpacity style={styles.levelPickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
+          <View style={styles.levelPickerSheet}>
+            {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+              <TouchableOpacity
+                key={lvl ?? 'none'}
+                style={[styles.levelPickerOption, createForm.level === lvl && styles.levelPickerOptionActive]}
+                onPress={() => { setCreateForm(f => ({ ...f, level: lvl })); setShowLevelPicker(false) }}
+              >
+                <Text style={[styles.levelPickerOptionText, createForm.level === lvl && styles.levelPickerOptionTextActive]}>
+                  {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Upload result modal */}
@@ -1084,6 +1097,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 1,
   },
+  levelPickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  levelPickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
+  levelPickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
+  levelPickerOptionActive: { backgroundColor: C.burgPale },
+  levelPickerOptionText: { fontFamily: F.sansReg, fontSize: 15, color: C.ink },
+  levelPickerOptionTextActive: { fontFamily: F.sansMed, color: C.burg },
   uploadBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
