@@ -529,7 +529,7 @@ export default function ClassManageScreen() {
               </View>
             </ScrollView>
 
-            {/* Level picker overlay — inside edit modal to avoid nested Modal issues */}
+            {/* Level picker overlay */}
             {showLevelPicker && (
               <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
                 <View style={styles.pickerSheet}>
@@ -537,10 +537,7 @@ export default function ClassManageScreen() {
                     <TouchableOpacity
                       key={lvl ?? 'none'}
                       style={[styles.pickerOption, editForm?.level === lvl && styles.pickerOptionActive]}
-                      onPress={() => {
-                        setEditForm(f => f ? { ...f, level: lvl } : f)
-                        setShowLevelPicker(false)
-                      }}
+                      onPress={() => { setEditForm(f => f ? { ...f, level: lvl } : f); setShowLevelPicker(false) }}
                     >
                       <Text style={[styles.pickerOptionText, editForm?.level === lvl && styles.pickerOptionTextActive]}>
                         {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
@@ -549,6 +546,27 @@ export default function ClassManageScreen() {
                   ))}
                 </View>
               </TouchableOpacity>
+            )}
+
+            {/* Save confirm overlay — inside edit modal to avoid nested Modal issues */}
+            {showConfirm && (
+              <View style={styles.pickerBackdrop}>
+                <View style={styles.confirmBox}>
+                  <Text style={styles.confirmTitle}>Save changes?</Text>
+                  <Text style={styles.confirmBody}>
+                    {attendees.length} {attendees.length === 1 ? 'person is' : 'people are'} enrolled in this class.
+                    They will not be notified automatically.
+                  </Text>
+                  <TouchableOpacity style={styles.confirmBtn} onPress={submitEdit} disabled={saving}>
+                    {saving
+                      ? <ActivityIndicator color="#fff" />
+                      : <Text style={styles.confirmBtnText}>Confirm changes</Text>}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowConfirm(false)}>
+                    <Text style={styles.confirmCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
           </SafeAreaView>
         </Modal>
@@ -575,27 +593,6 @@ export default function ClassManageScreen() {
         </View>
       </Modal>
 
-      {/* Edit confirm modal */}
-      <Modal visible={showConfirm} transparent animationType="fade">
-        <View style={styles.confirmOverlay}>
-          <View style={styles.confirmBox}>
-            <Text style={styles.confirmTitle}>Save changes?</Text>
-            <Text style={styles.confirmBody}>
-              {attendees.length} {attendees.length === 1 ? 'person is' : 'people are'} enrolled in this class.
-              They will not be notified automatically.
-            </Text>
-            <TouchableOpacity style={styles.confirmBtn} onPress={submitEdit} disabled={saving}>
-              {saving
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.confirmBtnText}>Confirm changes</Text>
-              }
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowConfirm(false)}>
-              <Text style={styles.confirmCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
     </SafeAreaView>
   )
