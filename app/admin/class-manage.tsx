@@ -230,6 +230,21 @@ export default function ClassManageScreen() {
                 <Text style={styles.attendeeCount}>
                   {attendees.length} / {cls.capacity} {attendees.length === 1 ? 'participant' : 'participants'}
                 </Text>
+                {cls.level && (() => {
+                  const lvlColors: Record<string, { bg: string; text: string }> = {
+                    BEGINNER:     { bg: '#D6EFD8', text: '#2D6A4F' },
+                    INTERMEDIATE: { bg: '#FFF3CD', text: '#856404' },
+                    ADVANCED:     { bg: '#FFE5CC', text: '#CC5500' },
+                  }
+                  const lc = lvlColors[cls.level]
+                  return lc ? (
+                    <View style={[styles.levelPill, { backgroundColor: lc.bg }]}>
+                      <Text style={[styles.levelPillText, { color: lc.text }]}>
+                        {cls.level.charAt(0) + cls.level.slice(1).toLowerCase()}
+                      </Text>
+                    </View>
+                  ) : null
+                })()}
               </View>
               <View style={styles.headerActions}>
                 <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
@@ -724,6 +739,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fieldInputText: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
+  levelPill: { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginTop: 6 },
+  levelPillText: { fontFamily: F.sansMed, fontSize: 10, letterSpacing: 0.5 },
   pickerBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   pickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
   pickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
