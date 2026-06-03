@@ -40,7 +40,7 @@ export type Subscription = {
   id: string
   packageId: string
   stripeSubscriptionId: string
-  status: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'EXPIRED'
+  status: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' | 'EXPIRED' | 'PENDING'
   currentPeriodStart: string
   currentPeriodEnd: string
   cancelledAt: string | null
