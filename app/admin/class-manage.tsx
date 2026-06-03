@@ -528,6 +528,28 @@ export default function ClassManageScreen() {
                 {editErrors.capacity ? <Text style={styles.fieldError}>{editErrors.capacity}</Text> : null}
               </View>
             </ScrollView>
+
+            {/* Level picker overlay — inside edit modal to avoid nested Modal issues */}
+            {showLevelPicker && (
+              <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
+                <View style={styles.pickerSheet}>
+                  {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+                    <TouchableOpacity
+                      key={lvl ?? 'none'}
+                      style={[styles.pickerOption, editForm?.level === lvl && styles.pickerOptionActive]}
+                      onPress={() => {
+                        setEditForm(f => f ? { ...f, level: lvl } : f)
+                        setShowLevelPicker(false)
+                      }}
+                    >
+                      <Text style={[styles.pickerOptionText, editForm?.level === lvl && styles.pickerOptionTextActive]}>
+                        {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            )}
           </SafeAreaView>
         </Modal>
       )}
@@ -575,27 +597,6 @@ export default function ClassManageScreen() {
         </View>
       </Modal>
 
-      {/* Level picker */}
-      <Modal visible={showLevelPicker} transparent animationType="fade" onRequestClose={() => setShowLevelPicker(false)}>
-        <TouchableOpacity style={styles.pickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
-          <View style={styles.pickerSheet}>
-            {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
-              <TouchableOpacity
-                key={lvl ?? 'none'}
-                style={[styles.pickerOption, editForm?.level === lvl && styles.pickerOptionActive]}
-                onPress={() => {
-                  setEditForm(f => f ? { ...f, level: lvl } : f)
-                  setShowLevelPicker(false)
-                }}
-              >
-                <Text style={[styles.pickerOptionText, editForm?.level === lvl && styles.pickerOptionTextActive]}>
-                  {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   )
 }
@@ -726,7 +727,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fieldInputText: { fontFamily: F.sansReg, fontSize: 14, color: C.ink },
-  pickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  pickerBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   pickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
   pickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
   pickerOptionActive: { backgroundColor: C.burgPale },

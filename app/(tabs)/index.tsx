@@ -981,27 +981,27 @@ export default function ClassesScreen() {
                 }
               </TouchableOpacity>
             </ScrollView>
+
+            {/* Level picker — inside create modal to avoid nested Modal issues */}
+            {showLevelPicker && (
+              <TouchableOpacity style={styles.levelPickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
+                <View style={styles.levelPickerSheet}>
+                  {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
+                    <TouchableOpacity
+                      key={lvl ?? 'none'}
+                      style={[styles.levelPickerOption, createForm.level === lvl && styles.levelPickerOptionActive]}
+                      onPress={() => { setCreateForm(f => ({ ...f, level: lvl })); setShowLevelPicker(false) }}
+                    >
+                      <Text style={[styles.levelPickerOptionText, createForm.level === lvl && styles.levelPickerOptionTextActive]}>
+                        {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            )}
           </SafeAreaView>
         </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Level picker for create modal */}
-      <Modal visible={showLevelPicker} transparent animationType="fade" onRequestClose={() => setShowLevelPicker(false)}>
-        <TouchableOpacity style={styles.levelPickerBackdrop} activeOpacity={1} onPress={() => setShowLevelPicker(false)}>
-          <View style={styles.levelPickerSheet}>
-            {([null, 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map(lvl => (
-              <TouchableOpacity
-                key={lvl ?? 'none'}
-                style={[styles.levelPickerOption, createForm.level === lvl && styles.levelPickerOptionActive]}
-                onPress={() => { setCreateForm(f => ({ ...f, level: lvl })); setShowLevelPicker(false) }}
-              >
-                <Text style={[styles.levelPickerOptionText, createForm.level === lvl && styles.levelPickerOptionTextActive]}>
-                  {lvl === null ? 'None' : lvl.charAt(0) + lvl.slice(1).toLowerCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
       </Modal>
 
       {/* Upload result modal */}
@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 1,
   },
-  levelPickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  levelPickerBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   levelPickerSheet: { backgroundColor: C.warmWhite, borderTopLeftRadius: 12, borderTopRightRadius: 12, paddingBottom: 32 },
   levelPickerOption: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: C.rule },
   levelPickerOptionActive: { backgroundColor: C.burgPale },
