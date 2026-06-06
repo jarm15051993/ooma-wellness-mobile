@@ -11,6 +11,7 @@ function TabIcon({ label, color }: { label: string; color: string }) {
     Subscriptions: '◫',
     Profile: '◎',
     Students: '⊕',
+    Inactive: '⊘',
   }
   return (
     <Text style={{ fontSize: 18, color, lineHeight: 22 }}>
@@ -25,6 +26,7 @@ export default function TabLayout() {
 
   const isStaff = isAdmin || isOwner
   const showStudents = (canViewStudents || isOwner) && !tenantUser
+  const showInactive = (canViewStudents || isOwner) && !tenantUser
   const showBookings = !isStaff || !!tenantUser
   const showPackages = !isStaff || !!tenantUser
   const showProfile = !isStaff || !!tenantUser
@@ -88,6 +90,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon label="Students" color={color} />,
           tabBarItemStyle: showStudents ? undefined : { display: 'none' },
           tabBarButton: showStudents ? undefined : () => null,
+        }}
+      />
+      <Tabs.Screen
+        name="inactive-users/index"
+        options={{
+          title: 'Inactive',
+          tabBarIcon: ({ color }) => <TabIcon label="Inactive" color={color} />,
+          tabBarItemStyle: showInactive ? undefined : { display: 'none' },
+          tabBarButton: showInactive ? undefined : () => null,
         }}
       />
       {/* Legacy admin tab — hidden for all, kept to avoid routing errors */}
