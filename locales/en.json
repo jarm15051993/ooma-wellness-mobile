@@ -484,9 +484,22 @@
       "removed": "No longer a Student",
       "onlyRegularUsers": "Student status can only be set on regular users."
     },
+    "singleClasses": {
+      "title": "SINGLE CLASSES",
+      "statusBooked": "Booked",
+      "statusAttended": "Attended",
+      "statusExpired": "Expired",
+      "empty": "No single classes yet.",
+      "emptyPrompt": "Buy a single class to try us out.",
+      "seePlans": "SEE PLANS"
+    },
+    "payment": {
+      "noCardHint": "The card used to pay your subscription will appear here."
+    },
     "subscriptions": {
       "title": "MY SUBSCRIPTIONS",
       "empty": "No active subscriptions.",
+      "seePlans": "SEE PLANS",
       "statusActive": "ACTIVE",
       "statusCancelling": "CANCELLING",
       "statusPastDue": "PAST DUE",

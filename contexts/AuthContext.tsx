@@ -31,9 +31,15 @@ export type AppSettings = {
 export type StandaloneCredit = {
   id: string
   creditsRemaining: number
+  creditsTotal: number
   isUnlimited: boolean
   expiresAt: string | null
+  stripePaymentId: string | null
   package: { name: string; packageType: 'REFORMER' | 'YOGA' | 'BOTH' } | null
+  bookings: Array<{
+    attendedAt: string | null
+    class: { title: string; startTime: string; classType: string }
+  }>
 }
 
 export type Subscription = {

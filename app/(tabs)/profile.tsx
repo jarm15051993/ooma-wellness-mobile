@@ -73,6 +73,13 @@ function serializeConditions(selected: string[], other: string): string | null {
   return parts.join(', ') || null
 }
 
+function getSingleClassStatus(credit: import('@/contexts/AuthContext').StandaloneCredit): 'active' | 'booked' | 'attended' | 'expired' {
+  if (credit.expiresAt && new Date(credit.expiresAt) < new Date() && credit.creditsRemaining > 0) return 'expired'
+  const booking = credit.bookings?.[0]
+  if (booking) return booking.attendedAt ? 'attended' : 'booked'
+  return 'active'
+}
+
 function PackageCard({ pkg, muted }: { pkg: UserPackage; muted: boolean }) {
   const { t } = useTranslation()
 
@@ -422,9 +429,12 @@ export default function ProfileScreen() {
           {
             id: uc.id,
             creditsRemaining: uc.creditsRemaining,
+            creditsTotal: uc.creditsTotal ?? uc.creditsRemaining,
             isUnlimited: uc.isUnlimited,
             expiresAt: uc.expiresAt,
+            stripePaymentId: uc.stripePaymentId ?? null,
             package: uc.package ?? null,
+            bookings: [],
           },
         ])
       }
@@ -927,18 +937,23 @@ export default function ProfileScreen() {
 
             {loadingSubscriptions ? (
               <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
-            ) : subscriptions.length === 0 && standaloneCredits.length === 0 ? (
-              <Text style={styles.emptyPackagesText}>{t('profile.subscriptions.empty')}</Text>
+            ) : subscriptions.length === 0 ? (
+              <View>
+                <Text style={styles.emptyPackagesText}>{t('profile.subscriptions.empty')}</Text>
+                <TouchableOpacity style={styles.seePlansBtn} onPress={() => router.push('/(tabs)/packages')}>
+                  <Text style={styles.seePlansBtnText}>{t('profile.subscriptions.seePlans')}</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <>
-                {/* Total classes remaining across subscriptions + standalone credits */}
+                {/* Total classes remaining across subscriptions */}
                 <View style={styles.totalClassesRow}>
                   <Text style={styles.totalClassesNumber}>
                     {subscriptions.reduce((sum, sub) => {
                       const credit = sub.credits?.[0]
                       if (credit?.isUnlimited) return sum
                       return sum + (credit?.creditsRemaining ?? sub.package.classCount)
-                    }, 0) + standaloneCredits.reduce((sum, c) => sum + (c.isUnlimited ? 0 : c.creditsRemaining), 0)}
+                    }, 0)}
                   </Text>
                   <Text style={styles.totalClassesLabel}>{t('profile.subscriptions.classesRemaining')}</Text>
                 </View>
@@ -1040,41 +1055,79 @@ export default function ProfileScreen() {
                   )
                 })}
 
-                {standaloneCredits.map(credit => (
-                  <View key={credit.id} style={styles.subCard}>
-                    <View style={styles.subCardTop}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.subName}>{credit.package?.name ?? t('profile.subscriptions.giftClass')}</Text>
-                        <Text style={styles.subMeta}>
-                          {credit.package?.packageType === 'REFORMER'
-                            ? t('classes.typeReformer')
-                            : credit.package?.packageType === 'YOGA'
-                            ? t('classes.typeYoga')
-                            : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`}
-                        </Text>
-                      </View>
-                      <View style={styles.subStatusBadge}>
-                        <Text style={styles.subStatusText}>{t('profile.subscriptions.statusActive')}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.subCredits}>
-                      {t('profile.subscriptions.creditsLeft', { remaining: credit.creditsRemaining, total: credit.creditsRemaining })}
-                    </Text>
-                    {credit.expiresAt && (
-                      <Text style={styles.subRenewal}>
-                        {t('profile.subscriptions.expiresOn', { date: format(new Date(credit.expiresAt), 'MMM d, yyyy') })}
-                      </Text>
-                    )}
-                  </View>
-                ))}
               </>
             )}
           </View>
         )}
 
 
-        {/* Payment Method — shown when user has active recurring subscriptions */}
-        {(!isStaff || !!tenantUser) && subscriptions.some(s => s.status === 'ACTIVE' || s.status === 'PAST_DUE') && (
+        {/* Single Classes — all single-class credits for this user */}
+        {(!isStaff || !!tenantUser) && (
+          <View style={styles.packagesSection}>
+            <Text style={styles.sectionLabel}>{t('profile.singleClasses.title')}</Text>
+            <View style={styles.creditsDivider} />
+
+            {loadingSubscriptions ? (
+              <ActivityIndicator size="small" color={C.burg} style={{ marginVertical: 16 }} />
+            ) : standaloneCredits.length === 0 ? (
+              <View>
+                <Text style={styles.emptyPackagesText}>{t('profile.singleClasses.empty')}</Text>
+                <Text style={[styles.emptyPackagesText, { marginBottom: 12 }]}>{t('profile.singleClasses.emptyPrompt')}</Text>
+                <TouchableOpacity style={styles.seePlansBtn} onPress={() => router.push('/(tabs)/packages')}>
+                  <Text style={styles.seePlansBtnText}>{t('profile.singleClasses.seePlans')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              standaloneCredits.map(credit => {
+                const status = getSingleClassStatus(credit)
+                const name = credit.package?.name ?? t('profile.subscriptions.giftClass')
+                const typeLabel = credit.package?.packageType === 'REFORMER'
+                  ? t('classes.typeReformer')
+                  : credit.package?.packageType === 'YOGA'
+                  ? t('classes.typeYoga')
+                  : `${t('classes.typeReformer')} + ${t('classes.typeYoga')}`
+                const booking = credit.bookings?.[0]
+                const statusLabel = status === 'active'
+                  ? t('profile.subscriptions.statusActive')
+                  : status === 'booked'
+                  ? t('profile.singleClasses.statusBooked')
+                  : status === 'attended'
+                  ? t('profile.singleClasses.statusAttended')
+                  : t('profile.singleClasses.statusExpired')
+                const statusColor = status === 'active' ? C.green
+                  : status === 'booked' ? '#856404'
+                  : status === 'attended' ? C.burg
+                  : C.midGray
+                return (
+                  <View key={credit.id} style={styles.subCard}>
+                    <View style={styles.subCardTop}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.subName}>{name}</Text>
+                        <Text style={styles.subMeta}>{typeLabel}</Text>
+                      </View>
+                      <View style={styles.subStatusBadge}>
+                        <Text style={[styles.subStatusText, { color: statusColor }]}>{statusLabel.toUpperCase()}</Text>
+                      </View>
+                    </View>
+                    {(status === 'booked' || status === 'attended') && booking && (
+                      <Text style={styles.subCredits}>
+                        {booking.class.title} · {format(new Date(booking.class.startTime), 'EEE d MMM, HH:mm')}
+                      </Text>
+                    )}
+                    {(status === 'active' || status === 'expired') && credit.expiresAt && (
+                      <Text style={styles.subRenewal}>
+                        {t('profile.subscriptions.expiresOn', { date: format(new Date(credit.expiresAt), 'MMM d, yyyy') })}
+                      </Text>
+                    )}
+                  </View>
+                )
+              })
+            )}
+          </View>
+        )}
+
+        {/* Payment Method — always shown for non-admin users */}
+        {(!isStaff || !!tenantUser) && (
           <View style={styles.paymentMethodSection}>
             <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
             <View style={styles.creditsDivider} />
@@ -1124,9 +1177,9 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               </>
             ) : (
-              <View style={styles.cardRow}>
-                <Text style={styles.cardExpiry}>No card on file</Text>
-                <TouchableOpacity style={styles.updateCardBtn} onPress={handleUpdateCard} disabled={updatingCard}>
+              <View style={{ marginTop: 8 }}>
+                <Text style={styles.noCardHint}>{t('profile.payment.noCardHint')}</Text>
+                <TouchableOpacity style={[styles.updateCardBtn, { marginTop: 14, alignSelf: 'flex-start' }]} onPress={handleUpdateCard} disabled={updatingCard}>
                   {updatingCard
                     ? <ActivityIndicator size="small" color={C.cream} />
                     : <Text style={styles.updateCardBtnText}>Add Card</Text>}
@@ -1810,7 +1863,13 @@ const styles = StyleSheet.create({
     fontFamily: F.sansReg, fontSize: 11, color: C.midGray,
     letterSpacing: 2, textTransform: 'uppercase', marginTop: 2,
   },
-  emptyPackagesText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 16 },
+  emptyPackagesText: { fontFamily: F.sansReg, fontSize: 13, color: C.midGray, marginBottom: 8 },
+  seePlansBtn: {
+    height: 44, backgroundColor: C.burg, borderRadius: 2,
+    alignItems: 'center', justifyContent: 'center', marginTop: 4, marginBottom: 8,
+  },
+  seePlansBtnText: { fontFamily: F.sansMed, fontSize: 11, color: C.cream, letterSpacing: 2, textTransform: 'uppercase' },
+  noCardHint: { fontFamily: F.sansReg, fontSize: 12, color: C.midGray, lineHeight: 18 },
   packageCard: {
     backgroundColor: C.cream, borderWidth: 1, borderColor: C.rule,
     borderRadius: 3, padding: 14, marginBottom: 10,
