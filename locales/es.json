@@ -484,9 +484,22 @@
       "removed": "Ya no es estudiante",
       "onlyRegularUsers": "El estado de estudiante solo se puede asignar a usuarios regulares."
     },
+    "singleClasses": {
+      "title": "CLASES SUELTAS",
+      "statusBooked": "Reservada",
+      "statusAttended": "Asistida",
+      "statusExpired": "Caducada",
+      "empty": "Sin clases sueltas aún.",
+      "emptyPrompt": "Compra una clase suelta para probarnos.",
+      "seePlans": "VER PLANES"
+    },
+    "payment": {
+      "noCardHint": "La tarjeta usada para pagar tu suscripción aparecerá aquí."
+    },
     "subscriptions": {
       "title": "MIS SUSCRIPCIONES",
       "empty": "No tienes suscripciones activas.",
+      "seePlans": "VER PLANES",
       "statusActive": "ACTIVA",
       "statusCancelling": "CANCELADA",
       "statusPastDue": "PAGO PENDIENTE",

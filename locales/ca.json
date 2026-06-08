@@ -484,9 +484,22 @@
       "removed": "Ja no és estudiant",
       "onlyRegularUsers": "L'estat d'estudiant només es pot assignar a usuaris regulars."
     },
+    "singleClasses": {
+      "title": "CLASSES SOLTES",
+      "statusBooked": "Reservada",
+      "statusAttended": "Assistida",
+      "statusExpired": "Caducada",
+      "empty": "Sense classes soltes encara.",
+      "emptyPrompt": "Compra una classe solta per provar-nos.",
+      "seePlans": "VEURE PLANS"
+    },
+    "payment": {
+      "noCardHint": "La targeta usada per pagar la teva subscripció apareixerà aquí."
+    },
     "subscriptions": {
       "title": "LES MEVES SUBSCRIPCIONS",
       "empty": "No tens subscripcions actives.",
+      "seePlans": "VEURE PLANS",
       "statusActive": "ACTIVA",
       "statusCancelling": "EN CANCEL·LACIÓ",
       "statusPastDue": "PAGAMENT PENDENT",
