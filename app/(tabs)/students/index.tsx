@@ -15,6 +15,7 @@ type SearchResult = {
   email: string
   phone: string
   onboardingCompleted: boolean
+  qrCode: string | null
 }
 
 export default function StudentsScreen() {
@@ -81,7 +82,7 @@ export default function StudentsScreen() {
       profilePicture: null,
       credits: 0,
       onboardingCompleted: selectedUser.onboardingCompleted,
-      qrCode: null,
+      qrCode: selectedUser.qrCode,
       isBeta: false,
       language: 'es' as const,
       isClubMember: false,

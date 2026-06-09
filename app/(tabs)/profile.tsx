@@ -171,7 +171,7 @@ export default function ProfileScreen() {
   const [cancelling, setCancelling] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [photoVersion, setPhotoVersion] = useState(Date.now())
-  const [qrCode, setQrCode] = useState<string | null>(user?.qrCode ?? null)
+  const [qrCode, setQrCode] = useState<string | null>(tenantUser?.qrCode ?? user?.qrCode ?? null)
   const [walletLoading, setWalletLoading] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
   const [showWalletSuccessModal, setShowWalletSuccessModal] = useState(false)
@@ -321,6 +321,10 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      if (tenantUser) {
+        setQrCode(tenantUser.qrCode ?? null)
+        return
+      }
       if (!user?.qrCode) {
         api.post('/api/user/generate-qr')
           .then(({ data }) => setQrCode(data.qrCode))
@@ -328,7 +332,7 @@ export default function ProfileScreen() {
       } else {
         setQrCode(user.qrCode)
       }
-    }, [user?.qrCode])
+    }, [tenantUser?.qrCode, user?.qrCode])
   )
 
   useFocusEffect(
@@ -1190,7 +1194,7 @@ export default function ProfileScreen() {
         )}
 
         {/* Class Pass / Wallet card */}
-        {!tenantUser && <View style={styles.passCard}>
+        {<View style={styles.passCard}>
           <Text style={styles.creditsCardLabel}>{t('profile.wallet.title')}</Text>
           <View style={styles.creditsDivider} />
 
@@ -1209,7 +1213,7 @@ export default function ProfileScreen() {
 
           <View style={[styles.creditsDivider, { marginTop: 16, alignSelf: 'stretch' }]} />
 
-          {Platform.OS === 'ios' && (
+          {!tenantUser && Platform.OS === 'ios' && (
             <TouchableOpacity
               style={[styles.walletBtn, walletLoading && styles.btnDisabled]}
               onPress={handleAddToAppleWallet}
@@ -1221,7 +1225,7 @@ export default function ProfileScreen() {
               }
             </TouchableOpacity>
           )}
-          {Platform.OS === 'android' && (
+          {!tenantUser && Platform.OS === 'android' && (
             <TouchableOpacity
               style={[styles.walletBtn, walletLoading && styles.btnDisabled]}
               onPress={handleAddToGoogleWallet}
