@@ -81,6 +81,7 @@ export default function ClassManageScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [selected, setSelected] = useState<Attendee | null>(null)
+  const [validating, setValidating] = useState(false)
 
   // Delete state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -114,6 +115,22 @@ export default function ClassManageScreen() {
       fetchAttendees()
     }, [classId])
   )
+
+  async function handleManualValidate() {
+    if (!selected || !cls) return
+    setValidating(true)
+    try {
+      await api.patch(`/api/admin/bookings/${selected.bookingId}/validate`, { classId: cls.id })
+      const updated: Attendee = { ...selected, status: 'attended' }
+      setAttendees(prev => prev.map(a => a.bookingId === selected.bookingId ? updated : a))
+      setSelected(updated)
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? 'Something went wrong'
+      Alert.alert('Error', msg)
+    } finally {
+      setValidating(false)
+    }
+  }
 
   async function handleDelete() {
     if (!cls) return
@@ -370,6 +387,32 @@ export default function ClassManageScreen() {
             <Text style={styles.sheetSubValue}>{selected.user.goals ?? 'Not provided'}</Text>
             <Text style={styles.sheetSubLabel}>Health Conditions</Text>
             <Text style={styles.sheetSubValue}>{selected.user.healthConditions ?? 'None noted'}</Text>
+            {selected.status === 'confirmed' && cls && (() => {
+              const now = new Date()
+              const windowOpen = new Date(new Date(cls.startTime).getTime() - 2 * 60 * 60 * 1000)
+              const windowClose = new Date(cls.endTime)
+              const isActive = now >= windowOpen && now <= windowClose
+              return (
+                <TouchableOpacity
+                  style={[styles.validateBtn, !isActive && styles.validateBtnDisabled]}
+                  disabled={!isActive || validating}
+                  onPress={() => {
+                    Alert.alert(
+                      'Mark as attended?',
+                      `Mark ${selected.user.fullName} as attended?`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Confirm', onPress: handleManualValidate },
+                      ]
+                    )
+                  }}
+                >
+                  <Text style={[styles.validateBtnText, !isActive && styles.validateBtnTextDisabled]}>
+                    {validating ? 'Saving…' : 'MARK AS ATTENDED'}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })()}
             <TouchableOpacity style={styles.sheetClose} onPress={() => setSelected(null)}>
               <Text style={styles.sheetCloseText}>Close</Text>
             </TouchableOpacity>
@@ -700,6 +743,10 @@ const styles = StyleSheet.create({
   sheetSubValue: { fontFamily: F.sansReg, fontSize: 14, color: C.ink, marginBottom: 16 },
   sheetClose: { height: 44, borderWidth: 1, borderColor: C.rule, borderRadius: 2, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
   sheetCloseText: { fontFamily: F.sansMed, fontSize: 12, color: C.ink, letterSpacing: 1 },
+  validateBtn: { height: 44, backgroundColor: C.ink, borderRadius: 2, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  validateBtnDisabled: { backgroundColor: '#E5E7EB' },
+  validateBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.cream, letterSpacing: 1.5 },
+  validateBtnTextDisabled: { color: C.midGray },
 
   // Edit modal
   editSafe: { flex: 1, backgroundColor: C.cream },
