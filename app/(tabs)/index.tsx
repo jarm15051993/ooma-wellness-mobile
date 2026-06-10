@@ -38,6 +38,7 @@ type ClassItem = {
   availableSpots: number
   isFull: boolean
   isBooked: boolean
+  isCancelled: boolean
   userStretcherNumber: number | null
   instructor: string | null
   bookingId: string | null
@@ -87,6 +88,7 @@ function levelPillStyle(level: ClassItem['level']): { bg: string; text: string }
 }
 
 function AvailabilityBadge(item: ClassItem, t: (key: string, opts?: any) => string): { label: string; bg: string; text: string } {
+  if (item.isCancelled) return { label: 'Cancelled', bg: '#E5E7EB', text: '#6B7280' }
   if (item.isBooked) return { label: t('classes.booked', { number: item.userStretcherNumber }), bg: C.burgPale, text: C.burg }
   if (item.isFull) return { label: t('classes.classFull'), bg: '#FEE2E2', text: C.red }
   if (item.availableSpots <= 3) return { label: t('classes.spotsLeft', { count: item.availableSpots }), bg: '#FEF9C3', text: '#92400E' }
@@ -658,6 +660,11 @@ export default function ClassesScreen() {
                         onPress={() => router.push({ pathname: '/admin/class-manage', params: { classId: item.id } })}
                       >
                         <Text style={styles.bookBtnText}>MANAGE CLASS</Text>
+                      </TouchableOpacity>
+                    ) : item.isCancelled ? (
+                      // Class cancelled — no action available
+                      <TouchableOpacity style={[styles.bookBtn, styles.btnDisabled]} disabled>
+                        <Text style={styles.bookBtnText}>CANCELLED</Text>
                       </TouchableOpacity>
                     ) : item.isBooked ? (
                       // Booked → Cancel
