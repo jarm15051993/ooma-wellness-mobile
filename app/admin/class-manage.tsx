@@ -786,14 +786,13 @@ const styles = StyleSheet.create({
   cancelledBannerText: { fontFamily: F.sansMed, fontSize: 11, color: '#6B7280', letterSpacing: 1.5 },
   cancelClassBtn: {
     height: 44,
-    borderWidth: 1,
-    borderColor: C.wine,
+    backgroundColor: C.wine,
     borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  cancelClassBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.wine, letterSpacing: 1.5 },
+  cancelClassBtnText: { fontFamily: F.sansMed, fontSize: 12, color: '#fff', letterSpacing: 1.5 },
   cancelClassBtnFilled: {
     backgroundColor: C.wine,
     borderRadius: 4,
