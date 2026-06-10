@@ -17,6 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { format, addMinutes } from 'date-fns'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { api } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { C, F } from '@/constants/theme'
 
 type Attendee = {
@@ -42,6 +43,7 @@ type ClassInfo = {
   instructor: string | null
   classType: 'REFORMER' | 'YOGA'
   level: ClassLevel | null
+  status: string
 }
 
 type EditForm = {
@@ -75,6 +77,7 @@ export default function ClassManageScreen() {
   const { classId } = useLocalSearchParams<{ classId: string }>()
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { isOwner, canCancellClasses } = useAuth()
 
   const [cls, setCls] = useState<ClassInfo | null>(null)
   const [attendees, setAttendees] = useState<Attendee[]>([])
@@ -82,6 +85,10 @@ export default function ClassManageScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [selected, setSelected] = useState<Attendee | null>(null)
   const [validating, setValidating] = useState(false)
+
+  // Cancel class state
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
 
   // Delete state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -144,6 +151,22 @@ export default function ClassManageScreen() {
     } finally {
       setDeleting(false)
       setShowDeleteConfirm(false)
+    }
+  }
+
+  async function handleCancelClass() {
+    if (!cls) return
+    setCancelling(true)
+    try {
+      await api.patch(`/api/admin/classes/${cls.id}/cancel`)
+      setCls({ ...cls, status: 'cancelled' })
+      setAttendees([])
+      setShowCancelConfirm(false)
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? 'Something went wrong'
+      Alert.alert('Error', msg)
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -264,10 +287,12 @@ export default function ClassManageScreen() {
                 })()}
               </View>
               <View style={styles.headerActions}>
-                <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
-                  <Text style={styles.editBtnText}>EDIT</Text>
-                </TouchableOpacity>
-                {!hasEnrolled && (
+                {cls.status !== 'cancelled' && (
+                  <TouchableOpacity style={styles.editBtn} onPress={openEdit}>
+                    <Text style={styles.editBtnText}>EDIT</Text>
+                  </TouchableOpacity>
+                )}
+                {!hasEnrolled && cls.status !== 'cancelled' && (
                   <TouchableOpacity style={styles.deleteBtn} onPress={() => setShowDeleteConfirm(true)}>
                     <Text style={styles.deleteBtnText}>DELETE</Text>
                   </TouchableOpacity>
@@ -277,10 +302,17 @@ export default function ClassManageScreen() {
           </View>
         )}
 
+        {/* Cancelled banner */}
+        {cls?.status === 'cancelled' && (
+          <View style={styles.cancelledBanner}>
+            <Text style={styles.cancelledBannerText}>THIS CLASS HAS BEEN CANCELLED</Text>
+          </View>
+        )}
+
         {/* Attendee list */}
         {attendees.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No bookings for this class yet.</Text>
+            <Text style={styles.emptyText}>{cls?.status === 'cancelled' ? 'All bookings have been cancelled.' : 'No bookings for this class yet.'}</Text>
           </View>
         ) : (
           <View style={styles.list}>
@@ -314,50 +346,49 @@ export default function ClassManageScreen() {
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      {/* Scan QR button */}
-      {cls && (() => {
+      {/* Fixed bottom buttons */}
+      {cls && cls.status !== 'cancelled' && (() => {
         const now = new Date()
         const start = new Date(cls.startTime)
         const end   = new Date(cls.endTime)
         const windowOpen = new Date(start.getTime() - 2 * 60 * 60 * 1000)
         const isActive  = now >= windowOpen && now <= end
         const isEnded   = now > end
+        const canCancel = isOwner || canCancellClasses
 
-        if (isEnded) {
-          return (
-            <View style={styles.fixedBottom}>
+        return (
+          <View style={styles.fixedBottom}>
+            {canCancel && (
+              <TouchableOpacity
+                style={styles.cancelClassBtn}
+                onPress={() => setShowCancelConfirm(true)}
+              >
+                <Text style={styles.cancelClassBtnText}>CANCEL CLASS</Text>
+              </TouchableOpacity>
+            )}
+            {isEnded ? (
               <View style={[styles.scanBtn, styles.scanBtnDisabled]}>
                 <Text style={styles.scanBtnTextDisabled}>CLASS HAS ENDED</Text>
               </View>
-            </View>
-          )
-        }
-
-        if (!isActive) {
-          return (
-            <View style={styles.fixedBottom}>
+            ) : !isActive ? (
               <View style={[styles.scanBtn, styles.scanBtnDisabled]}>
                 <Text style={styles.scanBtnTextDisabled}>
                   VALIDATION OPENS AT {format(windowOpen, 'h:mm a')}
                 </Text>
               </View>
-            </View>
-          )
-        }
-
-        return (
-          <View style={styles.fixedBottom}>
-            <TouchableOpacity
-              style={styles.scanBtn}
-              onPress={() =>
-                router.push({
-                  pathname: '/admin/qr-scanner',
-                  params: { classId, attendees: JSON.stringify(attendees) },
-                })
-              }
-            >
-              <Text style={styles.scanBtnText}>SCAN QR TO VALIDATE</Text>
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.scanBtn}
+                onPress={() =>
+                  router.push({
+                    pathname: '/admin/qr-scanner',
+                    params: { classId, attendees: JSON.stringify(attendees) },
+                  })
+                }
+              >
+                <Text style={styles.scanBtnText}>SCAN QR TO VALIDATE</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )
       })()}
@@ -630,6 +661,27 @@ export default function ClassManageScreen() {
         </Modal>
       )}
 
+      {/* Cancel class confirmation modal */}
+      <Modal visible={showCancelConfirm} transparent animationType="fade">
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            <Text style={styles.confirmTitle}>Cancel this class?</Text>
+            <Text style={styles.confirmBody}>
+              Are you sure you want to cancel this class? This will reinstate the user's credits and send an email informing of the cancellation.
+            </Text>
+            <TouchableOpacity style={styles.cancelClassBtnFilled} onPress={handleCancelClass} disabled={cancelling}>
+              {cancelling
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.confirmBtnText}>Cancel class</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowCancelConfirm(false)} disabled={cancelling}>
+              <Text style={styles.confirmCancelText}>Keep class</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Delete confirmation modal */}
       <Modal visible={showDeleteConfirm} transparent animationType="fade">
         <View style={styles.confirmOverlay}>
@@ -721,6 +773,34 @@ const styles = StyleSheet.create({
   statusText: { fontFamily: F.sansMed, fontSize: 10, letterSpacing: 0.5 },
   statusTextConfirmed: { color: C.midGray },
   statusTextAttended: { color: '#15803D' },
+  cancelledBanner: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  cancelledBannerText: { fontFamily: F.sansMed, fontSize: 11, color: '#6B7280', letterSpacing: 1.5 },
+  cancelClassBtn: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: C.burg,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  cancelClassBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, letterSpacing: 1.5 },
+  cancelClassBtnFilled: {
+    backgroundColor: C.burg,
+    borderRadius: 4,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   fixedBottom: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
