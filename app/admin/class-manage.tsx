@@ -787,15 +787,15 @@ const styles = StyleSheet.create({
   cancelClassBtn: {
     height: 44,
     borderWidth: 1,
-    borderColor: C.burg,
+    borderColor: C.wine,
     borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  cancelClassBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.burg, letterSpacing: 1.5 },
+  cancelClassBtnText: { fontFamily: F.sansMed, fontSize: 12, color: C.wine, letterSpacing: 1.5 },
   cancelClassBtnFilled: {
-    backgroundColor: C.burg,
+    backgroundColor: C.wine,
     borderRadius: 4,
     paddingVertical: 14,
     alignItems: 'center',
